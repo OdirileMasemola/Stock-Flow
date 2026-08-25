@@ -6,8 +6,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.AppBarLayout
 import com.example.stockflow.R
 import com.example.stockflow.databinding.ActivityLoginBinding
+import kotlin.math.abs
 
 class LoginActivity : AppCompatActivity() {
 
@@ -21,7 +23,27 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupListeners()
+        setupHeaderAnimation()
         observeViewModel()
+    }
+
+    private fun setupHeaderAnimation() {
+        binding.appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val totalScrollRange = appBarLayout.totalScrollRange
+            if (totalScrollRange == 0) return@OnOffsetChangedListener
+            
+            val percentage = abs(verticalOffset).toFloat() / totalScrollRange.toFloat()
+            
+            // Fade out tagline
+            binding.tagline.alpha = 1f - (percentage * 2f).coerceIn(0f, 1f)
+            
+            // Scale down logo
+            val scale = 1f - (percentage * 0.4f).coerceIn(0f, 0.4f)
+            binding.logoImage.scaleX = scale
+            binding.logoImage.scaleY = scale
+            
+            // Move logo/text up slightly if needed, but parallax handles most of it
+        })
     }
 
     private fun setupListeners() {
