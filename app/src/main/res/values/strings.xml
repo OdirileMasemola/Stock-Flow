@@ -14,4 +14,15 @@
     <string name="continue_with_google">Continue with Google</string>
     <string name="new_to_spaza">New to SpazaStock? </string>
     <string name="create_account">Create Account</string>
+
+    <!-- Sign Up Screen -->
+    <string name="label_full_name">Full Name</string>
+    <string name="hint_full_name">John Doe</string>
+    <string name="label_phone_number">Phone Number</string>
+    <string name="hint_phone_number">+27 82 123 4567</string>
+    <string name="label_email_address">Email Address</string>
+    <string name="hint_email_address">john@example.com</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="signup_subtitle">Join SpazaStock to level up your store</string>
+    <string name="already_have_account">Already have an account? </string>
 </resources>
