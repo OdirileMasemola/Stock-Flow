@@ -5,11 +5,11 @@ name: StockFlow CI
 on:
   push:
     branches:
-      - main
+      - master
 
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-test:
