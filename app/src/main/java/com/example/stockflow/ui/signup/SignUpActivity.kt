@@ -1,4 +1,4 @@
-package com.example.stockflow.ui.login
+package com.example.stockflow.ui.signup
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,20 +7,23 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.example.stockflow.databinding.ActivityLoginBinding
-import com.example.stockflow.ui.signup.SignUpActivity
+import com.example.stockflow.R
+import com.example.stockflow.databinding.ActivitySignupBinding
+import com.example.stockflow.ui.login.LoginActivity
 import com.google.android.material.appbar.AppBarLayout
 import kotlin.math.abs
 
-class LoginActivity : AppCompatActivity() {
+class SignUpActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityLoginBinding
-    private val viewModel: LoginViewModel by viewModels()
+    private lateinit var binding: ActivitySignupBinding
+    private val viewModel: SignUpViewModel by viewModels()
+    
     private var isPasswordVisible = false
+    private var isConfirmPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
+        binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupListeners()
@@ -35,35 +38,35 @@ class LoginActivity : AppCompatActivity() {
             
             val percentage = abs(verticalOffset).toFloat() / totalScrollRange.toFloat()
             
-            // Fade out tagline
             binding.tagline.alpha = 1f - (percentage * 2f).coerceIn(0f, 1f)
             
-            // Scale down logo
             val scale = 1f - (percentage * 0.4f).coerceIn(0f, 0.4f)
             binding.logoImage.scaleX = scale
             binding.logoImage.scaleY = scale
-            
-            // Move logo/text up slightly if needed, but parallax handles most of it
         })
     }
 
     private fun setupListeners() {
-        binding.btnLogin.setOnClickListener {
+        binding.btnSignUp.setOnClickListener {
+            val name = binding.etFullName.text.toString().trim()
+            val phone = binding.etPhone.text.toString().trim()
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
-            viewModel.login(email, password)
+            val confirmPass = binding.etConfirmPassword.text.toString().trim()
+            
+            viewModel.signUp(name, phone, email, password, confirmPass)
         }
 
         binding.ivPasswordToggle.setOnClickListener {
             togglePasswordVisibility()
         }
 
-        binding.tvForgotPassword.setOnClickListener {
-            Toast.makeText(this, "Forgot Password clicked", Toast.LENGTH_SHORT).show()
+        binding.ivConfirmPasswordToggle.setOnClickListener {
+            toggleConfirmPasswordVisibility()
         }
 
-        binding.tvCreateAccount.setOnClickListener {
-            startActivity(Intent(this, SignUpActivity::class.java))
+        binding.tvLogin.setOnClickListener {
+            finish() // Go back to Login
         }
 
         binding.btnGoogle.setOnClickListener {
@@ -73,26 +76,34 @@ class LoginActivity : AppCompatActivity() {
 
     private fun togglePasswordVisibility() {
         isPasswordVisible = !isPasswordVisible
-        if (isPasswordVisible) {
-            binding.etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        binding.etPassword.inputType = if (isPasswordVisible) {
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
         } else {
-            binding.etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
         binding.etPassword.setSelection(binding.etPassword.text.length)
     }
 
+    private fun toggleConfirmPasswordVisibility() {
+        isConfirmPasswordVisible = !isConfirmPasswordVisible
+        binding.etConfirmPassword.inputType = if (isConfirmPasswordVisible) {
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        } else {
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        binding.etConfirmPassword.setSelection(binding.etConfirmPassword.text.length)
+    }
+
     private fun observeViewModel() {
-        viewModel.loginState.observe(this) { state ->
+        viewModel.signUpState.observe(this) { state ->
             when (state) {
-                is LoginViewModel.LoginState.Loading -> {
-                    showLoading(true)
-                }
-                is LoginViewModel.LoginState.Success -> {
+                is SignUpViewModel.SignUpState.Loading -> showLoading(true)
+                is SignUpViewModel.SignUpState.Success -> {
                     showLoading(false)
-                    Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                    // Navigate to Dashboard (TBD)
+                    Toast.makeText(this, "Account Created Successfully!", Toast.LENGTH_SHORT).show()
+                    finish() // Return to login
                 }
-                is LoginViewModel.LoginState.Error -> {
+                is SignUpViewModel.SignUpState.Error -> {
                     showLoading(false)
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                 }
@@ -102,6 +113,6 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        binding.btnLogin.isEnabled = !isLoading
+        binding.btnSignUp.isEnabled = !isLoading
     }
 }
