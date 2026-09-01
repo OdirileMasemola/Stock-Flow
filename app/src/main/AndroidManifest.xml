@@ -27,8 +27,24 @@
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />
         <activity
-            android:name=".ui.dashboard.DashboardActivity"
+            android:name=".MainActivity"
             android:exported="true"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.inventory.AddProductActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.suppliers.PurchaseOrderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.dashboard.LowStockActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.dashboard.ReportsActivity"
+            android:exported="false"
             android:theme="@style/Theme.StockFlow" />
     </application>
 
