@@ -25,4 +25,28 @@
     <string name="label_confirm_password">Confirm Password</string>
     <string name="signup_subtitle">Join SpazaStock to level up your store</string>
     <string name="already_have_account">Already have an account? </string>
+
+    <!-- Dashboard -->
+    <string name="good_morning">Good Morning,</string>
+    <string name="user_name">Thabo</string>
+    <string name="today_sales_label">Today\'s Sales</string>
+    <string name="monthly_sales_label">Monthly Sales</string>
+    <string name="total_products_label">Total Products</string>
+    <string name="low_stock_label">Low Stock</string>
+    <string name="quick_actions_title">Quick Actions</string>
+    <string name="add_product_action">+ Product</string>
+    <string name="new_sale_action">New Sale</string>
+    <string name="supplier_action">Supplier</string>
+    <string name="reports_action">Reports</string>
+    <string name="weekly_performance_title">Weekly Performance</string>
+    <string name="avg_performance_label">R12,320 Avg</string>
+    <string name="recent_sales_title">Recent Sales</string>
+    <string name="best_selling_title">Best Selling Items</string>
+
+    <!-- Bottom Nav Labels -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_inventory">Inventory</string>
+    <string name="nav_sales">Sales</string>
+    <string name="nav_suppliers">Suppliers</string>
+    <string name="nav_more">More</string>
 </resources>

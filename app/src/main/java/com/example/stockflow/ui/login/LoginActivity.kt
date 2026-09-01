@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.stockflow.databinding.ActivityLoginBinding
+import com.example.stockflow.ui.dashboard.DashboardActivity
 import com.example.stockflow.ui.signup.SignUpActivity
 import com.google.android.material.appbar.AppBarLayout
 import kotlin.math.abs
@@ -90,7 +91,8 @@ class LoginActivity : AppCompatActivity() {
                 is LoginViewModel.LoginState.Success -> {
                     showLoading(false)
                     Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                    // Navigate to Dashboard (TBD)
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                    finish()
                 }
                 is LoginViewModel.LoginState.Error -> {
                     showLoading(false)
