@@ -26,6 +26,10 @@
             android:name=".ui.signup.SignUpActivity"
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.dashboard.DashboardActivity"
+            android:exported="true"
+            android:theme="@style/Theme.StockFlow" />
     </application>
 
 </manifest>
