@@ -12,12 +12,8 @@ fun main() {
 }
 
 fun Application.module() {
-    // Initialize Database
-    try {
-        DatabaseFactory.init()
-    } catch (e: Exception) {
-        log.error("Failed to connect to database. Continuing without DB for now.", e)
-    }
+    // Initialize Database (Fail fast if it fails)
+    DatabaseFactory.init()
     
     // Configure Plugins
     configureSerialization()
