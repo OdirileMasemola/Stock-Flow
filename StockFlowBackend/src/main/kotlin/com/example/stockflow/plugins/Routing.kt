@@ -4,7 +4,9 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.http.*
+import io.ktor.server.request.*
 import com.example.stockflow.services.UserService
+import com.example.stockflow.models.RegisterRequest
 
 fun Application.configureRouting() {
     val userService = UserService()
@@ -19,6 +21,15 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(mapOf("status" to "up"))
         }
+
+        route("/api/auth") {
+            post("/register") {
+                val request = call.receive<RegisterRequest>()
+                val response = userService.registerUser(request)
+                call.respond(HttpStatusCode.Created, response)
+            }
+        }
+
         get("/users/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
             if (id == null) {
