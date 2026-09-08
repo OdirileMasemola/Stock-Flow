@@ -1,1 +1,34 @@
-/StockFlowBackend/.env.example
+# IDE
+.idea/
+*.iml
+.idea_modules/
+
+# Gradle
+.gradle/
+/build/
+/*/build/
+
+# Local configuration / secrets
+local.properties
+.env
+.env.*
+*.env
+.env.local
+**/.env.local
+
+# Android
+capture/
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+
+# Logs
+*.log
+
+# Misc
+.DS_Store
+Thumbs.db
+
