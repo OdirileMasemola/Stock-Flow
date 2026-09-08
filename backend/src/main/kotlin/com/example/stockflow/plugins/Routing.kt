@@ -6,6 +6,7 @@ import io.ktor.server.routing.*
 import io.ktor.http.*
 import io.ktor.server.request.*
 import com.example.stockflow.services.UserService
+import com.example.stockflow.services.RoleService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import io.ktor.server.auth.*
@@ -13,6 +14,7 @@ import io.ktor.server.auth.jwt.*
 
 fun Application.configureRouting() {
     val userService = UserService()
+    val roleService = RoleService()
 
     routing {
         get("/") {
@@ -23,6 +25,10 @@ fun Application.configureRouting() {
         }
         get("/health") {
             call.respond(mapOf("status" to "up"))
+        }
+
+        get("/api/roles") {
+            call.respond(roleService.listRoles())
         }
 
         route("/api/auth") {

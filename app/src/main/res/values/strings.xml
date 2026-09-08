@@ -23,6 +23,8 @@
     <string name="label_email_address">Email Address</string>
     <string name="hint_email_address">john@example.com</string>
     <string name="label_confirm_password">Confirm Password</string>
+    <string name="label_role">Role</string>
+    <string name="hint_role">Select a role</string>
     <string name="signup_subtitle">Join SpazaStock to level up your store</string>
     <string name="already_have_account">Already have an account? </string>
 
