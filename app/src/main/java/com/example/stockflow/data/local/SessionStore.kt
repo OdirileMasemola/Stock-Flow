@@ -12,8 +12,23 @@ class SessionStore(context: Context) {
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
+    /** True when a StockFlow JWT is stored locally. */
+    fun hasValidSession(): Boolean = !getToken().isNullOrBlank()
+
+    /**
+     * First-launch welcome flag.
+     * Defaults to false so Get Started shows on a fresh install / cleared app data.
+     */
+    fun hasSeenGetStarted(): Boolean =
+        prefs.getBoolean(KEY_HAS_SEEN_GET_STARTED, false)
+
+    fun markGetStartedSeen() {
+        prefs.edit().putBoolean(KEY_HAS_SEEN_GET_STARTED, true).apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "stockflow_session"
         private const val KEY_TOKEN = "jwt_token"
+        private const val KEY_HAS_SEEN_GET_STARTED = "has_seen_get_started"
     }
 }

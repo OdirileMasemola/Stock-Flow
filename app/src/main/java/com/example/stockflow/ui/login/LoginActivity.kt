@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stockflow.databinding.ActivityLoginBinding
 import com.example.stockflow.MainActivity
 import com.example.stockflow.data.auth.GoogleAuthClient
+import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.ui.common.SystemBars
 import com.example.stockflow.ui.signup.SignUpActivity
 import com.google.android.material.appbar.AppBarLayout
@@ -25,6 +26,14 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // If a session already exists, skip login and open the dashboard.
+        if (SessionStore(this).hasValidSession()) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         SystemBars.apply(this, binding.root)
