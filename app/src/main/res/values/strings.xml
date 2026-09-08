@@ -32,6 +32,12 @@
     <string name="signup_subtitle">Join StockFlow to level up your store</string>
     <string name="already_have_account">Already have an account? </string>
 
+    <!-- Get Started -->
+    <string name="get_started_title">Welcome to StockFlow</string>
+    <string name="get_started_subtitle">Manage your stock, sales and suppliers all in one place.</string>
+    <string name="get_started_body">StockFlow helps shop owners keep track of products, monitor low stock, record sales and manage suppliers — so your store stays organised and ready for every customer.</string>
+    <string name="lets_get_started">Let\'s Get Started</string>
+
     <!-- Dashboard -->
     <string name="good_morning">Good Morning,</string>
     <string name="user_name">Thabo</string>
