@@ -9,6 +9,7 @@ import com.example.stockflow.services.UserService
 import com.example.stockflow.services.RoleService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
+import com.example.stockflow.models.GoogleAuthRequest
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 
@@ -40,6 +41,11 @@ fun Application.configureRouting() {
             post("/login") {
                 val request = call.receive<LoginRequest>()
                 val response = userService.authenticateUser(request)
+                call.respond(HttpStatusCode.OK, response)
+            }
+            post("/google") {
+                val request = call.receive<GoogleAuthRequest>()
+                val response = userService.authenticateWithGoogle(request)
                 call.respond(HttpStatusCode.OK, response)
             }
             

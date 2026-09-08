@@ -17,10 +17,12 @@ fun Application.configureStatusPages() {
             call.respond(HttpStatusCode.Conflict, mapOf("error" to cause.message))
         }
         exception<UnauthorizedException> { call, cause ->
-            call.respond(HttpStatusCode.Unauthorized, mapOf("error" to cause.message))
+            val body = mutableMapOf("error" to (cause.message ?: "Unauthorized"))
+            cause.code?.let { body["code"] = it }
+            call.respond(HttpStatusCode.Unauthorized, body)
         }
         exception<Throwable> { call, cause ->
-            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to (cause.message ?: "Unknown error")))
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "An unexpected error occurred"))
         }
     }
 }

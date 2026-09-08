@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.repository.AuthRepository
+import com.example.stockflow.data.repository.GoogleAuthOutcome
 import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
@@ -36,6 +37,30 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 _loginState.postValue(LoginState.Success)
             } else {
                 _loginState.postValue(LoginState.Error(result.exceptionOrNull()?.message ?: "Login failed"))
+            }
+        }
+    }
+
+    fun loginWithGoogle(idToken: String) {
+        if (_loginState.value is LoginState.Loading) {
+            return
+        }
+
+        _loginState.value = LoginState.Loading
+        viewModelScope.launch {
+            val result = repository.authenticateWithGoogle(idToken)
+            if (result.isSuccess) {
+                when (result.getOrNull()) {
+                    GoogleAuthOutcome.Authenticated -> _loginState.postValue(LoginState.Success)
+                    GoogleAuthOutcome.AccountNotFound -> _loginState.postValue(
+                        LoginState.Error("No StockFlow account was found for this Google account. Please sign up first.")
+                    )
+                    null -> _loginState.postValue(LoginState.Error("Login failed"))
+                }
+            } else {
+                _loginState.postValue(
+                    LoginState.Error(result.exceptionOrNull()?.message ?: "Login failed")
+                )
             }
         }
     }

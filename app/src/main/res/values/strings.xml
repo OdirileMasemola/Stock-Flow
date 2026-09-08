@@ -12,6 +12,10 @@
     <string name="login">Login</string>
     <string name="or">or</string>
     <string name="continue_with_google">Continue with Google</string>
+    <string name="choose_your_role">Choose your role</string>
+    <string name="choose_your_role_subtitle">Select the StockFlow role for this account.</string>
+    <string name="continue_label">Continue</string>
+    <string name="google_web_client_id" translatable="false"></string>
     <string name="new_to_spaza">New to SpazaStock? </string>
     <string name="create_account">Create Account</string>
 

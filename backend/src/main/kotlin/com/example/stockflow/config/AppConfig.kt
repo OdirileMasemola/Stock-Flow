@@ -34,6 +34,8 @@ object AppConfig {
     val jwtAudience = getEnv("JWT_AUDIENCE") ?: "stockflow-users"
     val jwtExpiration = getEnv("JWT_EXPIRATION")?.toLong() ?: 3600000L // Default 1 hour in ms
 
+    val firebaseCredentialsPath = getEnv("FIREBASE_CREDENTIALS_PATH")
+
     private fun getEnv(key: String): String? {
         return System.getenv(key) ?: dotenv.get(key)
     }

@@ -6,10 +6,15 @@ import com.example.stockflow.repositories.UserRepositoryImpl
 import com.example.stockflow.config.AppConfig
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.mindrot.jbcrypt.BCrypt
 import java.util.*
 
-class UserService(private val repository: UserRepository = UserRepositoryImpl()) {
+class UserService(
+    private val repository: UserRepository = UserRepositoryImpl(),
+    private val firebaseTokenVerifier: FirebaseTokenVerifier = FirebaseTokenVerifier()
+) {
     suspend fun getUser(id: Int): User? {
         return repository.findUserById(id)
     }
@@ -24,7 +29,7 @@ class UserService(private val repository: UserRepository = UserRepositoryImpl())
 
         val (user, passwordHash) = userPair
 
-        if (!BCrypt.checkpw(request.password, passwordHash)) {
+        if (passwordHash.isNullOrBlank() || !BCrypt.checkpw(request.password, passwordHash)) {
             throw UnauthorizedException("Invalid username/email or password")
         }
 
@@ -69,6 +74,57 @@ class UserService(private val repository: UserRepository = UserRepositoryImpl())
             fullName = user.fullName,
             roleId = user.roleId!!
         )
+    }
+
+    suspend fun authenticateWithGoogle(request: GoogleAuthRequest): LoginResponse {
+        val verified = withContext(Dispatchers.IO) {
+            firebaseTokenVerifier.verifyIdToken(request.idToken)
+        }
+
+        val existingByUid = repository.findByFirebaseUid(verified.uid)
+        if (existingByUid != null) {
+            return LoginResponse(generateToken(existingByUid), existingByUid)
+        }
+
+        val existingByEmail = repository.findByEmail(verified.email)
+        if (existingByEmail != null) {
+            throw ConflictException("An account with this email already exists. Please log in with your password.")
+        }
+
+        val roleId = request.roleId
+            ?: throw UnauthorizedException(
+                "No StockFlow account was found for this Google account. Please sign up first.",
+                code = "ACCOUNT_NOT_FOUND"
+            )
+
+        if (!repository.roleExists(roleId)) {
+            throw BadRequestException("Invalid role ID")
+        }
+
+        val username = uniqueUsername(verified.email, verified.uid)
+        val user = repository.createGoogleUser(
+            username = username,
+            email = verified.email,
+            fullName = verified.displayName,
+            firebaseUid = verified.uid,
+            roleId = roleId
+        )
+
+        return LoginResponse(generateToken(user), user)
+    }
+
+    private suspend fun uniqueUsername(email: String, firebaseUid: String): String {
+        val base = email.substringBefore("@")
+            .replace(Regex("[^A-Za-z0-9_]"), "_")
+            .take(32)
+            .ifBlank { "user_${firebaseUid.take(8)}" }
+
+        if (repository.findByUsername(base) == null) {
+            return base
+        }
+
+        val suffix = firebaseUid.filter { it.isLetterOrDigit() }.take(8)
+        return "${base.take(40 - suffix.length - 1)}_$suffix"
     }
 
     private fun validateRegistrationRequest(request: RegisterRequest) {

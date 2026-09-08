@@ -7,10 +7,13 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.stockflow.databinding.ActivityLoginBinding
 import com.example.stockflow.MainActivity
+import com.example.stockflow.data.auth.GoogleAuthClient
 import com.example.stockflow.ui.signup.SignUpActivity
 import com.google.android.material.appbar.AppBarLayout
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class LoginActivity : AppCompatActivity() {
@@ -68,7 +71,21 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.btnGoogle.setOnClickListener {
-            Toast.makeText(this, "Google Sign-In clicked", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                showLoading(true)
+                val result = GoogleAuthClient(this@LoginActivity).signInWithGoogle()
+                result.fold(
+                    onSuccess = { idToken -> viewModel.loginWithGoogle(idToken) },
+                    onFailure = { error ->
+                        showLoading(false)
+                        Toast.makeText(
+                            this@LoginActivity,
+                            error.message ?: "Unable to complete Google Sign-In. Please try again.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            }
         }
     }
 
@@ -105,5 +122,6 @@ class LoginActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnLogin.isEnabled = !isLoading
+        binding.btnGoogle.isEnabled = !isLoading
     }
 }

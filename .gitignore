@@ -13,9 +13,12 @@
 local.properties
 .env
 .env.*
+!.env.example
 *.env
 .env.local
 **/.env.local
+firebase-service-account.json
+**/firebase-adminsdk*.json
 
 # Android
 capture/
