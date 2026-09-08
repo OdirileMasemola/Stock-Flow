@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher-only adaptive foreground. In-app screens use @drawable/stockflow_logo directly. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:width="72dp"
-        android:height="72dp"
+        android:width="52dp"
+        android:height="52dp"
         android:gravity="center"
         android:drawable="@drawable/stockflow_logo" />
 </layer-list>

@@ -35,7 +35,7 @@
             android:textSize="12sp"
             android:textStyle="bold"
             app:cornerRadius="6dp"
-            app:icon="@drawable/ic_phone"
+            app:icon="@drawable/ic_add"
             app:iconPadding="4dp"
             app:iconSize="14dp"
             app:iconTint="@color/brand_background"
@@ -61,7 +61,7 @@
         <ImageView
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:src="@drawable/ic_user"
+            android:src="@drawable/ic_search"
             app:tint="@color/brand_text_light" />
 
         <EditText
