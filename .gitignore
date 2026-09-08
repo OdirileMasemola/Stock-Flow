@@ -19,6 +19,8 @@ local.properties
 **/.env.local
 firebase-service-account.json
 **/firebase-adminsdk*.json
+app/google-services.json
+**/google-services.json
 
 # Android
 capture/
