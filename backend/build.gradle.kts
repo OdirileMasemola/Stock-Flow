@@ -6,9 +6,9 @@ val postgres_version: String by project
 val hikari_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm")
     id("io.ktor.plugin") version "3.0.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
+    kotlin("plugin.serialization")
 }
 
 group = "com.example"
@@ -16,10 +16,6 @@ version = "0.0.1"
 
 application {
     mainClass.set("com.example.stockflow.ApplicationKt")
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {

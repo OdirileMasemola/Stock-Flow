@@ -3,10 +3,24 @@ package com.example.stockflow.config
 import io.github.cdimascio.dotenv.dotenv
 
 object AppConfig {
-    private val dotenv = dotenv {
-        ignoreIfMissing = true
-        directory = "./"
-        filename = ".env.local"
+    private val dotenv = loadDotenv()
+
+    private fun loadDotenv(): io.github.cdimascio.dotenv.Dotenv {
+        val directories = listOf("./", "./backend", "../")
+        for (directory in directories) {
+            val loaded = dotenv {
+                ignoreIfMissing = true
+                this.directory = directory
+                filename = ".env.local"
+            }
+            if (!loaded["DB_PASSWORD"].isNullOrBlank()) {
+                return loaded
+            }
+        }
+        return dotenv {
+            ignoreIfMissing = true
+            filename = ".env.local"
+        }
     }
 
     val dbDriver = getEnv("DB_DRIVER") ?: "org.postgresql.Driver"
