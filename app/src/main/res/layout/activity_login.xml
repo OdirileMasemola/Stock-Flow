@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:paddingTop="48dp"
+                android:paddingTop="16dp"
                 android:paddingBottom="24dp"
                 app:layout_collapseMode="parallax">
 
@@ -297,7 +297,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/new_to_spaza"
+                        android:text="@string/new_to_stockflow"
                         android:textColor="@color/brand_text_light"
                         android:textSize="14sp" />
 

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.stockflow.databinding.ActivityMainBinding
+import com.example.stockflow.ui.common.SystemBars
 import com.example.stockflow.ui.dashboard.DashboardFragment
 import com.example.stockflow.ui.inventory.InventoryFragment
 import com.example.stockflow.ui.sales.SalesFragment
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        SystemBars.applyLight(this, binding.root)
 
         // Initial fragment
         if (savedInstanceState == null) {

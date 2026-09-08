@@ -16,7 +16,7 @@
     <string name="choose_your_role_subtitle">Select the StockFlow role for this account.</string>
     <string name="continue_label">Continue</string>
     <string name="google_web_client_id" translatable="false">664389052883-cqddukkpbu4tp5ffre0mh9l2hpegsek5.apps.googleusercontent.com</string>
-    <string name="new_to_spaza">New to SpazaStock? </string>
+    <string name="new_to_stockflow">New to StockFlow? </string>
     <string name="create_account">Create Account</string>
 
     <!-- Sign Up Screen -->
@@ -29,7 +29,7 @@
     <string name="label_confirm_password">Confirm Password</string>
     <string name="label_role">Role</string>
     <string name="hint_role">Select a role</string>
-    <string name="signup_subtitle">Join SpazaStock to level up your store</string>
+    <string name="signup_subtitle">Join StockFlow to level up your store</string>
     <string name="already_have_account">Already have an account? </string>
 
     <!-- Dashboard -->

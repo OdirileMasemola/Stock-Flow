@@ -18,6 +18,7 @@ import com.example.stockflow.R
 import com.example.stockflow.data.auth.GoogleAuthClient
 import com.example.stockflow.data.remote.RoleDto
 import com.example.stockflow.databinding.ActivitySignupBinding
+import com.example.stockflow.ui.common.SystemBars
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
@@ -31,11 +32,13 @@ class SignUpActivity : AppCompatActivity() {
     private var isPasswordVisible = false
     private var isConfirmPasswordVisible = false
     private var roles: List<RoleDto> = emptyList()
+    private var selectedRole: RoleDto? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        SystemBars.apply(this, binding.root)
 
         setupListeners()
         setupHeaderAnimation()
@@ -58,13 +61,20 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
+        binding.dropdownRole.setOnClickListener {
+            binding.dropdownRole.showDropDown()
+        }
+
+        binding.dropdownRole.setOnItemClickListener { _, _, position, _ ->
+            selectedRole = roles.getOrNull(position)
+        }
+
         binding.btnSignUp.setOnClickListener {
             val name = binding.etFullName.text.toString().trim()
             val phone = binding.etPhone.text.toString().trim()
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
             val confirmPass = binding.etConfirmPassword.text.toString().trim()
-            val selectedRole = binding.spinnerRole.selectedItem as? RoleDto
 
             viewModel.signUp(name, phone, email, password, confirmPass, selectedRole?.id)
         }
@@ -124,22 +134,24 @@ class SignUpActivity : AppCompatActivity() {
         viewModel.rolesState.observe(this) { state ->
             when (state) {
                 is SignUpViewModel.RolesState.Loading -> {
-                    binding.spinnerRole.isEnabled = false
+                    binding.dropdownRole.isEnabled = false
                     binding.btnSignUp.isEnabled = false
                 }
                 is SignUpViewModel.RolesState.Success -> {
                     roles = state.roles
+                    selectedRole = null
+                    binding.dropdownRole.setText("", false)
                     val adapter = ArrayAdapter(
                         this,
-                        android.R.layout.simple_spinner_dropdown_item,
-                        roles
+                        android.R.layout.simple_dropdown_item_1line,
+                        roles.map { it.name }
                     )
-                    binding.spinnerRole.adapter = adapter
-                    binding.spinnerRole.isEnabled = true
+                    binding.dropdownRole.setAdapter(adapter)
+                    binding.dropdownRole.isEnabled = true
                     binding.btnSignUp.isEnabled = true
                 }
                 is SignUpViewModel.RolesState.Error -> {
-                    binding.spinnerRole.isEnabled = false
+                    binding.dropdownRole.isEnabled = false
                     binding.btnSignUp.isEnabled = false
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                 }
@@ -234,7 +246,7 @@ class SignUpActivity : AppCompatActivity() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         binding.btnSignUp.isEnabled = !isLoading && roles.isNotEmpty()
-        binding.spinnerRole.isEnabled = !isLoading && roles.isNotEmpty()
+        binding.dropdownRole.isEnabled = !isLoading && roles.isNotEmpty()
         binding.btnGoogle.isEnabled = !isLoading
     }
 }
