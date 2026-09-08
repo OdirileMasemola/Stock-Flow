@@ -21,5 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "StockFlow"
 include(":app")
-// Note: Keeping backend as a separate project for now as requested (independent buildable projects)
-// But they live in the same repo.
+include(":backend")

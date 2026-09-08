@@ -15,6 +15,10 @@ class SignUpViewModel : ViewModel() {
     val signUpState: LiveData<SignUpState> = _signUpState
 
     fun signUp(name: String, phone: String, email: String, password: String, confirmPass: String) {
+        if (_signUpState.value is SignUpState.Loading) {
+            return
+        }
+
         if (name.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty()) {
             _signUpState.value = SignUpState.Error("Please fill in all fields")
             return
@@ -25,13 +29,13 @@ class SignUpViewModel : ViewModel() {
             return
         }
 
-        if (password.length < 6) {
-            _signUpState.value = SignUpState.Error("Password must be at least 6 characters")
+        if (password.length < 8) {
+            _signUpState.value = SignUpState.Error("Password must be at least 8 characters")
             return
         }
 
         _signUpState.value = SignUpState.Loading
-        
+
         viewModelScope.launch {
             val result = repository.signUp(name, phone, email, password)
             if (result.isSuccess) {

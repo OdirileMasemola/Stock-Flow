@@ -1,5 +1,6 @@
 # IDE
 .idea/
+.cursor/
 *.iml
 .idea_modules/
 
