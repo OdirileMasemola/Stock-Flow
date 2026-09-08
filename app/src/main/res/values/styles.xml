@@ -13,4 +13,13 @@
         <item name="android:textSize">18sp</item>
         <item name="fontFamily">sans-serif-black</item>
     </style>
+
+    <!-- White sheet cards: rounded top, sharp bottom edges -->
+    <style name="ShapeAppearanceOverlay.StockFlow.SheetCard" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">32dp</item>
+        <item name="cornerSizeTopRight">32dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
 </resources>

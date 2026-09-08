@@ -13,7 +13,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/white"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_phone"
+        app:navigationIcon="@drawable/ic_arrow_back"
         app:title="Business Reports"
         app:titleTextColor="@color/brand_text_dark" />
 

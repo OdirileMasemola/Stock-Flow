@@ -42,7 +42,7 @@
             <ImageView
                 android:layout_width="14dp"
                 android:layout_height="14dp"
-                android:src="@drawable/ic_lock"
+                android:src="@drawable/ic_barcode"
                 app:tint="@color/brand_primary" />
 
             <TextView
@@ -72,7 +72,7 @@
         <ImageView
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:src="@drawable/ic_user"
+            android:src="@drawable/ic_search"
             app:tint="@color/brand_text_light" />
 
         <EditText

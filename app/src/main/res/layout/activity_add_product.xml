@@ -17,7 +17,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_phone"
+            app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@color/white"
             app:title="Add Product"
             app:titleTextColor="@color/white" />
@@ -35,8 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="32dp"
-            app:cardElevation="0dp">
+            app:cardElevation="0dp"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.StockFlow.SheetCard">
 
             <LinearLayout
                 android:layout_width="match_parent"

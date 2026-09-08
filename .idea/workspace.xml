@@ -40,6 +40,11 @@
           <theme>@style/Theme.StockFlow</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/ic_dashboard.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/ic_eye.xml">
         <config>
           <theme>@style/Theme.StockFlow</theme>
@@ -85,13 +90,83 @@
           <theme>@style/Theme.StockFlow</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_add_product.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_dashboard.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_get_started.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_low_stock.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_purchase_order.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_reports.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_signup.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_choose_role.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_dashboard.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_inventory.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_sales.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_suppliers.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
     </layouts>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="101e2d8d-5d23-4681-a718-b2346d090776" name="Changes" comment="Update project dependencies, JDK configuration, and Google Auth logic&#10;&#10;- Upgrade Kotlin version to `2.2.10` in the top-level `build.gradle.kts`&#10;- Update Gradle properties to use local JDK 21 and disable automatic toolchain downloads&#10;- Refactor `GoogleAuthClient.kt` to use `GetGoogleIdOption` directly within `GetCredentialRequest` and remove the redundant `requestToken` helper method&#10;- Update `google_web_client_id` with a valid client ID in `strings.xml`&#10;- Cleanup unused dependencies (`androidx.core.ktx` and `androidx.lifecycle.runtime.ktx`) in `app/build.gradle.kts`&#10;- Update IDE configuration in `.idea/workspace.xml` to include new drawable resources and reflect recent project changes&#10;- Remove deprecated toolchain download URLs from `gradle/gradle-daemon-jvm.properties`">
+    <list default="true" id="101e2d8d-5d23-4681-a718-b2346d090776" name="Changes" comment="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates">
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" afterDir="false" />
@@ -100,17 +175,26 @@
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/LowStockActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/LowStockActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/ReportsActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/ReportsActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/AddProductActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/AddProductActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/login/LoginActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/login/LoginActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/signup/SignUpActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/signup/SignUpActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/suppliers/PurchaseOrderActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/suppliers/PurchaseOrderActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_chart.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_chart.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_eye.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_eye.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_inventory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_inventory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_launcher_foreground.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_launcher_foreground.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_lock.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_lock.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_mail.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_mail.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_phone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_phone.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_suppliers.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_suppliers.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_user.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_user.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_add_product.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_add_product.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_dashboard.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_dashboard.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_low_stock.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_low_stock.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_purchase_order.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_purchase_order.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_reports.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_reports.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_signup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_signup.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/themes.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/themes.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_dashboard.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_dashboard.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_inventory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_inventory.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_sales.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_sales.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_suppliers.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_suppliers.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -448,7 +532,15 @@
       <option name="project" value="LOCAL" />
       <updated>1788905469800</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates">
+      <option name="closed" value="true" />
+      <created>1788906248849</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1788906248849</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -472,7 +564,8 @@
     <MESSAGE value="feat(auth): implement JWT authentication and restructure project layout&#10;&#10;• Restructured the repository into a monorepo format with dedicated `app/` and `backend/` directories.&#10;• Integrated JWT-based authentication in the Ktor backend using `ktor-server-auth-jwt`.&#10;• Implemented a `POST /login` endpoint supporting authentication via both username and email.&#10;• Added JWT token generation logic, validation middleware, and security configuration.&#10;• Updated `UserRepository` and `UserService` to facilitate user lookup by identifier and secure password verification via BCrypt.&#10;• Enhanced centralized error handling in `StatusPages` to include `UnauthorizedException`.&#10;• Added a root-level `README.md` and a `.env.example` for backend configuration." />
     <MESSAGE value="Added app logo by replacing all logo place holders" />
     <MESSAGE value="Update project dependencies, JDK configuration, and Google Auth logic&#10;&#10;- Upgrade Kotlin version to `2.2.10` in the top-level `build.gradle.kts`&#10;- Update Gradle properties to use local JDK 21 and disable automatic toolchain downloads&#10;- Refactor `GoogleAuthClient.kt` to use `GetGoogleIdOption` directly within `GetCredentialRequest` and remove the redundant `requestToken` helper method&#10;- Update `google_web_client_id` with a valid client ID in `strings.xml`&#10;- Cleanup unused dependencies (`androidx.core.ktx` and `androidx.lifecycle.runtime.ktx`) in `app/build.gradle.kts`&#10;- Update IDE configuration in `.idea/workspace.xml` to include new drawable resources and reflect recent project changes&#10;- Remove deprecated toolchain download URLs from `gradle/gradle-daemon-jvm.properties`" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update project dependencies, JDK configuration, and Google Auth logic&#10;&#10;- Upgrade Kotlin version to `2.2.10` in the top-level `build.gradle.kts`&#10;- Update Gradle properties to use local JDK 21 and disable automatic toolchain downloads&#10;- Refactor `GoogleAuthClient.kt` to use `GetGoogleIdOption` directly within `GetCredentialRequest` and remove the redundant `requestToken` helper method&#10;- Update `google_web_client_id` with a valid client ID in `strings.xml`&#10;- Cleanup unused dependencies (`androidx.core.ktx` and `androidx.lifecycle.runtime.ktx`) in `app/build.gradle.kts`&#10;- Update IDE configuration in `.idea/workspace.xml` to include new drawable resources and reflect recent project changes&#10;- Remove deprecated toolchain download URLs from `gradle/gradle-daemon-jvm.properties`" />
+    <MESSAGE value="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
