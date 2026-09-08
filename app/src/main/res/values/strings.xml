@@ -15,7 +15,7 @@
     <string name="choose_your_role">Choose your role</string>
     <string name="choose_your_role_subtitle">Select the StockFlow role for this account.</string>
     <string name="continue_label">Continue</string>
-    <string name="google_web_client_id" translatable="false"></string>
+    <string name="google_web_client_id" translatable="false">664389052883-cqddukkpbu4tp5ffre0mh9l2hpegsek5.apps.googleusercontent.com</string>
     <string name="new_to_spaza">New to SpazaStock? </string>
     <string name="create_account">Create Account</string>
 
