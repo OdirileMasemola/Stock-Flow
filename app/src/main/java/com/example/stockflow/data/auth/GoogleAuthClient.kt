@@ -8,7 +8,6 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
 import com.example.stockflow.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -46,31 +45,24 @@ class GoogleAuthClient(private val activity: Activity) {
             throw e
         } catch (_: GetCredentialCancellationException) {
             Result.failure(IllegalStateException("Google Sign-In was cancelled."))
+        } catch (_: NoCredentialException) {
+            Result.failure(IllegalStateException("No Google account available. Please try again."))
         } catch (_: Exception) {
             Result.failure(IllegalStateException("Unable to complete Google Sign-In. Please try again."))
         }
     }
 
     private suspend fun requestGoogleIdToken(webClientId: String): String {
-        return try {
-            requestToken(
-                GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setAutoSelectEnabled(false)
-                    .setServerClientId(webClientId)
-                    .build()
-            )
-        } catch (_: NoCredentialException) {
-            requestToken(
-                GetSignInWithGoogleOption.Builder(webClientId).build()
-            )
-        }
-    }
-
-    private suspend fun requestToken(option: androidx.credentials.CredentialOption): String {
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(option)
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setAutoSelectEnabled(false)
+            .setServerClientId(webClientId)
             .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
         val result = credentialManager.getCredential(activity, request)
         val credential = result.credential
         if (credential is CustomCredential &&
