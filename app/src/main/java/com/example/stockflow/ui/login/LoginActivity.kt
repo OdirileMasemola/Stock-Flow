@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stockflow.databinding.ActivityLoginBinding
 import com.example.stockflow.MainActivity
 import com.example.stockflow.data.auth.GoogleAuthClient
+import com.example.stockflow.ui.common.SystemBars
 import com.example.stockflow.ui.signup.SignUpActivity
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.launch
@@ -26,6 +27,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        SystemBars.apply(this, binding.root)
 
         setupListeners()
         setupHeaderAnimation()

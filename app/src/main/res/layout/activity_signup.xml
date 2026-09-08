@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:paddingTop="32dp"
+                android:paddingTop="12dp"
                 android:paddingBottom="20dp"
                 app:layout_collapseMode="parallax">
 
@@ -260,32 +260,30 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/emailInputBox" />
 
-                <LinearLayout
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/roleInputBox"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:background="@drawable/bg_input_box"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="12dp"
-                    app:layout_constraintTop_toBottomOf="@id/roleLabel">
+                    app:boxBackgroundColor="@color/white"
+                    app:boxStrokeColor="@color/input_border"
+                    app:hintEnabled="false"
+                    app:layout_constraintTop_toBottomOf="@id/roleLabel"
+                    app:startIconDrawable="@drawable/ic_user"
+                    app:startIconTint="@color/brand_text_dark">
 
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_user"
-                        app:tint="@color/brand_text_dark" />
-
-                    <Spinner
-                        android:id="@+id/spinnerRole"
+                    <AutoCompleteTextView
+                        android:id="@+id/dropdownRole"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="4dp"
-                        android:background="@null"
-                        android:spinnerMode="dropdown" />
-                </LinearLayout>
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:hint="@string/hint_role"
+                        android:inputType="none"
+                        android:paddingVertical="12dp"
+                        android:textColor="@color/brand_text_dark"
+                        android:textSize="14sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Password Field -->
                 <TextView
