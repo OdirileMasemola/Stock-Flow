@@ -7,6 +7,8 @@ import com.example.stockflow.models.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
 import org.slf4j.LoggerFactory
 
 object DatabaseFactory {
@@ -33,6 +35,7 @@ object DatabaseFactory {
                     PurchaseOrders, 
                     PurchaseOrderItems
                 )
+                seedDefaultRolesIfEmpty()
                 logger.info("Database schema verification completed.")
             }
         } catch (e: Exception) {
@@ -53,6 +56,23 @@ object DatabaseFactory {
             validate()
         }
         return HikariDataSource(config)
+    }
+
+    private fun seedDefaultRolesIfEmpty() {
+        if (Roles.selectAll().count() > 0) {
+            return
+        }
+        logger.info("Seeding default roles...")
+        listOf(
+            "Owner" to "Store owner with full access",
+            "Manager" to "Store manager",
+            "Staff" to "Store staff"
+        ).forEach { (name, description) ->
+            Roles.insert {
+                it[Roles.name] = name
+                it[Roles.description] = description
+            }
+        }
     }
 
     suspend fun <T> dbQuery(block: suspend () -> T): T =

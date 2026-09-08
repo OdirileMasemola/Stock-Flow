@@ -6,6 +6,7 @@ import com.example.stockflow.data.remote.AuthApi
 import com.example.stockflow.data.remote.LoginRequest
 import com.example.stockflow.data.remote.RegisterRequest
 import com.example.stockflow.data.remote.RetrofitClient
+import com.example.stockflow.data.remote.RoleDto
 import com.google.gson.Gson
 import retrofit2.Response
 import java.io.IOException
@@ -34,7 +35,28 @@ class AuthRepository(
         }
     }
 
-    suspend fun signUp(name: String, phone: String, email: String, password: String): Result<Boolean> {
+    suspend fun getRoles(): Result<List<RoleDto>> {
+        return try {
+            val response = api.getRoles()
+            if (response.isSuccessful) {
+                Result.success(response.body().orEmpty())
+            } else {
+                Result.failure(Exception(errorMessage(response, fallback = "Unable to load roles")))
+            }
+        } catch (_: IOException) {
+            Result.failure(Exception("Unable to reach the server. Check your connection."))
+        } catch (_: Exception) {
+            Result.failure(Exception("Unable to load roles. Please try again."))
+        }
+    }
+
+    suspend fun signUp(
+        name: String,
+        phone: String,
+        email: String,
+        password: String,
+        roleId: Int
+    ): Result<Boolean> {
         val username = phone.filterNot { it.isWhitespace() }
         if (username.isEmpty()) {
             return Result.failure(Exception("Phone number is required"))
@@ -47,7 +69,7 @@ class AuthRepository(
                     email = email,
                     fullName = name,
                     password = password,
-                    roleId = DEFAULT_REGISTER_ROLE_ID
+                    roleId = roleId
                 )
             )
             if (response.isSuccessful) {
@@ -70,9 +92,5 @@ class AuthRepository(
             null
         }
         return apiMessage?.takeIf { it.isNotBlank() } ?: fallback
-    }
-
-    companion object {
-        private const val DEFAULT_REGISTER_ROLE_ID = 1
     }
 }
