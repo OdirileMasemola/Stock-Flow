@@ -35,6 +35,7 @@ object DatabaseFactory {
                     PurchaseOrders, 
                     PurchaseOrderItems
                 )
+                SchemaUtils.createMissingTablesAndColumns(Users)
                 seedDefaultRolesIfEmpty()
                 logger.info("Database schema verification completed.")
             }

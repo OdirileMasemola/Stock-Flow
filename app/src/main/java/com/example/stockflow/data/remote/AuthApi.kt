@@ -14,4 +14,7 @@ interface AuthApi {
 
     @GET("api/roles")
     suspend fun getRoles(): Response<List<RoleDto>>
+
+    @POST("api/auth/google")
+    suspend fun authenticateGoogle(@Body request: GoogleAuthRequest): Response<LoginResponse>
 }

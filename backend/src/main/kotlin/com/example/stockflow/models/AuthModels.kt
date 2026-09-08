@@ -32,6 +32,12 @@ data class LoginResponse(
     val user: User
 )
 
+@Serializable
+data class GoogleAuthRequest(
+    val idToken: String,
+    val roleId: Int? = null
+)
+
 class BadRequestException(message: String) : RuntimeException(message)
 class ConflictException(message: String) : RuntimeException(message)
-class UnauthorizedException(message: String) : RuntimeException(message)
+class UnauthorizedException(message: String, val code: String? = null) : RuntimeException(message)

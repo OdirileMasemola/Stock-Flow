@@ -35,7 +35,8 @@ data class AuthUser(
 )
 
 data class ApiErrorResponse(
-    val error: String?
+    val error: String?,
+    val code: String? = null
 )
 
 data class RoleDto(
@@ -45,3 +46,8 @@ data class RoleDto(
 ) {
     override fun toString(): String = name
 }
+
+data class GoogleAuthRequest(
+    val idToken: String,
+    val roleId: Int? = null
+)

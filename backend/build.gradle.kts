@@ -39,6 +39,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.github.cdimascio:dotenv-kotlin:6.5.0")
+    implementation("com.google.firebase:firebase-admin:9.4.3")
     
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

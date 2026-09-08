@@ -17,7 +17,8 @@ object Users : Table("users") {
     val username = varchar("username", 50).uniqueIndex()
     val email = varchar("email", 100).uniqueIndex()
     val fullName = varchar("full_name", 100)
-    val passwordHash = varchar("password_hash", 255)
+    val passwordHash = varchar("password_hash", 255).nullable()
+    val firebaseUid = varchar("firebase_uid", 128).nullable().uniqueIndex()
     val roleId = integer("role_id").references(Roles.id).index()
 
     override val primaryKey = PrimaryKey(id)

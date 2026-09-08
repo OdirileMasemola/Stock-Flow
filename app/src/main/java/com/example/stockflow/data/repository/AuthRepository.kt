@@ -4,6 +4,7 @@ import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.AuthApi
 import com.example.stockflow.data.remote.LoginRequest
+import com.example.stockflow.data.remote.GoogleAuthRequest
 import com.example.stockflow.data.remote.RegisterRequest
 import com.example.stockflow.data.remote.RetrofitClient
 import com.example.stockflow.data.remote.RoleDto
@@ -84,6 +85,40 @@ class AuthRepository(
         }
     }
 
+    suspend fun authenticateWithGoogle(idToken: String, roleId: Int? = null): Result<GoogleAuthOutcome> {
+        return try {
+            val response = api.authenticateGoogle(GoogleAuthRequest(idToken = idToken, roleId = roleId))
+            if (response.isSuccessful) {
+                val body = response.body()
+                    ?: return Result.failure(Exception("Google Sign-In failed"))
+                sessionStore?.saveToken(body.token)
+                Result.success(GoogleAuthOutcome.Authenticated)
+            } else if (response.code() == 401) {
+                val apiError = parseError(response)
+                if (apiError?.code == "ACCOUNT_NOT_FOUND") {
+                    Result.success(GoogleAuthOutcome.AccountNotFound)
+                } else {
+                    Result.failure(Exception(apiError?.error?.takeIf { it.isNotBlank() } ?: "Google Sign-In failed"))
+                }
+            } else {
+                Result.failure(Exception(errorMessage(response, fallback = "Google Sign-In failed")))
+            }
+        } catch (_: IOException) {
+            Result.failure(Exception("Unable to reach the server. Check your connection."))
+        } catch (_: Exception) {
+            Result.failure(Exception("Google Sign-In failed. Please try again."))
+        }
+    }
+
+    private fun parseError(response: Response<*>): ApiErrorResponse? {
+        val raw = response.errorBody()?.string() ?: return null
+        return try {
+            gson.fromJson(raw, ApiErrorResponse::class.java)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun errorMessage(response: Response<*>, fallback: String): String {
         val raw = response.errorBody()?.string()
         val apiMessage = try {
@@ -93,4 +128,9 @@ class AuthRepository(
         }
         return apiMessage?.takeIf { it.isNotBlank() } ?: fallback
     }
+}
+
+sealed class GoogleAuthOutcome {
+    object Authenticated : GoogleAuthOutcome()
+    object AccountNotFound : GoogleAuthOutcome()
 }
