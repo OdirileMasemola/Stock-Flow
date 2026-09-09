@@ -12,6 +12,11 @@ class SessionStore(context: Context) {
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
+    /** Clears the JWT only (keeps first-launch / Get Started flag). */
+    fun clearSession() {
+        prefs.edit().remove(KEY_TOKEN).apply()
+    }
+
     /** True when a StockFlow JWT is stored locally. */
     fun hasValidSession(): Boolean = !getToken().isNullOrBlank()
 

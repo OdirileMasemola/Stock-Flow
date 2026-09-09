@@ -16,8 +16,4 @@
         android:id="@+id/nav_suppliers"
         android:icon="@drawable/ic_suppliers"
         android:title="@string/nav_suppliers" />
-    <item
-        android:id="@+id/nav_more"
-        android:icon="@drawable/ic_more"
-        android:title="@string/nav_more" />
 </menu>

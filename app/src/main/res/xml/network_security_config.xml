@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Cleartext HTTP allowed for local backend during development -->
     <domain-config cleartextTrafficPermitted="true">
+        <!-- Physical device → PC on same Wi-Fi -->
+        <domain includeSubdomains="false">10.124.172.188</domain>
+        <!-- Android emulator → host machine loopback -->
         <domain includeSubdomains="false">10.0.2.2</domain>
     </domain-config>
 </network-security-config>

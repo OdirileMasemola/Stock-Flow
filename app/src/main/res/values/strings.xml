@@ -69,4 +69,5 @@
     <string name="nav_sales">Sales</string>
     <string name="nav_suppliers">Suppliers</string>
     <string name="nav_more">More</string>
+    <string name="action_logout">Log out</string>
 </resources>

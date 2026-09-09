@@ -1,5 +1,6 @@
 package com.example.stockflow.ui.signup
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -9,6 +10,7 @@ import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +29,7 @@ import kotlin.math.abs
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignupBinding
+    private lateinit var googleAuthClient: GoogleAuthClient
     private val viewModel: SignUpViewModel by viewModels()
 
     private var isPasswordVisible = false
@@ -34,11 +37,18 @@ class SignUpActivity : AppCompatActivity() {
     private var roles: List<RoleDto> = emptyList()
     private var selectedRole: RoleDto? = null
 
+    private val googleSignInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        handleGoogleSignInResult(result.resultCode, result.data)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
         SystemBars.apply(this, binding.root)
+        googleAuthClient = GoogleAuthClient(this)
 
         setupListeners()
         setupHeaderAnimation()
@@ -94,19 +104,46 @@ class SignUpActivity : AppCompatActivity() {
         binding.btnGoogle.setOnClickListener {
             lifecycleScope.launch {
                 showLoading(true)
-                val result = GoogleAuthClient(this@SignUpActivity).signInWithGoogle()
-                result.fold(
-                    onSuccess = { idToken -> viewModel.continueGoogleSignUp(idToken) },
-                    onFailure = { error ->
-                        showLoading(false)
-                        Toast.makeText(
-                            this@SignUpActivity,
-                            error.message ?: "Unable to complete Google Sign-In. Please try again.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                )
+                googleAuthClient.clearLastGoogleAccount()
+                googleSignInLauncher.launch(googleAuthClient.getSignInIntent())
             }
+        }
+    }
+
+    private fun handleGoogleSignInResult(resultCode: Int, data: Intent?) {
+        if (resultCode != Activity.RESULT_OK) {
+            showLoading(false)
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "Google Sign-In was cancelled.", Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+
+        lifecycleScope.launch {
+            val accountResult = googleAuthClient.parseSignInIntent(data)
+            accountResult.fold(
+                onSuccess = { account ->
+                    googleAuthClient.exchangeGoogleAccount(account).fold(
+                        onSuccess = { idToken -> viewModel.continueGoogleSignUp(idToken) },
+                        onFailure = { error ->
+                            showLoading(false)
+                            Toast.makeText(
+                                this@SignUpActivity,
+                                error.message ?: "Unable to complete Google Sign-In. Please try again.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    )
+                },
+                onFailure = { error ->
+                    showLoading(false)
+                    Toast.makeText(
+                        this@SignUpActivity,
+                        error.message ?: "Unable to complete Google Sign-In. Please try again.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            )
         }
     }
 
