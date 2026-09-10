@@ -48,6 +48,8 @@
 
     <!-- Dashboard -->
     <string name="good_morning">Good Morning,</string>
+    <string name="good_afternoon">Good Afternoon,</string>
+    <string name="good_evening">Good Evening,</string>
     <string name="user_name">Thabo</string>
     <string name="today_sales_label">Today\'s Sales</string>
     <string name="monthly_sales_label">Monthly Sales</string>
@@ -60,6 +62,8 @@
     <string name="reports_action">Reports</string>
     <string name="weekly_performance_title">Weekly Performance</string>
     <string name="avg_performance_label">R12,320 Avg</string>
+    <string name="weekly_total_format">R%1$.2f this week</string>
+    <string name="weekly_chart_empty">No sales in the last 7 days.</string>
     <string name="recent_sales_title">Recent Sales</string>
     <string name="best_selling_title">Best Selling Items</string>
 
@@ -233,4 +237,41 @@
     <string name="receive_order">Receive Order</string>
     <string name="receive_order_title">Receive purchase order?</string>
     <string name="receive_order_message">This will increase product stock by the ordered quantities. This cannot be undone.</string>
+
+    <!-- Dashboard / Reports -->
+    <string name="dashboard_welcome">Welcome back</string>
+    <string name="inventory_value_label">Inventory Value</string>
+    <string name="today_sales_count">%1$d sales today</string>
+    <string name="stock_units_format">%1$d units in stock</string>
+    <string name="see_all">See all</string>
+    <string name="low_stock_preview_title">Low Stock</string>
+    <string name="recent_purchase_orders_title">Recent Purchase Orders</string>
+    <string name="dashboard_sales_empty">No sales yet today.</string>
+    <string name="dashboard_low_stock_empty">No low-stock products.</string>
+    <string name="dashboard_po_empty">No purchase orders yet.</string>
+    <string name="sale_row_title">Sale #%1$d · %2$s</string>
+    <string name="low_stock_row">%1$s — %2$d / min %3$d</string>
+    <string name="po_row_title">PO #%1$d · %2$s</string>
+    <string name="reports_title">Business Reports</string>
+    <string name="reports_subtitle">Sales, inventory and purchasing summaries from your store data.</string>
+    <string name="date_range_label">Sales date range</string>
+    <string name="range_today">Today</string>
+    <string name="range_7d">Last 7 days</string>
+    <string name="range_30d">Last 30 days</string>
+    <string name="sales_report_title">Sales Report</string>
+    <string name="inventory_report_title">Inventory Report</string>
+    <string name="purchase_report_title">Purchase Report</string>
+    <string name="report_sales_total">Total sales: R%1$.2f</string>
+    <string name="report_sales_count">Sales count: %1$d</string>
+    <string name="report_sales_average">Average sale: R%1$.2f</string>
+    <string name="report_payment_line">%1$s — %2$d sales · R%3$.2f</string>
+    <string name="report_payment_none">No sales in this range.</string>
+    <string name="report_inv_products">Products: %1$d</string>
+    <string name="report_inv_stock">Total stock: %1$d</string>
+    <string name="report_inv_value">Inventory value: R%1$.2f</string>
+    <string name="report_inv_low">Low stock: %1$d</string>
+    <string name="report_po_count">Purchase orders: %1$d</string>
+    <string name="report_po_pending">Pending: %1$d</string>
+    <string name="report_po_received">Received: %1$d</string>
+    <string name="report_po_total">Purchasing total: R%1$.2f</string>
 </resources>
