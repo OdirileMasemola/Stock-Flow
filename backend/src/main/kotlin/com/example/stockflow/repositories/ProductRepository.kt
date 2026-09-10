@@ -8,7 +8,9 @@ import com.example.stockflow.models.Products
 import com.example.stockflow.models.Suppliers
 import com.example.stockflow.models.UpdateProductRequest
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.leftJoin
@@ -19,6 +21,7 @@ import java.math.RoundingMode
 
 interface ProductRepository {
     suspend fun getAllProducts(): List<ProductResponse>
+    suspend fun getLowStockProducts(): List<ProductResponse>
     suspend fun getProductById(id: Int): ProductResponse?
     suspend fun createProduct(request: CreateProductRequest): ProductResponse
     suspend fun updateProduct(id: Int, request: UpdateProductRequest): ProductResponse?
@@ -36,6 +39,19 @@ class ProductRepositoryImpl : ProductRepository {
             .leftJoin(Categories, { Products.categoryId }, { Categories.id })
             .selectAll()
             .orderBy(Products.name)
+            .map { toProductResponse(it) }
+    }
+
+    /**
+     * Products at or below their minimum stock threshold (`stockLevel <= minStockLevel`).
+     * Ordered by stock ascending so out-of-stock items surface first.
+     */
+    override suspend fun getLowStockProducts(): List<ProductResponse> = dbQuery {
+        Products
+            .leftJoin(Categories, { Products.categoryId }, { Categories.id })
+            .selectAll()
+            .where { Products.stockLevel lessEq Products.minStockLevel }
+            .orderBy(Products.stockLevel to SortOrder.ASC, Products.name to SortOrder.ASC)
             .map { toProductResponse(it) }
     }
 

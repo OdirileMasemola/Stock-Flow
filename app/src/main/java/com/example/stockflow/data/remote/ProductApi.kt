@@ -19,6 +19,11 @@ interface ProductApi {
         @Header("Authorization") authorization: String
     ): Response<List<ProductDto>>
 
+    @GET("api/products/low-stock")
+    suspend fun getLowStockProducts(
+        @Header("Authorization") authorization: String
+    ): Response<List<ProductDto>>
+
     @GET("api/products/{id}")
     suspend fun getProduct(
         @Header("Authorization") authorization: String,

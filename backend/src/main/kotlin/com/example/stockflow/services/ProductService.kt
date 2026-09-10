@@ -14,6 +14,8 @@ class ProductService(
 ) {
     suspend fun getProducts(): List<ProductResponse> = repository.getAllProducts()
 
+    suspend fun getLowStockProducts(): List<ProductResponse> = repository.getLowStockProducts()
+
     suspend fun getProduct(id: Int): ProductResponse {
         return repository.getProductById(id)
             ?: throw NotFoundException("Product not found")

@@ -92,6 +92,9 @@ fun Application.configureRouting() {
                 get {
                     call.respond(productService.getProducts())
                 }
+                get("/low-stock") {
+                    call.respond(productService.getLowStockProducts())
+                }
                 get("/{id}") {
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid product ID")

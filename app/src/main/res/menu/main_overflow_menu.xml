@@ -6,6 +6,10 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_low_stock"
+        android:title="@string/low_stock_alerts_title"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_reports"
         android:title="@string/reports_action"
         app:showAsAction="never" />
