@@ -7,15 +7,20 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import com.example.stockflow.services.UserService
 import com.example.stockflow.services.RoleService
+import com.example.stockflow.services.ProductService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
+import com.example.stockflow.models.CreateProductRequest
+import com.example.stockflow.models.UpdateProductRequest
+import com.example.stockflow.models.BadRequestException
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 
 fun Application.configureRouting() {
     val userService = UserService()
     val roleService = RoleService()
+    val productService = ProductService()
 
     routing {
         get("/") {
@@ -64,6 +69,37 @@ fun Application.configureRouting() {
                             "roleId" to roleId
                         )
                     ))
+                }
+            }
+        }
+
+        // Product CRUD — requires a valid StockFlow JWT (same auth as /api/auth/test)
+        authenticate("auth-jwt") {
+            route("/api/products") {
+                get {
+                    call.respond(productService.getProducts())
+                }
+                get("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid product ID")
+                    call.respond(productService.getProduct(id))
+                }
+                post {
+                    val request = call.receive<CreateProductRequest>()
+                    val created = productService.createProduct(request)
+                    call.respond(HttpStatusCode.Created, created)
+                }
+                put("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid product ID")
+                    val request = call.receive<UpdateProductRequest>()
+                    call.respond(productService.updateProduct(id, request))
+                }
+                delete("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid product ID")
+                    productService.deleteProduct(id)
+                    call.respond(HttpStatusCode.NoContent)
                 }
             }
         }
