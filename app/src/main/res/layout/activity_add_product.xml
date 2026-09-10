@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/white"
+            app:cardBackgroundColor="@color/sheet_surface"
             app:cardElevation="0dp"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.StockFlow.SheetCard">
 
@@ -70,6 +70,7 @@
                     android:inputType="textCapWords"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/brand_text_dark"
+                    android:textColorHint="@color/brand_text_light"
                     android:textSize="14sp" />
 
                 <TextView
@@ -90,6 +91,7 @@
                     android:inputType="text"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/brand_text_dark"
+                    android:textColorHint="@color/brand_text_light"
                     android:textSize="14sp" />
 
                 <LinearLayout
@@ -122,6 +124,7 @@
                             android:inputType="numberDecimal"
                             android:paddingHorizontal="12dp"
                             android:textColor="@color/brand_text_dark"
+                            android:textColorHint="@color/brand_text_light"
                             android:textSize="14sp" />
                     </LinearLayout>
 
@@ -149,6 +152,7 @@
                             android:inputType="numberDecimal"
                             android:paddingHorizontal="12dp"
                             android:textColor="@color/brand_text_dark"
+                            android:textColorHint="@color/brand_text_light"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -184,6 +188,7 @@
                             android:paddingHorizontal="12dp"
                             android:text="0"
                             android:textColor="@color/brand_text_dark"
+                            android:textColorHint="@color/brand_text_light"
                             android:textSize="14sp" />
                     </LinearLayout>
 
@@ -212,6 +217,7 @@
                             android:paddingHorizontal="12dp"
                             android:text="5"
                             android:textColor="@color/brand_text_dark"
+                            android:textColorHint="@color/brand_text_light"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -234,6 +240,7 @@
                     android:inputType="number"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/brand_text_dark"
+                    android:textColorHint="@color/brand_text_light"
                     android:textSize="14sp" />
 
                 <TextView
@@ -262,6 +269,7 @@
                     android:inputType="number"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/brand_text_dark"
+                    android:textColorHint="@color/brand_text_light"
                     android:textSize="14sp" />
 
                 <TextView
@@ -269,7 +277,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:textColor="#D32F2F"
+                    android:textColor="@color/logout_text"
                     android:textSize="13sp"
                     android:visibility="gone" />
 

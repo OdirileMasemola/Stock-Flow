@@ -47,6 +47,10 @@
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />
         <activity
+            android:name=".ui.sales.CartActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
             android:name=".ui.inventory.AddProductActivity"
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />

@@ -8,11 +8,13 @@ import io.ktor.server.request.*
 import com.example.stockflow.services.UserService
 import com.example.stockflow.services.RoleService
 import com.example.stockflow.services.ProductService
+import com.example.stockflow.services.SaleService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
 import com.example.stockflow.models.CreateProductRequest
 import com.example.stockflow.models.UpdateProductRequest
+import com.example.stockflow.models.CreateSaleRequest
 import com.example.stockflow.models.BadRequestException
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -21,6 +23,7 @@ fun Application.configureRouting() {
     val userService = UserService()
     val roleService = RoleService()
     val productService = ProductService()
+    val saleService = SaleService()
 
     routing {
         get("/") {
@@ -73,7 +76,7 @@ fun Application.configureRouting() {
             }
         }
 
-        // Product CRUD — requires a valid StockFlow JWT (same auth as /api/auth/test)
+        // Product CRUD + Sales/POS — require a valid StockFlow JWT
         authenticate("auth-jwt") {
             route("/api/products") {
                 get {
@@ -100,6 +103,25 @@ fun Application.configureRouting() {
                         ?: throw BadRequestException("Invalid product ID")
                     productService.deleteProduct(id)
                     call.respond(HttpStatusCode.NoContent)
+                }
+            }
+
+            route("/api/sales") {
+                get {
+                    call.respond(saleService.getSales())
+                }
+                get("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid sale ID")
+                    call.respond(saleService.getSale(id))
+                }
+                post {
+                    val principal = call.principal<JWTPrincipal>()
+                        ?: throw BadRequestException("Authentication required")
+                    val userId = principal.payload.getClaim("userId").asInt()
+                    val request = call.receive<CreateSaleRequest>()
+                    val created = saleService.createSale(userId, request)
+                    call.respond(HttpStatusCode.Created, created)
                 }
             }
         }

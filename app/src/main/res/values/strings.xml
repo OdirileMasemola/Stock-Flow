@@ -54,7 +54,7 @@
     <string name="total_products_label">Total Products</string>
     <string name="low_stock_label">Low Stock</string>
     <string name="quick_actions_title">Quick Actions</string>
-    <string name="add_product_action">+ Product</string>
+    <string name="add_product_action">Product</string>
     <string name="new_sale_action">New Sale</string>
     <string name="supplier_action">Supplier</string>
     <string name="reports_action">Reports</string>
@@ -148,4 +148,33 @@
     <string name="min_target">Min target: %1$d</string>
     <string name="sku_label">SKU: %1$s</string>
     <string name="price_format">R%1$.2f</string>
+    <string name="price_format_zero">R0.00</string>
+
+    <!-- Sales / POS -->
+    <string name="pos_title">Point of Sale</string>
+    <string name="pos_history">History</string>
+    <string name="pos_back_to_pos">POS</string>
+    <string name="pos_search_hint">Search products...</string>
+    <string name="pos_products_empty">No products available. Add products in Inventory first.</string>
+    <string name="pos_products_empty_search">No products match \"%1$s\"</string>
+    <string name="pos_stock_format">Stock: %1$d</string>
+    <string name="pos_cart_count">Cart (%1$d items)</string>
+    <string name="pos_cart_empty_count">Cart (0 items)</string>
+    <string name="pos_clear_cart">Clear Cart</string>
+    <string name="pos_payment_method">Payment method</string>
+    <string name="payment_cash">Cash</string>
+    <string name="payment_card">Card</string>
+    <string name="payment_other">Other</string>
+    <string name="pos_total">Total</string>
+    <string name="pos_complete_sale">Complete Sale</string>
+    <string name="pos_remove">Remove</string>
+    <string name="pos_history_empty">No sales yet</string>
+    <string name="pos_cart_title">Cart</string>
+    <string name="pos_cart_title_count">Cart (%1$d)</string>
+    <string name="pos_cart_empty">Your cart is empty.\nTap products on the POS screen to add them.</string>
+    <string name="pos_back_to_browse">Back to products</string>
+    <string name="pos_tap_to_add">Tap a product to add it to the cart</string>
+    <string name="sale_id_format">Sale #%1$d</string>
+    <string name="sale_completed">Sale #%1$d completed — %2$s</string>
+    <string name="sale_details_title">Sale #%1$d</string>
 </resources>
