@@ -10,14 +10,22 @@
     <color name="surface">#1B2438</color>
     <!-- Elevated sheet above brand navy so form text stays readable -->
     <color name="sheet_surface">#243044</color>
+    <color name="cart_icon">#C5C9D0</color>
+    <color name="cart_badge_bg">#3A4558</color>
+    <color name="cart_badge_text">#E8EAED</color>
     <color name="settings_row_icon_bg">#243044</color>
     <color name="logout_text">#EF5350</color>
     <color name="stat_card_surface">#243044</color>
     <color name="stat_card_green_bg">#1A3328</color>
     <color name="stat_card_red_bg">#3A2020</color>
-    <color name="soft_green_bg">#1A3328</color>
+    <color name="soft_green_bg">#1F3D30</color>
     <color name="chip_background">#243044</color>
     <color name="progress_track">#243044</color>
+
+    <!-- Soft secondary actions: must contrast against dark surface (#1B2438) -->
+    <color name="soft_action_button_bg">#243D32</color>
+    <color name="soft_action_button_text">#3DDB84</color>
+    <color name="soft_avatar_bg">#243D32</color>
 
     <color name="icon_bg_profile">#1A2A3A</color>
     <color name="icon_bg_business">#1A3330</color>

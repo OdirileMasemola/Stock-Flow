@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/surface"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/divider_color"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/supplierAvatar"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                app:cardBackgroundColor="@color/soft_avatar_bg"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/tvAvatarLetter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textColor="@color/soft_action_button_text"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="T" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvSupplierName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/brand_text_dark"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@id/tvContactName"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/supplierAvatar"
+                app:layout_constraintTop_toTopOf="@id/supplierAvatar"
+                app:layout_constraintVertical_chainStyle="packed"
+                tools:text="Tiger Brands" />
+
+            <TextView
+                android:id="@+id/tvContactName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/brand_text_light"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@id/supplierAvatar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/tvSupplierName"
+                app:layout_constraintTop_toBottomOf="@id/tvSupplierName"
+                tools:text="James Mokoena" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="12dp"
+            android:background="@color/divider_color" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_phone"
+                    android:textAllCaps="true"
+                    android:textColor="@color/brand_text_light"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/brand_text_dark"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="012-345-6789" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_email"
+                    android:textAllCaps="true"
+                    android:textColor="@color/brand_text_light"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/brand_text_dark"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="orders@example.com" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Soft secondary action — theme-aware (visible in dark mode) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCreateOrder"
+            style="@style/Widget.StockFlow.SoftActionButton"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/create_order"
+            android:textSize="13sp" />
+
+        <!-- Secondary actions — same pattern as inventory -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEdit"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/edit_supplier"
+                android:textAllCaps="false"
+                android:textColor="@color/brand_primary"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDelete"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/delete_supplier"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

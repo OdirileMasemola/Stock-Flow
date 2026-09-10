@@ -177,4 +177,60 @@
     <string name="sale_id_format">Sale #%1$d</string>
     <string name="sale_completed">Sale #%1$d completed — %2$s</string>
     <string name="sale_details_title">Sale #%1$d</string>
+
+    <!-- Suppliers -->
+    <string name="add_supplier">Add Supplier</string>
+    <string name="add_supplier_title">Add Supplier</string>
+    <string name="edit_supplier_title">Edit Supplier</string>
+    <string name="edit_supplier">Edit</string>
+    <string name="delete_supplier">Delete</string>
+    <string name="delete_supplier_title">Delete supplier?</string>
+    <string name="delete_supplier_message">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="create_order">Create Order</string>
+    <string name="search_suppliers_hint">Search suppliers...</string>
+    <string name="suppliers_empty">No suppliers yet. Tap Add Supplier to create one.</string>
+    <string name="suppliers_empty_search">No suppliers match \"%1$s\"</string>
+    <string name="supplier_details">Supplier Details</string>
+    <string name="label_supplier_name">Supplier Name</string>
+    <string name="hint_supplier_name">e.g. ABC Wholesale</string>
+    <string name="label_contact_name">Contact Person</string>
+    <string name="hint_contact_name">e.g. Jane Doe</string>
+    <string name="label_phone">Phone</string>
+    <string name="hint_phone">e.g. 012-345-6789</string>
+    <string name="label_email">Email</string>
+    <string name="hint_email">e.g. orders@supplier.com</string>
+    <string name="label_address">Address</string>
+    <string name="hint_address">Optional address</string>
+    <string name="save_supplier">Save Supplier</string>
+    <string name="supplier_created">Supplier saved</string>
+    <string name="supplier_updated">Supplier updated</string>
+    <string name="supplier_id_label">Supplier #%1$d</string>
+
+    <!-- Purchase Orders -->
+    <string name="purchase_orders">Orders</string>
+    <string name="new_purchase_order">New Purchase Order</string>
+    <string name="purchase_order_details">Purchase Order</string>
+    <string name="order_details">Order Details</string>
+    <string name="label_select_supplier">Supplier</string>
+    <string name="label_add_product">Product</string>
+    <string name="label_quantity">Quantity</string>
+    <string name="label_unit_cost">Unit Cost</string>
+    <string name="add_to_order">Add to Order</string>
+    <string name="place_order">Place Order</string>
+    <string name="po_items">Order Items</string>
+    <string name="po_empty">No purchase orders yet. Tap New Purchase Order to create one.</string>
+    <string name="po_id_format">PO #%1$d</string>
+    <string name="po_status_format">Status: %1$s</string>
+    <string name="po_draft_total">Total: R%1$.2f</string>
+    <string name="po_unit_cost_format">Unit cost: R%1$.2f</string>
+    <string name="po_item_line_format">%1$s × %2$d @ R%3$.2f = R%4$.2f</string>
+    <string name="po_created">Purchase order #%1$d created</string>
+    <string name="po_not_found">Purchase order not found</string>
+    <string name="po_no_products">No products available. Add products in Inventory first.</string>
+    <string name="po_invalid_quantity">Quantity must be greater than zero</string>
+    <string name="po_invalid_cost">Unit cost cannot be negative</string>
+    <string name="view_order">View</string>
+    <string name="receive_order">Receive Order</string>
+    <string name="receive_order_title">Receive purchase order?</string>
+    <string name="receive_order_message">This will increase product stock by the ordered quantities. This cannot be undone.</string>
 </resources>

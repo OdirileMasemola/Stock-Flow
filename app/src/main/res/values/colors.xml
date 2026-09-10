@@ -20,6 +20,11 @@
     <color name="google_button_text">#2C3E50</color>
     <color name="google_button_stroke">#EAEDED</color>
 
+    <!-- Cart header icon + badge (theme-aware in values-night) -->
+    <color name="cart_icon">#1B1B1B</color>
+    <color name="cart_badge_bg">#E5E7EB</color>
+    <color name="cart_badge_text">#1B1B1B</color>
+
     <!-- Theme-aware surfaces (overridden in values-night) -->
     <color name="page_background">#F5F6FA</color>
     <color name="surface">#FFFFFFFF</color>
@@ -32,6 +37,11 @@
     <color name="soft_green_bg">#E8F9ED</color>
     <color name="chip_background">#F5F6FA</color>
     <color name="progress_track">#F5F6FA</color>
+
+    <!-- Soft secondary actions (e.g. Create Order) — theme-aware in values-night -->
+    <color name="soft_action_button_bg">#1B2438</color>
+    <color name="soft_action_button_text">#2ECC71</color>
+    <color name="soft_avatar_bg">#1B2438</color>
 
     <!-- Action-specific icon colors (bottom nav uses its own selector — leave alone) -->
     <color name="icon_profile">#3498DB</color>
