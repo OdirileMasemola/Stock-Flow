@@ -8,6 +8,8 @@ val hikari_version: String by project
 plugins {
     kotlin("jvm")
     id("io.ktor.plugin") version "3.0.3"
+    // Override Ktor's older Shadow so :backend:build works on Gradle 9 (mainClassName removed).
+    id("com.gradleup.shadow") version "9.4.2"
     kotlin("plugin.serialization")
 }
 
