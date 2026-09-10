@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.databinding.ActivityMainBinding
 import com.example.stockflow.ui.dashboard.DashboardFragment
+import com.example.stockflow.ui.dashboard.LowStockActivity
 import com.example.stockflow.ui.dashboard.ReportsActivity
 import com.example.stockflow.ui.inventory.InventoryFragment
 import com.example.stockflow.ui.login.LoginActivity
@@ -75,6 +76,10 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.action_settings -> {
                     startActivity(Intent(this, SettingsActivity::class.java))
+                    true
+                }
+                R.id.action_low_stock -> {
+                    startActivity(Intent(this, LowStockActivity::class.java))
                     true
                 }
                 R.id.action_reports -> {

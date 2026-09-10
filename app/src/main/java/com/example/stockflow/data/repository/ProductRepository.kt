@@ -35,6 +35,21 @@ class ProductRepository(
         }
     }
 
+    suspend fun getLowStockProducts(): Result<List<ProductDto>> {
+        return try {
+            val response = api.getLowStockProducts(authHeader())
+            if (response.isSuccessful) {
+                Result.success(response.body().orEmpty())
+            } else {
+                Result.failure(Exception(errorMessage(response, "Unable to load low-stock products")))
+            }
+        } catch (_: IOException) {
+            Result.failure(Exception("Unable to reach the server. Check your connection."))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Unable to load low-stock products"))
+        }
+    }
+
     suspend fun getProduct(id: Int): Result<ProductDto> {
         return try {
             val response = api.getProduct(authHeader(), id)

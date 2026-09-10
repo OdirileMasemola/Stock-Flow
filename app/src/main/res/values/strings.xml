@@ -245,6 +245,11 @@
     <string name="stock_units_format">%1$d units in stock</string>
     <string name="see_all">See all</string>
     <string name="low_stock_preview_title">Low Stock</string>
+    <string name="low_stock_alerts_title">Low Stock Alerts</string>
+    <string name="low_stock_alerts_subtitle">Products at or below their minimum stock level.</string>
+    <string name="low_stock_empty">No low-stock products</string>
+    <string name="low_stock_current">Current Stock: %1$d</string>
+    <string name="low_stock_minimum">Minimum Stock: %1$d</string>
     <string name="recent_purchase_orders_title">Recent Purchase Orders</string>
     <string name="dashboard_sales_empty">No sales yet today.</string>
     <string name="dashboard_low_stock_empty">No low-stock products.</string>

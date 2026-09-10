@@ -59,13 +59,13 @@ class DashboardFragment : Fragment() {
             (activity as? MainActivity)?.selectNavItem(R.id.nav_inventory)
         }
         binding.cardLowStock.setOnClickListener {
-            (activity as? MainActivity)?.selectNavItem(R.id.nav_inventory)
+            startActivity(Intent(requireContext(), LowStockActivity::class.java))
         }
         binding.btnSeeAllSales.setOnClickListener {
             (activity as? MainActivity)?.selectNavItem(R.id.nav_sales)
         }
-        binding.btnSeeInventory.setOnClickListener {
-            (activity as? MainActivity)?.selectNavItem(R.id.nav_inventory)
+        binding.btnSeeLowStock.setOnClickListener {
+            startActivity(Intent(requireContext(), LowStockActivity::class.java))
         }
         binding.btnSeePurchaseOrders.setOnClickListener {
             startActivity(Intent(requireContext(), PurchaseOrdersActivity::class.java))
