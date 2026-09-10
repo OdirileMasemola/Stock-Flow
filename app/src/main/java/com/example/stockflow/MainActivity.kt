@@ -114,6 +114,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun selectNavItem(itemId: Int) {
+        binding.bottomNavigation.selectedItemId = itemId
+    }
+
     private fun loadFragment(fragment: Fragment, title: String) {
         binding.topAppBar.title = title
         supportFragmentManager.beginTransaction()

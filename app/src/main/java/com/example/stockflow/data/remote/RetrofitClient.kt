@@ -47,4 +47,9 @@ object RetrofitClient {
     val purchaseOrderApi: PurchaseOrderApi by lazy {
         retrofit.create(PurchaseOrderApi::class.java)
     }
+
+    /** Authenticated dashboard / reports — callers pass the Bearer JWT header. */
+    val dashboardApi: DashboardApi by lazy {
+        retrofit.create(DashboardApi::class.java)
+    }
 }

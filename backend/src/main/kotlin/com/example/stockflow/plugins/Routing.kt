@@ -11,6 +11,7 @@ import com.example.stockflow.services.ProductService
 import com.example.stockflow.services.SaleService
 import com.example.stockflow.services.SupplierService
 import com.example.stockflow.services.PurchaseOrderService
+import com.example.stockflow.services.DashboardService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
@@ -32,6 +33,7 @@ fun Application.configureRouting() {
     val saleService = SaleService()
     val supplierService = SupplierService()
     val purchaseOrderService = PurchaseOrderService()
+    val dashboardService = DashboardService()
 
     routing {
         get("/") {
@@ -185,6 +187,19 @@ fun Application.configureRouting() {
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid purchase order ID")
                     call.respond(purchaseOrderService.receivePurchaseOrder(id))
+                }
+            }
+
+            route("/api/dashboard") {
+                get("/summary") {
+                    call.respond(dashboardService.getSummary())
+                }
+            }
+
+            route("/api/reports") {
+                get {
+                    val range = call.request.queryParameters["range"]
+                    call.respond(dashboardService.getReports(range))
                 }
             }
         }
