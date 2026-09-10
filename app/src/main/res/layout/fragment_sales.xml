@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F6FA">
+    android:background="@color/page_background">
 
     <!-- POS Header -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_stat_card_green"
-            android:backgroundTint="#E8F9ED"
+            android:backgroundTint="@color/soft_green_bg"
             android:gravity="center"
             android:orientation="horizontal"
             android:paddingHorizontal="10dp"
@@ -43,7 +43,7 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_barcode"
-                app:tint="@color/brand_primary" />
+                app:tint="@color/icon_barcode" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -73,7 +73,7 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:src="@drawable/ic_search"
-            app:tint="@color/brand_text_light" />
+            app:tint="@color/icon_search" />
 
         <EditText
             android:layout_width="match_parent"
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_marginEnd="4dp"
-                app:cardBackgroundColor="@color/white"
+                app:cardBackgroundColor="@color/surface"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/divider_color"
@@ -121,7 +121,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
-                        android:background="#F5F6FA" />
+                        android:background="@color/page_background" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -148,7 +148,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_marginStart="4dp"
-                app:cardBackgroundColor="@color/white"
+                app:cardBackgroundColor="@color/surface"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@color/divider_color"
@@ -163,7 +163,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
-                        android:background="#F5F6FA" />
+                        android:background="@color/page_background" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -192,7 +192,7 @@
         android:id="@+id/cartSheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@color/surface"
         android:orientation="vertical"
         android:padding="20dp"
         app:layout_constraintBottom_toBottomOf="parent">

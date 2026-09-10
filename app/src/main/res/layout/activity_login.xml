@@ -62,7 +62,7 @@
                     android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/tagline"
-                    android:textColor="@color/brand_text_muted"
+                    android:textColor="@color/on_brand_muted"
                     android:textSize="14sp" />
 
             </LinearLayout>
@@ -86,7 +86,7 @@
             android:id="@+id/loginCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/white"
+            app:cardBackgroundColor="@color/sheet_surface"
             app:cardElevation="0dp"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.StockFlow.SheetCard">
 
@@ -146,7 +146,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_mail"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_mail" />
 
                     <EditText
                         android:id="@+id/etEmail"
@@ -158,6 +158,7 @@
                         android:hint="@string/hint_email_phone"
                         android:inputType="textEmailAddress|textPhonetic"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
                 </LinearLayout>
 
@@ -190,7 +191,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_lock"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_lock" />
 
                     <EditText
                         android:id="@+id/etPassword"
@@ -203,6 +204,7 @@
                         android:hint="@string/hint_password"
                         android:inputType="textPassword"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
 
                     <ImageView
@@ -279,7 +281,8 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/continue_with_google"
                     android:textAllCaps="false"
-                    android:textColor="@color/brand_text_dark"
+                    android:textColor="@color/google_button_text"
+                    app:backgroundTint="@color/google_button_bg"
                     app:cornerRadius="8dp"
                     app:icon="@drawable/ic_google"
                     app:iconGravity="textStart"
@@ -287,7 +290,7 @@
                     app:iconSize="20dp"
                     app:iconTint="@null"
                     app:layout_constraintTop_toBottomOf="@id/dividerRow"
-                    app:strokeColor="@color/divider_color" />
+                    app:strokeColor="@color/google_button_stroke" />
 
                 <LinearLayout
                     android:id="@+id/signupPrompt"
