@@ -37,6 +37,8 @@ object DatabaseFactory {
                 )
                 SchemaUtils.createMissingTablesAndColumns(Users)
                 seedDefaultRolesIfEmpty()
+                // One default category so products can be created before Category CRUD exists.
+                seedDefaultCategoryIfEmpty()
                 logger.info("Database schema verification completed.")
             }
         } catch (e: Exception) {
@@ -73,6 +75,17 @@ object DatabaseFactory {
                 it[Roles.name] = name
                 it[Roles.description] = description
             }
+        }
+    }
+
+    private fun seedDefaultCategoryIfEmpty() {
+        if (Categories.selectAll().count() > 0) {
+            return
+        }
+        logger.info("Seeding default category...")
+        Categories.insert {
+            it[name] = "General"
+            it[description] = "Default category"
         }
     }
 

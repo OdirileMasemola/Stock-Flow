@@ -70,4 +70,43 @@
     <string name="nav_suppliers">Suppliers</string>
     <string name="nav_more">More</string>
     <string name="action_logout">Log out</string>
+
+    <!-- Inventory / Products -->
+    <string name="search_products_hint">Search products...</string>
+    <string name="inventory_empty">No products yet. Tap + Product to add one.</string>
+    <string name="inventory_empty_search">No products match \"%1$s\"</string>
+    <string name="retry">Retry</string>
+    <string name="edit_product">Edit</string>
+    <string name="delete_product">Delete</string>
+    <string name="delete_product_title">Delete product?</string>
+    <string name="delete_product_message">Delete \"%1$s\"? This cannot be undone.</string>
+    <string name="cancel">Cancel</string>
+    <string name="add_product_title">Add Product</string>
+    <string name="edit_product_title">Edit Product</string>
+    <string name="product_details">Product Details</string>
+    <string name="label_product_name">Product Name</string>
+    <string name="hint_product_name">e.g. Coca-Cola 2L</string>
+    <string name="label_sku">SKU (optional)</string>
+    <string name="hint_sku">e.g. CC-2L</string>
+    <string name="label_cost_price">Cost Price</string>
+    <string name="label_selling_price">Selling Price</string>
+    <string name="hint_price">0.00</string>
+    <string name="label_stock_level">Stock Level</string>
+    <string name="label_min_stock">Min Stock</string>
+    <string name="hint_stock">0</string>
+    <string name="label_category_id">Category ID</string>
+    <string name="hint_category_id">e.g. 1</string>
+    <string name="category_id_help">Must match an existing category. Default seeded category is usually ID 1 (General).</string>
+    <string name="label_supplier_id">Supplier ID (optional)</string>
+    <string name="hint_supplier_id">Leave blank if none</string>
+    <string name="save_product">Save Product</string>
+    <string name="product_created">Product saved</string>
+    <string name="product_updated">Product updated</string>
+    <string name="in_stock">In Stock</string>
+    <string name="low_stock">Low Stock</string>
+    <string name="out_of_stock">Out of Stock</string>
+    <string name="stock_count">%1$d in stock</string>
+    <string name="min_target">Min target: %1$d</string>
+    <string name="sku_label">SKU: %1$s</string>
+    <string name="price_format">R%1$.2f</string>
 </resources>

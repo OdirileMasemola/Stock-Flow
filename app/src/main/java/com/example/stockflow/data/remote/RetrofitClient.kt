@@ -15,12 +15,21 @@ object RetrofitClient {
             .build()
     }
 
-    val authApi: AuthApi by lazy {
+    // Shared Retrofit instance for auth and product APIs
+    private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(AuthApi::class.java)
+    }
+
+    val authApi: AuthApi by lazy {
+        retrofit.create(AuthApi::class.java)
+    }
+
+    /** Authenticated product CRUD — callers pass the Bearer JWT header. */
+    val productApi: ProductApi by lazy {
+        retrofit.create(ProductApi::class.java)
     }
 }

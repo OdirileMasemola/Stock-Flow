@@ -1,7 +1,22 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Local API URL: set api.base.url in local.properties (gitignored).
+// Emulator default is 10.0.2.2 (host loopback). Physical device: use your PC LAN IP.
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
+val apiBaseUrl: String = localProperties.getProperty(
+    "api.base.url",
+    "http://10.0.2.2:8080/"
+)
 
 android {
     namespace = "com.example.stockflow"
@@ -15,7 +30,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "API_BASE_URL", "\"http://10.124.172.188:8080/\"")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -45,6 +60,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.constraintlayout)
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation(libs.material)
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(libs.retrofit)
