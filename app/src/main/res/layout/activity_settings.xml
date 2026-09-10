@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/settingsRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/page_background"
+    tools:context=".ui.settings.SettingsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/brand_text_dark"
+            app:title="@string/settings_title"
+            app:titleTextColor="@color/brand_text_dark" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="24dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp">
+
+            <!-- ACCOUNT -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_account" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowProfile"
+                    layout="@layout/item_settings_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="66dp"
+                    android:background="@color/divider_color" />
+
+                <include
+                    android:id="@+id/rowBusiness"
+                    layout="@layout/item_settings_row" />
+            </LinearLayout>
+
+            <!-- APPEARANCE -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_appearance" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowTheme"
+                    layout="@layout/item_settings_row" />
+            </LinearLayout>
+
+            <!-- LANGUAGE -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_language" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowLanguage"
+                    layout="@layout/item_settings_row" />
+            </LinearLayout>
+
+            <!-- NOTIFICATIONS -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_notifications" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowNotifications"
+                    layout="@layout/item_settings_row" />
+            </LinearLayout>
+
+            <!-- DATA & SYNC -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_data_sync" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowSync"
+                    layout="@layout/item_settings_row" />
+            </LinearLayout>
+
+            <!-- ABOUT -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_about" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowAbout"
+                    layout="@layout/item_settings_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="66dp"
+                    android:background="@color/divider_color" />
+
+                <include
+                    android:id="@+id/rowVersion"
+                    layout="@layout/item_settings_row" />
+            </LinearLayout>
+
+            <!-- LOG OUT -->
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_section_logout" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_settings_group"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/rowLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_settings_icon">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_logout" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:text="@string/action_logout"
+                        android:textColor="@color/logout_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

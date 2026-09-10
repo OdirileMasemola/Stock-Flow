@@ -70,6 +70,45 @@
     <string name="nav_suppliers">Suppliers</string>
     <string name="nav_more">More</string>
     <string name="action_logout">Log out</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_language">Language</string>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_section_data_sync">Data &amp; Sync</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_section_logout">Log out</string>
+    <string name="settings_profile">Profile</string>
+    <string name="settings_profile_subtitle">Account details</string>
+    <string name="settings_profile_placeholder">Profile management will be available in a future update.</string>
+    <string name="settings_business">Business</string>
+    <string name="settings_business_subtitle">Store information</string>
+    <string name="settings_business_placeholder">Business settings will be available in a future update.</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System default</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_app_language">App Language</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_isizulu">isiZulu</string>
+    <string name="settings_language_sesotho">Sesotho</string>
+    <string name="settings_language_setswana">Setswana</string>
+    <string name="settings_language_message">Additional languages are planned for a future update. English remains the active language.</string>
+    <string name="settings_language_english_active">English is the active language.</string>
+    <string name="settings_language_future">This language will be available in a future update. English remains active.</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_placeholder">Notification controls will be available in a future update.</string>
+    <string name="settings_sync">Sync</string>
+    <string name="settings_sync_placeholder">Synchronization and offline support will be available in a future update.</string>
+    <string name="settings_coming_soon">Coming soon</string>
+    <string name="settings_about">About StockFlow</string>
+    <string name="settings_about_subtitle">Inventory &amp; Business Management</string>
+    <string name="settings_about_body">StockFlow\nInventory &amp; Business Management\n\nVersion %1$s</string>
+    <string name="settings_app_version">App Version</string>
+    <string name="settings_logout_confirm">Are you sure you want to log out?</string>
 
     <!-- Inventory / Products -->
     <string name="search_products_hint">Search products...</string>

@@ -60,7 +60,7 @@
                     android:layout_marginTop="2dp"
                     android:fontFamily="sans-serif-medium"
                     android:text="@string/tagline"
-                    android:textColor="@color/brand_text_muted"
+                    android:textColor="@color/on_brand_muted"
                     android:textSize="13sp" />
 
             </LinearLayout>
@@ -84,7 +84,7 @@
             android:id="@+id/signupCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/white"
+            app:cardBackgroundColor="@color/sheet_surface"
             app:cardElevation="0dp"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.StockFlow.SheetCard">
 
@@ -144,7 +144,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_user"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_user" />
 
                     <EditText
                         android:id="@+id/etFullName"
@@ -156,6 +156,7 @@
                         android:hint="@string/hint_full_name"
                         android:inputType="textPersonName"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
                 </LinearLayout>
 
@@ -188,7 +189,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_phone"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_phone" />
 
                     <EditText
                         android:id="@+id/etPhone"
@@ -200,6 +201,7 @@
                         android:hint="@string/hint_phone_number"
                         android:inputType="phone"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
                 </LinearLayout>
 
@@ -232,7 +234,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_mail"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_mail" />
 
                     <EditText
                         android:id="@+id/etEmail"
@@ -244,6 +246,7 @@
                         android:hint="@string/hint_email_address"
                         android:inputType="textEmailAddress"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
                 </LinearLayout>
 
@@ -266,12 +269,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    app:boxBackgroundColor="@color/white"
+                    app:boxBackgroundColor="@color/surface"
                     app:boxStrokeColor="@color/input_border"
                     app:hintEnabled="false"
                     app:layout_constraintTop_toBottomOf="@id/roleLabel"
                     app:startIconDrawable="@drawable/ic_user"
-                    app:startIconTint="@color/brand_text_dark">
+                    app:startIconTint="@color/icon_user">
 
                     <AutoCompleteTextView
                         android:id="@+id/dropdownRole"
@@ -282,6 +285,7 @@
                         android:inputType="none"
                         android:paddingVertical="12dp"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -314,7 +318,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_lock"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_lock" />
 
                     <EditText
                         android:id="@+id/etPassword"
@@ -327,6 +331,7 @@
                         android:hint="@string/hint_password"
                         android:inputType="textPassword"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
 
                     <ImageView
@@ -367,7 +372,7 @@
                         android:layout_height="16dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_lock"
-                        app:tint="@color/brand_text_dark" />
+                        app:tint="@color/icon_lock" />
 
                     <EditText
                         android:id="@+id/etConfirmPassword"
@@ -380,6 +385,7 @@
                         android:hint="@string/hint_password"
                         android:inputType="textPassword"
                         android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />
 
                     <ImageView
@@ -444,7 +450,8 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/continue_with_google"
                     android:textAllCaps="false"
-                    android:textColor="@color/brand_text_dark"
+                    android:textColor="@color/google_button_text"
+                    app:backgroundTint="@color/google_button_bg"
                     app:cornerRadius="8dp"
                     app:icon="@drawable/ic_google"
                     app:iconGravity="textStart"
@@ -452,7 +459,7 @@
                     app:iconSize="20dp"
                     app:iconTint="@null"
                     app:layout_constraintTop_toBottomOf="@id/dividerRow"
-                    app:strokeColor="@color/divider_color" />
+                    app:strokeColor="@color/google_button_stroke" />
 
                 <LinearLayout
                     android:id="@+id/loginPrompt"

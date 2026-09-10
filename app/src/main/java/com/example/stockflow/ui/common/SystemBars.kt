@@ -1,9 +1,10 @@
 package com.example.stockflow.ui.common
 
 import android.app.Activity
-import android.graphics.Color
+import android.content.res.Configuration
 import android.view.View
 import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -41,13 +42,20 @@ object SystemBars {
     }
 
     fun applyLight(activity: Activity, root: View) {
+        applyThemeAware(activity, root)
+    }
+
+    /** Status/nav bars that follow the current light/dark theme. */
+    fun applyThemeAware(activity: Activity, root: View) {
+        val night = (activity.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         apply(
             activity = activity,
             root = root,
-            statusBarColor = Color.parseColor("#F5F6FA"),
-            navigationBarColor = Color.WHITE,
-            lightStatusBars = true,
-            lightNavigationBars = true
+            statusBarColor = ContextCompat.getColor(activity, R.color.page_background),
+            navigationBarColor = ContextCompat.getColor(activity, R.color.surface),
+            lightStatusBars = !night,
+            lightNavigationBars = !night
         )
     }
 }

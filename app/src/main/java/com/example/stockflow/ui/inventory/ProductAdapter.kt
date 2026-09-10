@@ -1,6 +1,5 @@
 package com.example.stockflow.ui.inventory
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -48,27 +47,23 @@ class ProductAdapter(
             when {
                 product.stockLevel <= 0 -> {
                     binding.tvStockStatus.text = context.getString(R.string.out_of_stock)
-                    binding.tvStockStatus.setTextColor(Color.parseColor("#D32F2F"))
-                    binding.tvStockStatus.setBackgroundColor(Color.parseColor("#FFEBEE"))
-                    binding.stockProgress.setIndicatorColor(Color.parseColor("#D32F2F"))
+                    binding.tvStockStatus.setTextColor(context.getColor(R.color.icon_warning))
+                    binding.tvStockStatus.setBackgroundColor(context.getColor(R.color.stat_card_red_bg))
+                    binding.stockProgress.setIndicatorColor(context.getColor(R.color.icon_warning))
                     binding.stockProgress.progress = 0
                 }
                 product.stockLevel <= product.minStockLevel -> {
                     binding.tvStockStatus.text = context.getString(R.string.low_stock)
-                    binding.tvStockStatus.setTextColor(Color.parseColor("#E65100"))
-                    binding.tvStockStatus.setBackgroundColor(Color.parseColor("#FFF3E0"))
-                    binding.stockProgress.setIndicatorColor(Color.parseColor("#E65100"))
+                    binding.tvStockStatus.setTextColor(context.getColor(R.color.icon_notifications))
+                    binding.tvStockStatus.setBackgroundColor(context.getColor(R.color.icon_bg_notifications))
+                    binding.stockProgress.setIndicatorColor(context.getColor(R.color.icon_notifications))
                     binding.stockProgress.progress = stockPercent(product)
                 }
                 else -> {
                     binding.tvStockStatus.text = context.getString(R.string.in_stock)
-                    binding.tvStockStatus.setTextColor(
-                        context.getColor(R.color.brand_primary)
-                    )
-                    binding.tvStockStatus.setBackgroundColor(Color.parseColor("#E8F9ED"))
-                    binding.stockProgress.setIndicatorColor(
-                        context.getColor(R.color.brand_primary)
-                    )
+                    binding.tvStockStatus.setTextColor(context.getColor(R.color.brand_primary))
+                    binding.tvStockStatus.setBackgroundColor(context.getColor(R.color.soft_green_bg))
+                    binding.stockProgress.setIndicatorColor(context.getColor(R.color.brand_primary))
                     binding.stockProgress.progress = stockPercent(product)
                 }
             }

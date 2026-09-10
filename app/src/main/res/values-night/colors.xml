@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark-mode surfaces and readable text while keeping brand green -->
+    <color name="brand_text_dark">#E8EAED</color>
+    <color name="brand_text_light">#9AA0A6</color>
+    <color name="brand_text_muted">#6B7280</color>
+    <color name="divider_color">#2C3548</color>
+    <color name="input_border">#2C3548</color>
+    <color name="page_background">#0F1419</color>
+    <color name="surface">#1B2438</color>
+    <!-- Elevated sheet above brand navy so form text stays readable -->
+    <color name="sheet_surface">#243044</color>
+    <color name="settings_row_icon_bg">#243044</color>
+    <color name="logout_text">#EF5350</color>
+    <color name="stat_card_surface">#243044</color>
+    <color name="stat_card_green_bg">#1A3328</color>
+    <color name="stat_card_red_bg">#3A2020</color>
+    <color name="soft_green_bg">#1A3328</color>
+    <color name="chip_background">#243044</color>
+    <color name="progress_track">#243044</color>
+
+    <color name="icon_bg_profile">#1A2A3A</color>
+    <color name="icon_bg_business">#1A3330</color>
+    <color name="icon_bg_theme">#3A3020</color>
+    <color name="icon_bg_language">#2E2440</color>
+    <color name="icon_bg_notifications">#3A2A1A</color>
+    <color name="icon_bg_sync">#1A3035</color>
+    <color name="icon_bg_about">#2A3038</color>
+    <color name="icon_bg_logout">#3A2020</color>
+</resources>

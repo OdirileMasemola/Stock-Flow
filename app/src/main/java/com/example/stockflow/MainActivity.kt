@@ -1,9 +1,10 @@
 package com.example.stockflow
 
 import android.content.Intent
-import android.graphics.Color
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,6 +17,7 @@ import com.example.stockflow.ui.dashboard.ReportsActivity
 import com.example.stockflow.ui.inventory.InventoryFragment
 import com.example.stockflow.ui.login.LoginActivity
 import com.example.stockflow.ui.sales.SalesFragment
+import com.example.stockflow.ui.settings.SettingsActivity
 import com.example.stockflow.ui.suppliers.SuppliersFragment
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -47,12 +49,14 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupSystemBars() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = Color.parseColor("#F5F6FA")
-        window.navigationBarColor = Color.WHITE
+        val night = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        window.statusBarColor = ContextCompat.getColor(this, R.color.page_background)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.surface)
 
         val controller = WindowCompat.getInsetsController(window, binding.root)
-        controller.isAppearanceLightStatusBars = true
-        controller.isAppearanceLightNavigationBars = true
+        controller.isAppearanceLightStatusBars = !night
+        controller.isAppearanceLightNavigationBars = !night
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -69,6 +73,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupToolbar() {
         binding.topAppBar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                R.id.action_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    true
+                }
                 R.id.action_reports -> {
                     startActivity(Intent(this, ReportsActivity::class.java))
                     true
