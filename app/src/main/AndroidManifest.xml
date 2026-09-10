@@ -55,6 +55,18 @@
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />
         <activity
+            android:name=".ui.suppliers.AddSupplierActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.suppliers.PurchaseOrdersActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.suppliers.PurchaseOrderDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
             android:name=".ui.suppliers.PurchaseOrderActivity"
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />

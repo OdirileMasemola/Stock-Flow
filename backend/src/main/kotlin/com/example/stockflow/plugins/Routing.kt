@@ -9,12 +9,18 @@ import com.example.stockflow.services.UserService
 import com.example.stockflow.services.RoleService
 import com.example.stockflow.services.ProductService
 import com.example.stockflow.services.SaleService
+import com.example.stockflow.services.SupplierService
+import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
 import com.example.stockflow.models.CreateProductRequest
 import com.example.stockflow.models.UpdateProductRequest
 import com.example.stockflow.models.CreateSaleRequest
+import com.example.stockflow.models.CreateSupplierRequest
+import com.example.stockflow.models.UpdateSupplierRequest
+import com.example.stockflow.models.CreatePurchaseOrderRequest
+import com.example.stockflow.models.UpdatePurchaseOrderRequest
 import com.example.stockflow.models.BadRequestException
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -24,6 +30,8 @@ fun Application.configureRouting() {
     val roleService = RoleService()
     val productService = ProductService()
     val saleService = SaleService()
+    val supplierService = SupplierService()
+    val purchaseOrderService = PurchaseOrderService()
 
     routing {
         get("/") {
@@ -122,6 +130,61 @@ fun Application.configureRouting() {
                     val request = call.receive<CreateSaleRequest>()
                     val created = saleService.createSale(userId, request)
                     call.respond(HttpStatusCode.Created, created)
+                }
+            }
+
+            route("/api/suppliers") {
+                get {
+                    call.respond(supplierService.getSuppliers())
+                }
+                get("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid supplier ID")
+                    call.respond(supplierService.getSupplier(id))
+                }
+                post {
+                    val request = call.receive<CreateSupplierRequest>()
+                    val created = supplierService.createSupplier(request)
+                    call.respond(HttpStatusCode.Created, created)
+                }
+                put("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid supplier ID")
+                    val request = call.receive<UpdateSupplierRequest>()
+                    call.respond(supplierService.updateSupplier(id, request))
+                }
+                delete("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid supplier ID")
+                    supplierService.deleteSupplier(id)
+                    call.respond(HttpStatusCode.NoContent)
+                }
+            }
+
+            route("/api/purchase-orders") {
+                get {
+                    call.respond(purchaseOrderService.getPurchaseOrders())
+                }
+                get("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid purchase order ID")
+                    call.respond(purchaseOrderService.getPurchaseOrder(id))
+                }
+                post {
+                    val request = call.receive<CreatePurchaseOrderRequest>()
+                    val created = purchaseOrderService.createPurchaseOrder(request)
+                    call.respond(HttpStatusCode.Created, created)
+                }
+                put("/{id}") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid purchase order ID")
+                    val request = call.receive<UpdatePurchaseOrderRequest>()
+                    call.respond(purchaseOrderService.updatePurchaseOrder(id, request))
+                }
+                post("/{id}/receive") {
+                    val id = call.parameters["id"]?.toIntOrNull()
+                        ?: throw BadRequestException("Invalid purchase order ID")
+                    call.respond(purchaseOrderService.receivePurchaseOrder(id))
                 }
             }
         }
