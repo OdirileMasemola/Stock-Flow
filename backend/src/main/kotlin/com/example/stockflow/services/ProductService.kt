@@ -4,13 +4,15 @@ import com.example.stockflow.models.BadRequestException
 import com.example.stockflow.models.ConflictException
 import com.example.stockflow.models.CreateProductRequest
 import com.example.stockflow.models.NotFoundException
+import com.example.stockflow.models.ProductImageUploadResponse
 import com.example.stockflow.models.ProductResponse
 import com.example.stockflow.models.UpdateProductRequest
 import com.example.stockflow.repositories.ProductRepository
 import com.example.stockflow.repositories.ProductRepositoryImpl
 
 class ProductService(
-    private val repository: ProductRepository = ProductRepositoryImpl()
+    private val repository: ProductRepository = ProductRepositoryImpl(),
+    private val imageStorage: ProductImageStorage = ProductImageStorage()
 ) {
     suspend fun getProducts(): List<ProductResponse> = repository.getAllProducts()
 
@@ -21,6 +23,17 @@ class ProductService(
             ?: throw NotFoundException("Product not found")
     }
 
+    fun uploadProductImage(
+        bytes: ByteArray,
+        originalFileName: String?,
+        contentType: String?
+    ): ProductImageUploadResponse {
+        val imageUrl = imageStorage.saveProductImage(bytes, originalFileName, contentType)
+        return ProductImageUploadResponse(imageUrl = imageUrl)
+    }
+
+    fun uploadsRoot() = imageStorage.uploadsRoot()
+
     suspend fun createProduct(request: CreateProductRequest): ProductResponse {
         validateProductFields(
             name = request.name,
@@ -30,7 +43,8 @@ class ProductService(
             stockLevel = request.stockLevel,
             minStockLevel = request.minStockLevel,
             categoryId = request.categoryId,
-            supplierId = request.supplierId
+            supplierId = request.supplierId,
+            imageUrl = request.imageUrl
         )
 
         val normalizedSku = request.sku?.trim()?.takeIf { it.isNotEmpty() }
@@ -43,7 +57,7 @@ class ProductService(
 
     suspend fun updateProduct(id: Int, request: UpdateProductRequest): ProductResponse {
         // Ensure the product exists before validating other fields
-        repository.getProductById(id)
+        val existing = repository.getProductById(id)
             ?: throw NotFoundException("Product not found")
 
         validateProductFields(
@@ -54,7 +68,8 @@ class ProductService(
             stockLevel = request.stockLevel,
             minStockLevel = request.minStockLevel,
             categoryId = request.categoryId,
-            supplierId = request.supplierId
+            supplierId = request.supplierId,
+            imageUrl = request.imageUrl
         )
 
         val normalizedSku = request.sku?.trim()?.takeIf { it.isNotEmpty() }
@@ -66,15 +81,26 @@ class ProductService(
             }
         }
 
-        return repository.updateProduct(id, request)
+        val updated = repository.updateProduct(id, request)
             ?: throw NotFoundException("Product not found")
+
+        val oldUrl = existing.imageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        val newUrl = updated.imageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        if (oldUrl != null && oldUrl != newUrl) {
+            imageStorage.deleteIfManaged(oldUrl)
+        }
+
+        return updated
     }
 
     suspend fun deleteProduct(id: Int) {
+        val existing = repository.getProductById(id)
+            ?: throw NotFoundException("Product not found")
         val deleted = repository.deleteProduct(id)
         if (!deleted) {
             throw NotFoundException("Product not found")
         }
+        imageStorage.deleteIfManaged(existing.imageUrl)
     }
 
     private suspend fun validateProductFields(
@@ -85,7 +111,8 @@ class ProductService(
         stockLevel: Int,
         minStockLevel: Int,
         categoryId: Int,
-        supplierId: Int?
+        supplierId: Int?,
+        imageUrl: String?
     ) {
         if (name.isBlank()) {
             throw BadRequestException("Product name cannot be blank")
@@ -116,6 +143,11 @@ class ProductService(
         }
         if (minStockLevel < 0) {
             throw BadRequestException("Minimum stock level cannot be negative")
+        }
+
+        val trimmedImage = imageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        if (trimmedImage != null && trimmedImage.length > 500) {
+            throw BadRequestException("Image URL must be 500 characters or fewer")
         }
 
         if (!repository.categoryExists(categoryId)) {

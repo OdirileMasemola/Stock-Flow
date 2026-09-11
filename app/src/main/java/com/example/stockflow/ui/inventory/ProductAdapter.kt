@@ -1,13 +1,16 @@
 package com.example.stockflow.ui.inventory
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.ItemProductBinding
+import com.example.stockflow.ui.common.ProductImages
 
 class ProductAdapter(
     private val onEdit: (ProductDto) -> Unit,
@@ -32,17 +35,16 @@ class ProductAdapter(
             binding.tvProductName.text = product.name
             binding.tvSellingPrice.text = context.getString(R.string.price_format, product.sellingPrice)
             binding.tvStockStats.text = context.getString(R.string.stock_count, product.stockLevel)
-            binding.tvMinStock.text = context.getString(R.string.min_target, product.minStockLevel)
 
             val category = product.categoryName?.takeIf { it.isNotBlank() }
                 ?: "Category #${product.categoryId}"
-            binding.tvCategory.text = category
-
-            if (product.sku.isNullOrBlank()) {
-                binding.tvSku.text = ""
+            binding.tvMeta.text = if (product.sku.isNullOrBlank()) {
+                category
             } else {
-                binding.tvSku.text = context.getString(R.string.sku_label, product.sku)
+                "$category · ${context.getString(R.string.sku_label, product.sku)}"
             }
+
+            bindImage(product.imageUrl)
 
             when {
                 product.stockLevel <= 0 -> {
@@ -71,6 +73,28 @@ class ProductAdapter(
             binding.btnEdit.setOnClickListener { onEdit(product) }
             binding.btnDelete.setOnClickListener { onDelete(product) }
             binding.root.setOnClickListener { onEdit(product) }
+        }
+
+        private fun bindImage(imageUrl: String?) {
+            val resolved = ProductImages.resolveUrl(imageUrl)
+            if (resolved.isNullOrBlank()) {
+                binding.ivProductImage.setImageResource(R.drawable.bg_product_image_placeholder)
+                binding.ivProductPlaceholderIcon.visibility = View.VISIBLE
+                return
+            }
+            binding.ivProductPlaceholderIcon.visibility = View.GONE
+            binding.ivProductImage.load(resolved) {
+                placeholder(R.drawable.bg_product_image_placeholder)
+                error(R.drawable.bg_product_image_placeholder)
+                listener(
+                    onError = { _, _ ->
+                        binding.ivProductPlaceholderIcon.visibility = View.VISIBLE
+                    },
+                    onSuccess = { _, _ ->
+                        binding.ivProductPlaceholderIcon.visibility = View.GONE
+                    }
+                )
+            }
         }
 
         /** Progress bar relative to a comfortable buffer above min stock. */

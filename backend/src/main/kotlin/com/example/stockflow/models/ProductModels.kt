@@ -17,7 +17,8 @@ data class ProductResponse(
     val minStockLevel: Int,
     val categoryId: Int,
     val categoryName: String? = null,
-    val supplierId: Int? = null
+    val supplierId: Int? = null,
+    val imageUrl: String? = null
 )
 
 /** Body for creating a new product. */
@@ -30,7 +31,8 @@ data class CreateProductRequest(
     val stockLevel: Int = 0,
     val minStockLevel: Int = 5,
     val categoryId: Int,
-    val supplierId: Int? = null
+    val supplierId: Int? = null,
+    val imageUrl: String? = null
 )
 
 /** Body for updating an existing product (full replace of editable fields). */
@@ -43,7 +45,14 @@ data class UpdateProductRequest(
     val stockLevel: Int,
     val minStockLevel: Int,
     val categoryId: Int,
-    val supplierId: Int? = null
+    val supplierId: Int? = null,
+    val imageUrl: String? = null
+)
+
+/** Response after uploading a product image file. */
+@Serializable
+data class ProductImageUploadResponse(
+    val imageUrl: String
 )
 
 /** Thrown when a requested resource does not exist (maps to HTTP 404). */

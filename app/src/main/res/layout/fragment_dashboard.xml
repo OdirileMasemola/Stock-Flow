@@ -43,7 +43,8 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/greetingText" />
+                        app:layout_constraintTop_toBottomOf="@id/greetingText"
+                        tools:text="Alex" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <GridLayout
@@ -427,19 +428,17 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <LinearLayout
-                                android:id="@+id/weeklyBars"
+                            <com.example.stockflow.ui.dashboard.WeeklySalesLineChartView
+                                android:id="@+id/weeklyLineChart"
                                 android:layout_width="match_parent"
-                                android:layout_height="120dp"
-                                android:gravity="bottom"
-                                android:orientation="horizontal"
-                                android:weightSum="7" />
+                                android:layout_height="140dp"
+                                android:contentDescription="@string/weekly_performance_title" />
 
                             <LinearLayout
                                 android:id="@+id/weeklyLabels"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="4dp"
                                 android:orientation="horizontal"
                                 android:weightSum="7" />
 

@@ -14,20 +14,39 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="10dp">
 
-        <View
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@color/soft_green_bg" />
+            android:layout_height="72dp">
+
+            <ImageView
+                android:id="@+id/ivProductImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/page_background"
+                android:contentDescription="@string/product_image_content_description"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg_product_image_placeholder" />
+
+            <ImageView
+                android:id="@+id/ivProductPlaceholderIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_inventory"
+                app:tint="@color/brand_text_muted" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:ellipsize="end"
             android:maxLines="2"
+            android:minLines="2"
             android:textColor="@color/brand_text_dark"
             android:textSize="12sp"
             android:textStyle="bold" />

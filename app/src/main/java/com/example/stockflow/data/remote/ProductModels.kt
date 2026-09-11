@@ -14,7 +14,8 @@ data class ProductDto(
     val minStockLevel: Int,
     val categoryId: Int,
     val categoryName: String? = null,
-    val supplierId: Int? = null
+    val supplierId: Int? = null,
+    val imageUrl: String? = null
 )
 
 data class CreateProductRequest(
@@ -25,7 +26,8 @@ data class CreateProductRequest(
     val stockLevel: Int = 0,
     val minStockLevel: Int = 5,
     val categoryId: Int,
-    val supplierId: Int? = null
+    val supplierId: Int? = null,
+    val imageUrl: String? = null
 )
 
 data class UpdateProductRequest(
@@ -36,5 +38,10 @@ data class UpdateProductRequest(
     val stockLevel: Int,
     val minStockLevel: Int,
     val categoryId: Int,
-    val supplierId: Int? = null
+    val supplierId: Int? = null,
+    val imageUrl: String? = null
+)
+
+data class ProductImageUploadResponse(
+    val imageUrl: String
 )

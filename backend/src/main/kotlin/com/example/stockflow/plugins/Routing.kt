@@ -4,7 +4,11 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.request.*
+import io.ktor.server.http.content.*
+import io.ktor.utils.io.*
+import kotlinx.io.readByteArray
 import com.example.stockflow.services.UserService
 import com.example.stockflow.services.RoleService
 import com.example.stockflow.services.ProductService
@@ -45,6 +49,9 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(mapOf("status" to "up"))
         }
+
+        // Public product image files (paths stored on products as /uploads/products/...).
+        staticFiles("/uploads", productService.uploadsRoot())
 
         get("/api/roles") {
             call.respond(roleService.listRoles())
@@ -94,6 +101,31 @@ fun Application.configureRouting() {
                 }
                 get("/low-stock") {
                     call.respond(productService.getLowStockProducts())
+                }
+                post("/images") {
+                    val multipart = call.receiveMultipart()
+                    var uploadBytes: ByteArray? = null
+                    var originalName: String? = null
+                    var contentType: String? = null
+
+                    multipart.forEachPart { part ->
+                        when (part) {
+                            is PartData.FileItem -> {
+                                if (part.name == "image" || uploadBytes == null) {
+                                    originalName = part.originalFileName
+                                    contentType = part.contentType?.toString()
+                                    uploadBytes = part.provider().readRemaining().readByteArray()
+                                }
+                            }
+                            else -> Unit
+                        }
+                        part.dispose()
+                    }
+
+                    val bytes = uploadBytes
+                        ?: throw BadRequestException("Missing image file. Use multipart field name \"image\".")
+                    val response = productService.uploadProductImage(bytes, originalName, contentType)
+                    call.respond(HttpStatusCode.Created, response)
                 }
                 get("/{id}") {
                     val id = call.parameters["id"]?.toIntOrNull()

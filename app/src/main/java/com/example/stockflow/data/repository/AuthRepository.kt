@@ -25,6 +25,7 @@ class AuthRepository(
                 val body = response.body()
                     ?: return Result.failure(Exception("Login failed"))
                 sessionStore?.saveToken(body.token)
+                sessionStore?.saveUserFullName(body.user.fullName)
                 Result.success(true)
             } else {
                 Result.failure(Exception(errorMessage(response, fallback = "Invalid username/email or password")))
@@ -92,6 +93,7 @@ class AuthRepository(
                 val body = response.body()
                     ?: return Result.failure(Exception("Google Sign-In failed"))
                 sessionStore?.saveToken(body.token)
+                sessionStore?.saveUserFullName(body.user.fullName)
                 Result.success(GoogleAuthOutcome.Authenticated)
             } else if (response.code() == 401) {
                 val apiError = parseError(response)

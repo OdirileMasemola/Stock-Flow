@@ -35,7 +35,8 @@ object DatabaseFactory {
                     PurchaseOrders, 
                     PurchaseOrderItems
                 )
-                SchemaUtils.createMissingTablesAndColumns(Users)
+                // Users + Products: add nullable columns on existing DBs (e.g. image_url).
+                SchemaUtils.createMissingTablesAndColumns(Users, Products)
                 seedDefaultRolesIfEmpty()
                 // One default category so products can be created before Category CRUD exists.
                 seedDefaultCategoryIfEmpty()

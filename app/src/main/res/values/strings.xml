@@ -127,6 +127,11 @@
     <string name="add_product_title">Add Product</string>
     <string name="edit_product_title">Edit Product</string>
     <string name="product_details">Product Details</string>
+    <string name="add_product_image">Add product image</string>
+    <string name="change_product_image">Change image</string>
+    <string name="remove_product_image">Remove image</string>
+    <string name="product_image_content_description">Product image</string>
+    <string name="image_upload_failed">Could not upload the product image. Product was not saved.</string>
     <string name="label_product_name">Product Name</string>
     <string name="hint_product_name">e.g. Coca-Cola 2L</string>
     <string name="label_sku">SKU (optional)</string>

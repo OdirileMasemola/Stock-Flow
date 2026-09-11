@@ -36,6 +36,22 @@ object AppConfig {
 
     val firebaseCredentialsPath = getEnv("FIREBASE_CREDENTIALS_PATH")
 
+    /**
+     * Directory for uploaded product images (relative or absolute).
+     * Defaults work from either the repo root or the backend module working directory.
+     */
+    val uploadsDir: String = resolveUploadsDir()
+
+    private fun resolveUploadsDir(): String {
+        val configured = getEnv("UPLOADS_DIR")?.trim()?.takeIf { it.isNotEmpty() }
+        if (configured != null) return configured
+        val fromRoot = java.io.File("backend/uploads")
+        if (java.io.File("backend").isDirectory || fromRoot.parentFile?.exists() == true) {
+            return fromRoot.path
+        }
+        return "uploads"
+    }
+
     private fun getEnv(key: String): String? {
         return System.getenv(key) ?: dotenv.get(key)
     }
