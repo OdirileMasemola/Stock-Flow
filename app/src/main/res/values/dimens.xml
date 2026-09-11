@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="bottom_nav_outer_gap">8dp</dimen>
+    <dimen name="bottom_nav_side_inset">16dp</dimen>
+    <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="bottom_nav_item_padding_active">14dp</dimen>
+    <dimen name="bottom_nav_item_padding_inactive">10dp</dimen>
+</resources>

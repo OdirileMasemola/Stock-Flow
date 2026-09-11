@@ -65,6 +65,14 @@
     <color name="icon_user">#3498DB</color>
     <color name="icon_logout">#D32F2F</color>
 
+    <!-- Floating bottom nav dock -->
+    <color name="bottom_nav_glass">#D9FFFFFF</color>
+    <color name="bottom_nav_active">#1B2438</color>
+    <color name="bottom_nav_inactive">#5D6D7E</color>
+    <color name="bottom_nav_active_bg">#E8F9ED</color>
+    <color name="bottom_nav_stroke">#66E8ECF1</color>
+    <color name="bottom_nav_ripple_fill">#331B2438</color>
+
     <!-- Soft icon chip backgrounds -->
     <color name="icon_bg_profile">#E3F2FD</color>
     <color name="icon_bg_business">#E0F2F1</color>

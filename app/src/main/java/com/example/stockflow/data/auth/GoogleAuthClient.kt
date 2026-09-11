@@ -2,6 +2,7 @@ package com.example.stockflow.data.auth
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -13,7 +14,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -23,10 +26,21 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 
 /**
+ * Outcome of parsing a classic Google Sign-In Activity result.
+ * Cancellation is only reported when Google/Play Services indicate a real cancel.
+ */
+sealed class GoogleAccountResult {
+    data class Success(val account: GoogleSignInAccount) : GoogleAccountResult()
+    object Cancelled : GoogleAccountResult()
+    data class Error(val message: String, val statusCode: Int? = null) : GoogleAccountResult()
+}
+
+/**
  * Google Sign-In helper.
  *
- * Uses Credential Manager first, then falls back to the classic Google Sign-In
- * intent when Credential Manager reports cancel/no-credential after the picker.
+ * Primary path: classic [GoogleSignInClient] intent (more reliable on device than
+ * Credential Manager for this project). Credential Manager remains available as a
+ * secondary helper API.
  */
 class GoogleAuthClient(private val activity: Activity) {
     private val credentialManager = CredentialManager.create(activity)
@@ -66,6 +80,49 @@ class GoogleAuthClient(private val activity: Activity) {
     }
 
     /**
+     * Resolve an Activity Result from [getSignInIntent].
+     *
+     * Important: Google Sign-In can return [Activity.RESULT_CANCELED] even when
+     * account selection succeeded but OAuth/config failed. Always inspect Intent
+     * data / status codes before treating the flow as a user cancel.
+     */
+    fun resolveSignInResult(resultCode: Int, data: Intent?): GoogleAccountResult {
+        Log.d(
+            TAG,
+            "Google Sign-In activity result: resultCode=$resultCode hasData=${data != null}"
+        )
+
+        if (data != null) {
+            when (val parsed = parseSignInIntent(data)) {
+                is GoogleAccountResult.Success -> return parsed
+                is GoogleAccountResult.Error -> {
+                    Log.w(TAG, "Google Sign-In parse error status=${parsed.statusCode}")
+                    return parsed
+                }
+                is GoogleAccountResult.Cancelled -> {
+                    Log.d(TAG, "Google Sign-In Intent reported cancellation")
+                }
+            }
+        }
+
+        // Some devices leave a signed-in account even when resultCode is CANCELED.
+        val lastAccount = GoogleSignIn.getLastSignedInAccount(activity)
+        if (lastAccount != null && !lastAccount.idToken.isNullOrBlank()) {
+            Log.d(TAG, "Recovered Google account via getLastSignedInAccount")
+            return GoogleAccountResult.Success(lastAccount)
+        }
+
+        return if (resultCode == Activity.RESULT_CANCELED) {
+            GoogleAccountResult.Cancelled
+        } else {
+            GoogleAccountResult.Error(
+                "Google Sign-In failed. Please try again.",
+                statusCode = resultCode
+            )
+        }
+    }
+
+    /**
      * Credential Manager path (may return cancel on some devices after account pick).
      * Prefer [exchangeGoogleAccount] with the classic sign-in intent when this fails.
      */
@@ -100,35 +157,53 @@ class GoogleAuthClient(private val activity: Activity) {
         }
         val googleIdToken = account.idToken
         if (googleIdToken.isNullOrBlank()) {
+            Log.w(TAG, "Google account had no ID token (often SHA-1 / OAuth client mismatch)")
             return Result.failure(
                 IllegalStateException(
-                    "Google Sign-In failed. Add this app's SHA-1 in Firebase and try again."
+                    "Google Sign-In failed. Add this app's debug SHA-1 in Firebase Console, " +
+                        "download an updated google-services.json, and try again."
                 )
             )
         }
         return exchangeGoogleIdToken(googleIdToken)
     }
 
-    fun parseSignInIntent(data: Intent?): Result<GoogleSignInAccount> {
+    fun parseSignInIntent(data: Intent?): GoogleAccountResult {
+        if (data == null) {
+            return GoogleAccountResult.Cancelled
+        }
         return try {
-            val account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
-            Result.success(account)
+            val account = GoogleSignIn.getSignedInAccountFromIntent(data)
+                .getResult(ApiException::class.java)
+            GoogleAccountResult.Success(account)
         } catch (e: ApiException) {
+            Log.w(TAG, "GoogleSignIn ApiException status=${e.statusCode}")
             when (e.statusCode) {
-                // Common Google Sign-In status codes
-                12501 -> Result.failure(IllegalStateException("Google Sign-In was cancelled."))
-                10 -> Result.failure(
-                    IllegalStateException(
-                        "Google Sign-In misconfigured. Add the debug SHA-1 in Firebase Console."
-                    )
+                GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> GoogleAccountResult.Cancelled
+                CommonStatusCodes.DEVELOPER_ERROR,
+                GoogleSignInStatusCodes.SIGN_IN_FAILED -> GoogleAccountResult.Error(
+                    "Google Sign-In is misconfigured. Add the app debug SHA-1/SHA-256 in " +
+                        "Firebase Console (Project settings → Your apps), then download a new " +
+                        "google-services.json.",
+                    statusCode = e.statusCode
                 )
-                else -> Result.failure(
-                    IllegalStateException("Google Sign-In failed (code ${e.statusCode}). Please try again.")
+                CommonStatusCodes.NETWORK_ERROR -> GoogleAccountResult.Error(
+                    "Network error during Google Sign-In. Check your connection and try again.",
+                    statusCode = e.statusCode
+                )
+                GoogleSignInStatusCodes.SIGN_IN_CURRENTLY_IN_PROGRESS -> GoogleAccountResult.Error(
+                    "Google Sign-In is already in progress. Please wait and try again.",
+                    statusCode = e.statusCode
+                )
+                else -> GoogleAccountResult.Error(
+                    "Google Sign-In failed (code ${e.statusCode}). Please try again.",
+                    statusCode = e.statusCode
                 )
             }
         } catch (e: Exception) {
-            Result.failure(
-                IllegalStateException(e.message ?: "Unable to complete Google Sign-In. Please try again.")
+            Log.w(TAG, "GoogleSignIn unexpected error: ${e.javaClass.simpleName}")
+            GoogleAccountResult.Error(
+                e.message ?: "Unable to complete Google Sign-In. Please try again."
             )
         }
     }
@@ -144,13 +219,16 @@ class GoogleAuthClient(private val activity: Activity) {
                 ?.await()
                 ?.token
             if (firebaseIdToken.isNullOrBlank()) {
+                Log.w(TAG, "Firebase Auth succeeded but ID token was blank")
                 Result.failure(IllegalStateException("Unable to complete Google Sign-In. Please try again."))
             } else {
+                Log.d(TAG, "Firebase Auth exchange succeeded")
                 Result.success(firebaseIdToken)
             }
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
+            Log.w(TAG, "Firebase Auth exchange failed: ${e.javaClass.simpleName}")
             Result.failure(
                 IllegalStateException(e.message ?: "Unable to complete Google Sign-In. Please try again.")
             )
@@ -198,5 +276,9 @@ class GoogleAuthClient(private val activity: Activity) {
 
     private fun isConfigured(): Boolean {
         return resolveWebClientId().isNotBlank() && FirebaseApp.getApps(activity).isNotEmpty()
+    }
+
+    companion object {
+        private const val TAG = "StockFlowGoogleAuth"
     }
 }

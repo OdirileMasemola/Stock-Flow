@@ -8,7 +8,6 @@
     android:background="@color/page_background"
     tools:context=".MainActivity">
 
-    <!-- Status-bar spacer so the toolbar title is never clipped -->
     <View
         android:id="@+id/statusBarSpacer"
         android:layout_width="0dp"
@@ -34,23 +33,93 @@
         android:id="@+id/nav_host_fragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topAppBar" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
+    <FrameLayout
+        android:id="@+id/bottomNavContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/surface"
-        app:elevation="8dp"
-        app:itemIconTint="@color/bottom_nav_colors"
-        app:itemTextColor="@color/bottom_nav_colors"
-        app:labelVisibilityMode="selected"
+        android:background="@android:color/transparent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingStart="@dimen/bottom_nav_side_inset"
+        android:paddingTop="6dp"
+        android:paddingEnd="@dimen/bottom_nav_side_inset"
+        android:paddingBottom="@dimen/bottom_nav_outer_gap"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!--
+            Items are wrap_content (not equal columns) so the active label can fully fit.
+            Weighted spacers keep icons evenly distributed across the dock.
+        -->
+        <LinearLayout
+            android:id="@+id/bottomNavigation"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottom_nav_height"
+            android:background="@drawable/bg_bottom_nav"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:elevation="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            app:elevation="8dp">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/navDashboard"
+                layout="@layout/item_bottom_nav"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/navInventory"
+                layout="@layout/item_bottom_nav"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/navSales"
+                layout="@layout/item_bottom_nav"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/navSuppliers"
+                layout="@layout/item_bottom_nav"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
