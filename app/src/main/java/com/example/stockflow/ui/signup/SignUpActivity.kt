@@ -1,6 +1,5 @@
 package com.example.stockflow.ui.signup
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -17,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.stockflow.MainActivity
 import com.example.stockflow.R
+import com.example.stockflow.data.auth.GoogleAccountResult
 import com.example.stockflow.data.auth.GoogleAuthClient
 import com.example.stockflow.data.remote.RoleDto
 import com.example.stockflow.databinding.ActivitySignupBinding
@@ -111,19 +111,10 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun handleGoogleSignInResult(resultCode: Int, data: Intent?) {
-        if (resultCode != Activity.RESULT_OK) {
-            showLoading(false)
-            if (resultCode == Activity.RESULT_CANCELED) {
-                Toast.makeText(this, "Google Sign-In was cancelled.", Toast.LENGTH_SHORT).show()
-            }
-            return
-        }
-
         lifecycleScope.launch {
-            val accountResult = googleAuthClient.parseSignInIntent(data)
-            accountResult.fold(
-                onSuccess = { account ->
-                    googleAuthClient.exchangeGoogleAccount(account).fold(
+            when (val resolved = googleAuthClient.resolveSignInResult(resultCode, data)) {
+                is GoogleAccountResult.Success -> {
+                    googleAuthClient.exchangeGoogleAccount(resolved.account).fold(
                         onSuccess = { idToken -> viewModel.continueGoogleSignUp(idToken) },
                         onFailure = { error ->
                             showLoading(false)
@@ -134,16 +125,24 @@ class SignUpActivity : AppCompatActivity() {
                             ).show()
                         }
                     )
-                },
-                onFailure = { error ->
+                }
+                is GoogleAccountResult.Cancelled -> {
                     showLoading(false)
                     Toast.makeText(
                         this@SignUpActivity,
-                        error.message ?: "Unable to complete Google Sign-In. Please try again.",
+                        "Google Sign-In was cancelled.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is GoogleAccountResult.Error -> {
+                    showLoading(false)
+                    Toast.makeText(
+                        this@SignUpActivity,
+                        resolved.message,
                         Toast.LENGTH_LONG
                     ).show()
                 }
-            )
+            }
         }
     }
 

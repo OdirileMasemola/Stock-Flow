@@ -27,6 +27,14 @@
     <color name="soft_action_button_text">#3DDB84</color>
     <color name="soft_avatar_bg">#243D32</color>
 
+    <!-- Floating bottom nav dock (dark) -->
+    <color name="bottom_nav_glass">#CC1B2438</color>
+    <color name="bottom_nav_active">#F3F4F6</color>
+    <color name="bottom_nav_inactive">#9AA0A6</color>
+    <color name="bottom_nav_active_bg">#2A3A4F</color>
+    <color name="bottom_nav_stroke">#553A4558</color>
+    <color name="bottom_nav_ripple_fill">#33F3F4F6</color>
+
     <color name="icon_bg_profile">#1A2A3A</color>
     <color name="icon_bg_business">#1A3330</color>
     <color name="icon_bg_theme">#3A3020</color>
