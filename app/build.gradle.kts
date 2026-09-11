@@ -65,6 +65,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.coil)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.androidx.credentials)

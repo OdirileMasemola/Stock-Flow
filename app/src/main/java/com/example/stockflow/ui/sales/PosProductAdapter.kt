@@ -1,13 +1,16 @@
 package com.example.stockflow.ui.sales
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.ItemPosProductBinding
+import com.example.stockflow.ui.common.ProductImages
 
 class PosProductAdapter(
     private val onAdd: (ProductDto) -> Unit
@@ -33,11 +36,34 @@ class PosProductAdapter(
                 R.string.pos_stock_format,
                 product.stockLevel
             )
+            bindImage(product.imageUrl)
             val inStock = product.stockLevel > 0
             binding.root.alpha = if (inStock) 1f else 0.5f
             binding.root.isEnabled = inStock
             binding.root.setOnClickListener {
                 if (inStock) onAdd(product)
+            }
+        }
+
+        private fun bindImage(imageUrl: String?) {
+            val resolved = ProductImages.resolveUrl(imageUrl)
+            if (resolved.isNullOrBlank()) {
+                binding.ivProductImage.setImageResource(R.drawable.bg_product_image_placeholder)
+                binding.ivProductPlaceholderIcon.visibility = View.VISIBLE
+                return
+            }
+            binding.ivProductPlaceholderIcon.visibility = View.GONE
+            binding.ivProductImage.load(resolved) {
+                placeholder(R.drawable.bg_product_image_placeholder)
+                error(R.drawable.bg_product_image_placeholder)
+                listener(
+                    onError = { _, _ ->
+                        binding.ivProductPlaceholderIcon.visibility = View.VISIBLE
+                    },
+                    onSuccess = { _, _ ->
+                        binding.ivProductPlaceholderIcon.visibility = View.GONE
+                    }
+                )
             }
         }
     }

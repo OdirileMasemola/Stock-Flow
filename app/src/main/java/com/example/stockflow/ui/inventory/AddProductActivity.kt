@@ -1,13 +1,18 @@
 package com.example.stockflow.ui.inventory
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import coil.load
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.ActivityAddProductBinding
+import com.example.stockflow.ui.common.ProductImages
 import com.example.stockflow.ui.common.SystemBars
 
 /**
@@ -22,6 +27,18 @@ class AddProductActivity : AppCompatActivity() {
     /** Null when creating; non-null when editing. */
     private var productId: Int? = null
 
+    private var previewUri: Uri? = null
+
+    private val pickImage = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            previewUri = uri
+            viewModel.setPendingImage(uri)
+            showLocalPreview(uri)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddProductBinding.inflate(layoutInflater)
@@ -35,10 +52,23 @@ class AddProductActivity : AppCompatActivity() {
             viewModel.loadProduct(productId!!)
         } else {
             binding.toolbar.title = getString(R.string.add_product_title)
+            showEmptyImageState()
         }
 
         binding.toolbar.setNavigationOnClickListener {
             finish()
+        }
+
+        binding.imagePickerArea.setOnClickListener {
+            pickImage.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        }
+
+        binding.btnRemoveImage.setOnClickListener {
+            previewUri = null
+            viewModel.clearImage()
+            showEmptyImageState()
         }
 
         binding.btnSave.setOnClickListener {
@@ -93,11 +123,54 @@ class AddProductActivity : AppCompatActivity() {
         binding.etMinStock.setText(product.minStockLevel.toString())
         binding.etCategoryId.setText(product.categoryId.toString())
         binding.etSupplierId.setText(product.supplierId?.toString().orEmpty())
+
+        if (previewUri != null) {
+            showLocalPreview(previewUri!!)
+        } else {
+            val remote = ProductImages.resolveUrl(product.imageUrl)
+            if (remote.isNullOrBlank()) {
+                showEmptyImageState()
+            } else {
+                showRemotePreview(remote)
+            }
+        }
+    }
+
+    private fun showLocalPreview(uri: Uri) {
+        binding.imagePlaceholder.visibility = View.GONE
+        binding.ivProductImage.visibility = View.VISIBLE
+        binding.btnRemoveImage.visibility = View.VISIBLE
+        binding.tvImageHint.text = getString(R.string.change_product_image)
+        binding.ivProductImage.load(uri) {
+            placeholder(R.drawable.bg_product_image_placeholder)
+            error(R.drawable.bg_product_image_placeholder)
+        }
+    }
+
+    private fun showRemotePreview(url: String) {
+        binding.imagePlaceholder.visibility = View.GONE
+        binding.ivProductImage.visibility = View.VISIBLE
+        binding.btnRemoveImage.visibility = View.VISIBLE
+        binding.tvImageHint.text = getString(R.string.change_product_image)
+        binding.ivProductImage.load(url) {
+            placeholder(R.drawable.bg_product_image_placeholder)
+            error(R.drawable.bg_product_image_placeholder)
+        }
+    }
+
+    private fun showEmptyImageState() {
+        binding.ivProductImage.visibility = View.GONE
+        binding.ivProductImage.setImageDrawable(null)
+        binding.imagePlaceholder.visibility = View.VISIBLE
+        binding.btnRemoveImage.visibility = View.GONE
+        binding.tvImageHint.text = getString(R.string.add_product_image)
     }
 
     private fun setLoading(loading: Boolean) {
         binding.progressSaving.visibility = if (loading) View.VISIBLE else View.GONE
         binding.btnSave.isEnabled = !loading
+        binding.imagePickerArea.isEnabled = !loading
+        binding.btnRemoveImage.isEnabled = !loading
         if (loading) {
             binding.tvFormError.visibility = View.GONE
         }

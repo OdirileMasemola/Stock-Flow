@@ -12,9 +12,19 @@ class SessionStore(context: Context) {
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
-    /** Clears the JWT only (keeps first-launch / Get Started flag). */
+    fun saveUserFullName(fullName: String) {
+        prefs.edit().putString(KEY_USER_FULL_NAME, fullName.trim()).apply()
+    }
+
+    fun getUserFullName(): String? =
+        prefs.getString(KEY_USER_FULL_NAME, null)?.takeIf { it.isNotBlank() }
+
+    /** Clears the JWT and profile display fields (keeps first-launch / Get Started flag). */
     fun clearSession() {
-        prefs.edit().remove(KEY_TOKEN).apply()
+        prefs.edit()
+            .remove(KEY_TOKEN)
+            .remove(KEY_USER_FULL_NAME)
+            .apply()
     }
 
     /** True when a StockFlow JWT is stored locally. */
@@ -34,6 +44,7 @@ class SessionStore(context: Context) {
     companion object {
         private const val PREFS_NAME = "stockflow_session"
         private const val KEY_TOKEN = "jwt_token"
+        private const val KEY_USER_FULL_NAME = "user_full_name"
         private const val KEY_HAS_SEEN_GET_STARTED = "has_seen_get_started"
     }
 }

@@ -8,6 +8,9 @@ import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.RetrofitClient
 import com.example.stockflow.data.remote.UpdateProductRequest
 import com.google.gson.Gson
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.io.IOException
 
@@ -114,6 +117,38 @@ class ProductRepository(
             Result.failure(Exception("Unable to reach the server. Check your connection."))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: "Failed to delete product"))
+        }
+    }
+
+    /**
+     * Uploads a product image before create/update. Returns the stored image URL path.
+     * Callers must not save a product with a local-only image if this fails.
+     */
+    suspend fun uploadProductImage(
+        imageBytes: ByteArray,
+        fileName: String,
+        mimeType: String
+    ): Result<String> {
+        return try {
+            val mediaType = mimeType.toMediaTypeOrNull()
+                ?: "image/jpeg".toMediaTypeOrNull()
+            val body = imageBytes.toRequestBody(mediaType)
+            val part = MultipartBody.Part.createFormData("image", fileName, body)
+            val response = api.uploadProductImage(authHeader(), part)
+            if (response.isSuccessful) {
+                val uploaded = response.body()?.imageUrl?.trim().orEmpty()
+                if (uploaded.isEmpty()) {
+                    Result.failure(Exception("Image upload failed"))
+                } else {
+                    Result.success(uploaded)
+                }
+            } else {
+                Result.failure(Exception(errorMessage(response, "Image upload failed")))
+            }
+        } catch (_: IOException) {
+            Result.failure(Exception("Unable to upload image. Check your connection."))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Image upload failed"))
         }
     }
 

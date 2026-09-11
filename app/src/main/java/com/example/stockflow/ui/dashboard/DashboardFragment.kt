@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.stockflow.MainActivity
 import com.example.stockflow.R
+import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.DashboardLowStockItemDto
 import com.example.stockflow.data.remote.DashboardPurchaseOrderItemDto
 import com.example.stockflow.data.remote.DashboardSaleItemDto
@@ -20,8 +21,6 @@ import com.example.stockflow.databinding.FragmentDashboardBinding
 import com.example.stockflow.ui.inventory.AddProductActivity
 import com.example.stockflow.ui.suppliers.PurchaseOrdersActivity
 import java.util.Calendar
-import kotlin.math.max
-import kotlin.math.roundToInt
 
 class DashboardFragment : Fragment() {
 
@@ -40,7 +39,7 @@ class DashboardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.greetingText.text = greetingForNow()
+        bindGreeting()
 
         binding.btnRetry.setOnClickListener { viewModel.loadDashboard() }
         binding.actionAddProduct.setOnClickListener {
@@ -96,6 +95,7 @@ class DashboardFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        bindGreeting()
         viewModel.loadDashboard()
     }
 
@@ -116,7 +116,6 @@ class DashboardFragment : Fragment() {
     }
 
     private fun renderWeeklyChart(days: List<WeeklySalesDayDto>) {
-        binding.weeklyBars.removeAllViews()
         binding.weeklyLabels.removeAllViews()
 
         val weekTotal = days.sumOf { it.totalAmount }
@@ -124,45 +123,33 @@ class DashboardFragment : Fragment() {
 
         val hasSales = days.any { it.totalAmount > 0 }
         binding.tvWeeklyEmpty.visibility = if (hasSales) View.GONE else View.VISIBLE
-        binding.weeklyBars.visibility = View.VISIBLE
-        binding.weeklyLabels.visibility = View.VISIBLE
+        binding.weeklyLineChart.visibility = if (hasSales) View.VISIBLE else View.GONE
+        binding.weeklyLabels.visibility = if (hasSales) View.VISIBLE else View.GONE
 
-        val maxAmount = max(days.maxOfOrNull { it.totalAmount } ?: 0.0, 0.01)
-        val density = resources.displayMetrics.density
-        val maxBarHeightPx = (100 * density).roundToInt()
-        val minBarHeightPx = (4 * density).roundToInt()
+        binding.weeklyLineChart.setValues(days.map { it.totalAmount })
 
         for (day in days) {
-            val barColumn = LinearLayout(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
-                gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
-                orientation = LinearLayout.VERTICAL
-            }
-
-            val heightPx = if (day.totalAmount <= 0.0) {
-                minBarHeightPx
-            } else {
-                max(minBarHeightPx, ((day.totalAmount / maxAmount) * maxBarHeightPx).roundToInt())
-            }
-
-            val bar = View(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams((10 * density).roundToInt(), heightPx)
-                setBackgroundColor(requireContext().getColor(R.color.brand_primary))
-                alpha = if (day.totalAmount > 0) 1f else 0.25f
-                contentDescription = "${day.label}: ${getString(R.string.price_format, day.totalAmount)}"
-            }
-            barColumn.addView(bar)
-            binding.weeklyBars.addView(barColumn)
-
             val label = TextView(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 gravity = android.view.Gravity.CENTER
                 text = day.label.take(3)
                 setTextColor(requireContext().getColor(R.color.brand_text_light))
                 textSize = 10f
+                contentDescription =
+                    "${day.label}: ${getString(R.string.price_format, day.totalAmount)}"
             }
             binding.weeklyLabels.addView(label)
         }
+    }
+
+    private fun bindGreeting() {
+        val sessionStore = SessionStore(requireContext())
+        val displayName = sessionStore.getUserFullName()
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.dashboard_welcome)
+
+        binding.greetingText.text = greetingForNow()
+        binding.userNameText.text = displayName
     }
 
     private fun renderSales(items: List<DashboardSaleItemDto>) {

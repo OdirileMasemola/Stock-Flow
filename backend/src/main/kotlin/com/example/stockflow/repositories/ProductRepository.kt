@@ -74,6 +74,7 @@ class ProductRepositoryImpl : ProductRepository {
             it[minStockLevel] = request.minStockLevel
             it[categoryId] = request.categoryId
             it[supplierId] = request.supplierId
+            it[imageUrl] = normalizeImageUrl(request.imageUrl)
         }
 
         val newId = insertStatement.resultedValues?.first()?.get(Products.id)
@@ -98,6 +99,7 @@ class ProductRepositoryImpl : ProductRepository {
             it[minStockLevel] = request.minStockLevel
             it[categoryId] = request.categoryId
             it[supplierId] = request.supplierId
+            it[imageUrl] = normalizeImageUrl(request.imageUrl)
         }
 
         if (updated == 0) {
@@ -145,12 +147,16 @@ class ProductRepositoryImpl : ProductRepository {
         categoryId = row[Products.categoryId],
         // categoryName is null when the join did not match a category row
         categoryName = row.getOrNull(Categories.name),
-        supplierId = row[Products.supplierId]
+        supplierId = row[Products.supplierId],
+        imageUrl = row[Products.imageUrl]
     )
 
     /** Blank SKUs are stored as null so they do not collide on the unique index. */
     private fun normalizeSku(sku: String?): String? =
         sku?.trim()?.takeIf { it.isNotEmpty() }
+
+    private fun normalizeImageUrl(imageUrl: String?): String? =
+        imageUrl?.trim()?.takeIf { it.isNotEmpty() }
 
     private fun toMoney(value: Double): BigDecimal =
         BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP)
