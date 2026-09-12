@@ -19,6 +19,9 @@ interface UserRepository {
         firebaseUid: String,
         roleId: Int
     ): User
+
+    suspend fun updateFullName(userId: Int, fullName: String): User?
+    suspend fun updateProfile(userId: Int, fullName: String, profileImageUrl: String?): User?
 }
 
 class UserRepositoryImpl : UserRepository {
@@ -90,11 +93,37 @@ class UserRepositoryImpl : UserRepository {
             ?: throw RuntimeException("Failed to create user")
     }
 
+    override suspend fun updateFullName(userId: Int, fullName: String): User? = dbQuery {
+        val updated = Users.update({ Users.id eq userId }) {
+            it[Users.fullName] = fullName
+        }
+        if (updated == 0) return@dbQuery null
+        Users.selectAll().where { Users.id eq userId }
+            .map { toUser(it) }
+            .singleOrNull()
+    }
+
+    override suspend fun updateProfile(
+        userId: Int,
+        fullName: String,
+        profileImageUrl: String?
+    ): User? = dbQuery {
+        val updated = Users.update({ Users.id eq userId }) {
+            it[Users.fullName] = fullName
+            it[Users.profileImageUrl] = profileImageUrl?.trim()?.takeIf { url -> url.isNotEmpty() }
+        }
+        if (updated == 0) return@dbQuery null
+        Users.selectAll().where { Users.id eq userId }
+            .map { toUser(it) }
+            .singleOrNull()
+    }
+
     private fun toUser(row: ResultRow) = User(
         id = row[Users.id],
         username = row[Users.username],
         email = row[Users.email],
         fullName = row[Users.fullName],
-        roleId = row[Users.roleId]
+        roleId = row[Users.roleId],
+        profileImageUrl = row[Users.profileImageUrl]
     )
 }

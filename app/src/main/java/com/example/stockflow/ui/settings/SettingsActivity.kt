@@ -143,10 +143,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun setupClicks() {
         binding.rowProfile.root.setOnClickListener {
-            showPlaceholder(getString(R.string.settings_profile_placeholder))
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
         binding.rowBusiness.root.setOnClickListener {
-            showPlaceholder(getString(R.string.settings_business_placeholder))
+            startActivity(Intent(this, BusinessInfoActivity::class.java))
         }
         binding.rowTheme.root.setOnClickListener { showThemeDialog() }
         binding.rowLanguage.root.setOnClickListener { showLanguageDialog() }

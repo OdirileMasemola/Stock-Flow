@@ -25,7 +25,13 @@ fun Application.configureStatusPages() {
             cause.code?.let { body["code"] = it }
             call.respond(HttpStatusCode.Unauthorized, body)
         }
+        exception<IllegalStateException> { call, cause ->
+            val message = cause.message?.takeIf { it.isNotBlank() }
+                ?: "An unexpected error occurred"
+            call.respond(HttpStatusCode.BadRequest, mapOf("error" to message))
+        }
         exception<Throwable> { call, cause ->
+            call.application.environment.log.error("Unhandled error", cause)
             call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "An unexpected error occurred"))
         }
     }

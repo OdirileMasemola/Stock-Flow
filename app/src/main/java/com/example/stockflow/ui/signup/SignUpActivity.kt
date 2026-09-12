@@ -180,7 +180,10 @@ class SignUpActivity : AppCompatActivity() {
                     val adapter = ArrayAdapter(
                         this,
                         android.R.layout.simple_dropdown_item_1line,
-                        roles.map { it.name }
+                        roles.map { role ->
+                            val detail = role.description?.takeIf { it.isNotBlank() }
+                            if (detail != null) "${role.name} — $detail" else role.name
+                        }
                     )
                     binding.dropdownRole.setAdapter(adapter)
                     binding.dropdownRole.isEnabled = true
@@ -246,10 +249,11 @@ class SignUpActivity : AppCompatActivity() {
         currentRoles.forEach { role ->
             val button = RadioButton(this).apply {
                 id = View.generateViewId()
-                text = role.name
+                val detail = role.description?.takeIf { it.isNotBlank() }
+                text = if (detail != null) "${role.name}\n$detail" else role.name
                 tag = role.id
                 setTextColor(getColor(R.color.brand_text_dark))
-                textSize = 16f
+                textSize = 14f
             }
             radioGroup.addView(button)
         }
