@@ -65,6 +65,34 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun addToCartBySku(sku: String) {
+        val normalized = sku.trim()
+        if (normalized.isEmpty()) {
+            _message.value = "Product not found"
+            return
+        }
+        viewModelScope.launch {
+            val result = productRepository.getProductBySku(normalized)
+            if (result.isSuccess) {
+                val product = result.getOrNull()
+                if (product == null) {
+                    _message.postValue("Product not found")
+                } else {
+                    val error = CartSession.addProduct(product)
+                    if (error != null) {
+                        _message.postValue(error)
+                    } else {
+                        _message.postValue("Added \"${product.name}\" to cart")
+                    }
+                }
+            } else {
+                _message.postValue(
+                    result.exceptionOrNull()?.message ?: "Product not found"
+                )
+            }
+        }
+    }
+
     fun clearMessage() {
         _message.value = null
     }

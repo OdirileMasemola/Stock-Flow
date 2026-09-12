@@ -23,6 +23,18 @@ class ProductService(
             ?: throw NotFoundException("Product not found")
     }
 
+    suspend fun getProductBySku(sku: String): ProductResponse {
+        val normalized = sku.trim()
+        if (normalized.isEmpty()) {
+            throw BadRequestException("SKU cannot be blank")
+        }
+        if (normalized.length > 50) {
+            throw BadRequestException("SKU must be 50 characters or fewer")
+        }
+        return repository.findBySku(normalized)
+            ?: throw NotFoundException("Product not found")
+    }
+
     fun uploadProductImage(
         bytes: ByteArray,
         originalFileName: String?,

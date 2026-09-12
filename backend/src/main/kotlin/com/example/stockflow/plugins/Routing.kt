@@ -102,6 +102,11 @@ fun Application.configureRouting() {
                 get("/low-stock") {
                     call.respond(productService.getLowStockProducts())
                 }
+                get("/sku/{sku}") {
+                    val sku = call.parameters["sku"]
+                        ?: throw BadRequestException("SKU is required")
+                    call.respond(productService.getProductBySku(sku))
+                }
                 post("/images") {
                     val multipart = call.receiveMultipart()
                     var uploadBytes: ByteArray? = null

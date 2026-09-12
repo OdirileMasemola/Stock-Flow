@@ -27,6 +27,15 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
     private val _deleteMessage = MutableLiveData<String?>()
     val deleteMessage: LiveData<String?> = _deleteMessage
 
+    private val _lookupMessage = MutableLiveData<String?>()
+    val lookupMessage: LiveData<String?> = _lookupMessage
+
+    private val _lookupProduct = MutableLiveData<ProductDto?>()
+    val lookupProduct: LiveData<ProductDto?> = _lookupProduct
+
+    private val _lookupLoading = MutableLiveData(false)
+    val lookupLoading: LiveData<Boolean> = _lookupLoading
+
     fun loadProducts() {
         _uiState.value = ProductsUiState.Loading
         viewModelScope.launch {
@@ -67,6 +76,34 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
 
     fun clearDeleteMessage() {
         _deleteMessage.value = null
+    }
+
+    fun clearLookupMessage() {
+        _lookupMessage.value = null
+    }
+
+    fun clearLookupProduct() {
+        _lookupProduct.value = null
+    }
+
+    fun findBySku(sku: String) {
+        val normalized = sku.trim()
+        if (normalized.isEmpty()) {
+            _lookupMessage.value = "Product not found"
+            return
+        }
+        _lookupLoading.value = true
+        viewModelScope.launch {
+            val result = repository.getProductBySku(normalized)
+            _lookupLoading.postValue(false)
+            if (result.isSuccess) {
+                _lookupProduct.postValue(result.getOrNull())
+            } else {
+                _lookupMessage.postValue(
+                    result.exceptionOrNull()?.message ?: "Product not found"
+                )
+            }
+        }
     }
 
     private var lastQuery: String = ""
