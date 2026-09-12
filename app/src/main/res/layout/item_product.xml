@@ -116,7 +116,7 @@
                     android:id="@+id/tvStockStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/soft_green_bg"
+                    android:background="@drawable/bg_status_chip"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
                     android:textColor="@color/brand_primary"

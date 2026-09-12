@@ -64,7 +64,7 @@ class ProductAdapter(
                 else -> {
                     binding.tvStockStatus.text = context.getString(R.string.in_stock)
                     binding.tvStockStatus.setTextColor(context.getColor(R.color.brand_primary))
-                    binding.tvStockStatus.setBackgroundColor(context.getColor(R.color.soft_green_bg))
+                    binding.tvStockStatus.setBackgroundResource(R.drawable.bg_status_chip)
                     binding.stockProgress.setIndicatorColor(context.getColor(R.color.brand_primary))
                     binding.stockProgress.progress = stockPercent(product)
                 }

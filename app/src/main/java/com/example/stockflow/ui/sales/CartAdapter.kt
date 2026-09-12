@@ -29,7 +29,10 @@ class CartAdapter(
 
         fun bind(line: CartSession.CartLine) {
             binding.tvName.text = line.name
-            binding.tvUnitPrice.text = binding.root.context.getString(R.string.price_format, line.unitPrice)
+            binding.tvUnitPrice.text = binding.root.context.getString(
+                R.string.pos_unit_price_each,
+                line.unitPrice
+            )
             binding.tvQuantity.text = line.quantity.toString()
             binding.tvLineTotal.text = binding.root.context.getString(R.string.price_format, line.lineTotal)
             binding.btnIncrease.setOnClickListener { onIncrease(line.productId) }

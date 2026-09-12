@@ -36,9 +36,18 @@ class DashboardRepository(
         }
     }
 
-    suspend fun getReports(range: String): Result<ReportsDto> {
+    suspend fun getReports(
+        range: String? = null,
+        from: String? = null,
+        to: String? = null
+    ): Result<ReportsDto> {
         return try {
-            val response = api.getReports(authHeader(), range)
+            val response = api.getReports(
+                authorization = authHeader(),
+                range = range,
+                from = from,
+                to = to
+            )
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception("Unable to load reports"))

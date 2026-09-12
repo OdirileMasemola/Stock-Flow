@@ -317,7 +317,9 @@ fun Application.configureRouting() {
             route("/api/reports") {
                 get {
                     val range = call.request.queryParameters["range"]
-                    call.respond(dashboardService.getReports(range))
+                    val from = call.request.queryParameters["from"]
+                    val to = call.request.queryParameters["to"]
+                    call.respond(dashboardService.getReports(range, from, to))
                 }
             }
         }

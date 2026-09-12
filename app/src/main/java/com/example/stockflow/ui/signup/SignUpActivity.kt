@@ -6,8 +6,9 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import android.widget.RadioButton
-import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -36,6 +37,9 @@ class SignUpActivity : AppCompatActivity() {
     private var isConfirmPasswordVisible = false
     private var roles: List<RoleDto> = emptyList()
     private var selectedRole: RoleDto? = null
+    private var roleDialog: AlertDialog? = null
+    private var pendingRoleDialog = false
+    private var navigatedToMain = false
 
     private val googleSignInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -53,6 +57,12 @@ class SignUpActivity : AppCompatActivity() {
         setupListeners()
         setupHeaderAnimation()
         observeViewModel()
+    }
+
+    override fun onDestroy() {
+        roleDialog?.dismiss()
+        roleDialog = null
+        super.onDestroy()
     }
 
     private fun setupHeaderAnimation() {
@@ -180,19 +190,29 @@ class SignUpActivity : AppCompatActivity() {
                     val adapter = ArrayAdapter(
                         this,
                         android.R.layout.simple_dropdown_item_1line,
-                        roles.map { role ->
-                            val detail = role.description?.takeIf { it.isNotBlank() }
-                            if (detail != null) "${role.name} — $detail" else role.name
-                        }
+                        roles.map { it.name }
                     )
                     binding.dropdownRole.setAdapter(adapter)
                     binding.dropdownRole.isEnabled = true
                     binding.btnSignUp.isEnabled = true
+                    if (pendingRoleDialog) {
+                        pendingRoleDialog = false
+                        showRoleSelectionDialog()
+                    }
                 }
                 is SignUpViewModel.RolesState.Error -> {
                     binding.dropdownRole.isEnabled = false
                     binding.btnSignUp.isEnabled = false
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                    if (pendingRoleDialog) {
+                        pendingRoleDialog = false
+                        Toast.makeText(
+                            this,
+                            "Unable to load roles. Please try Google Sign-In again.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.cancelPendingGoogleSignUp()
+                    }
                 }
             }
         }
@@ -214,17 +234,16 @@ class SignUpActivity : AppCompatActivity() {
 
         viewModel.googleSignUpState.observe(this) { state ->
             when (state) {
+                is SignUpViewModel.GoogleSignUpState.Idle -> Unit
                 is SignUpViewModel.GoogleSignUpState.Loading -> showLoading(true)
                 is SignUpViewModel.GoogleSignUpState.NeedsRole -> {
                     showLoading(false)
-                    showRoleSelectionDialog()
+                    viewModel.acknowledgeRolePrompt()
+                    requestRoleSelection()
                 }
                 is SignUpViewModel.GoogleSignUpState.Success -> {
                     showLoading(false)
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
-                    finish()
+                    goToMainAfterGoogleSignUp()
                 }
                 is SignUpViewModel.GoogleSignUpState.Error -> {
                     showLoading(false)
@@ -234,53 +253,109 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
+    private fun requestRoleSelection() {
+        val availableRoles = roles.ifEmpty { viewModel.currentRoles() }
+        if (availableRoles.isEmpty()) {
+            pendingRoleDialog = true
+            viewModel.loadRoles()
+            Toast.makeText(this, "Loading roles…", Toast.LENGTH_SHORT).show()
+            return
+        }
+        roles = availableRoles
+        showRoleSelectionDialog()
+    }
+
     private fun showRoleSelectionDialog() {
-        val currentRoles = roles
+        if (isFinishing || isDestroyed) return
+        if (roleDialog?.isShowing == true) return
+
+        val currentRoles = roles.ifEmpty { viewModel.currentRoles() }
         if (currentRoles.isEmpty()) {
-            Toast.makeText(this, "Unable to load roles. Please try again.", Toast.LENGTH_SHORT).show()
-            viewModel.cancelPendingGoogleSignUp()
+            pendingRoleDialog = true
+            viewModel.loadRoles()
             return
         }
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_choose_role, null)
-        val radioGroup = dialogView.findViewById<RadioGroup>(R.id.roleRadioGroup)
+        val optionsContainer = dialogView.findViewById<LinearLayout>(R.id.roleOptionsContainer)
         val continueButton = dialogView.findViewById<MaterialButton>(R.id.btnContinueRole)
+        val cancelButton = dialogView.findViewById<MaterialButton>(R.id.btnCancelRole)
+
+        var selectedRoleId: Int? = null
+        val radioButtons = mutableListOf<RadioButton>()
 
         currentRoles.forEach { role ->
-            val button = RadioButton(this).apply {
-                id = View.generateViewId()
-                val detail = role.description?.takeIf { it.isNotBlank() }
-                text = if (detail != null) "${role.name}\n$detail" else role.name
-                tag = role.id
-                setTextColor(getColor(R.color.brand_text_dark))
-                textSize = 14f
+            val row = LayoutInflater.from(this).inflate(R.layout.item_role_choice, optionsContainer, false)
+            val radio = row.findViewById<RadioButton>(R.id.roleRadio)
+            val nameView = row.findViewById<TextView>(R.id.roleName)
+            val descriptionView = row.findViewById<TextView>(R.id.roleDescription)
+
+            nameView.text = role.name
+            descriptionView.text = shortRoleDescription(role)
+            radio.isClickable = false
+            radio.isFocusable = false
+            radioButtons.add(radio)
+
+            row.setOnClickListener {
+                selectedRoleId = role.id
+                radioButtons.forEach { it.isChecked = false }
+                radio.isChecked = true
+                continueButton.isEnabled = true
             }
-            radioGroup.addView(button)
+
+            optionsContainer.addView(row)
         }
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                viewModel.cancelPendingGoogleSignUp()
-            }
-            .setCancelable(false)
+            .setCancelable(true)
             .create()
 
+        dialog.setOnCancelListener {
+            viewModel.cancelPendingGoogleSignUp()
+        }
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+            viewModel.cancelPendingGoogleSignUp()
+        }
+
         continueButton.setOnClickListener {
-            val selected = radioGroup.findViewById<RadioButton>(radioGroup.checkedRadioButtonId)
-            val roleId = selected?.tag as? Int
-            if (roleId == null) {
-                return@setOnClickListener
-            }
+            val roleId = selectedRoleId
+            if (roleId == null) return@setOnClickListener
             dialog.dismiss()
             viewModel.completeGoogleSignUp(roleId)
         }
 
-        radioGroup.setOnCheckedChangeListener { _, _ ->
-            continueButton.isEnabled = radioGroup.checkedRadioButtonId != -1
+        roleDialog = dialog
+        try {
+            dialog.show()
+        } catch (_: Exception) {
+            roleDialog = null
+            viewModel.cancelPendingGoogleSignUp()
+            Toast.makeText(this, "Unable to show role selection. Please try again.", Toast.LENGTH_SHORT).show()
         }
+    }
 
-        dialog.show()
+    private fun shortRoleDescription(role: RoleDto): String {
+        return when (role.name.trim().lowercase()) {
+            "owner" -> getString(R.string.role_desc_owner)
+            "staff" -> getString(R.string.role_desc_staff)
+            "supplier" -> getString(R.string.role_desc_supplier)
+            else -> getString(R.string.role_desc_default)
+        }
+    }
+
+    private fun goToMainAfterGoogleSignUp() {
+        if (navigatedToMain || isFinishing || isDestroyed) return
+        navigatedToMain = true
+        roleDialog?.dismiss()
+        roleDialog = null
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun showLoading(isLoading: Boolean) {

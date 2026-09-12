@@ -16,9 +16,9 @@
     <color name="settings_row_icon_bg">#243044</color>
     <color name="logout_text">#EF5350</color>
     <color name="stat_card_surface">#243044</color>
-    <color name="stat_card_green_bg">#1A3328</color>
+    <color name="stat_card_green_bg">#243044</color>
     <color name="stat_card_red_bg">#3A2020</color>
-    <color name="soft_green_bg">#1F3D30</color>
+    <color name="soft_green_bg">#1E2A28</color>
     <color name="chip_background">#243044</color>
     <color name="progress_track">#243044</color>
 
