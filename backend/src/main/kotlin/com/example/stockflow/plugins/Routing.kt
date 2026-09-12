@@ -16,6 +16,7 @@ import com.example.stockflow.services.SaleService
 import com.example.stockflow.services.SupplierService
 import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.services.DashboardService
+import com.example.stockflow.services.BusinessService
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
@@ -26,6 +27,8 @@ import com.example.stockflow.models.CreateSupplierRequest
 import com.example.stockflow.models.UpdateSupplierRequest
 import com.example.stockflow.models.CreatePurchaseOrderRequest
 import com.example.stockflow.models.UpdatePurchaseOrderRequest
+import com.example.stockflow.models.UpdateProfileRequest
+import com.example.stockflow.models.UpdateBusinessRequest
 import com.example.stockflow.models.BadRequestException
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -38,6 +41,7 @@ fun Application.configureRouting() {
     val supplierService = SupplierService()
     val purchaseOrderService = PurchaseOrderService()
     val dashboardService = DashboardService()
+    val businessService = BusinessService()
 
     routing {
         get("/") {
@@ -95,6 +99,80 @@ fun Application.configureRouting() {
 
         // Product CRUD + Sales/POS — require a valid StockFlow JWT
         authenticate("auth-jwt") {
+            route("/api/users/me") {
+                get {
+                    val userId = currentUserId(call)
+                    call.respond(userService.getProfile(userId))
+                }
+                put {
+                    val userId = currentUserId(call)
+                    val request = call.receive<UpdateProfileRequest>()
+                    call.respond(userService.updateProfile(userId, request))
+                }
+                post("/image") {
+                    val multipart = call.receiveMultipart()
+                    var bytes: ByteArray? = null
+                    var originalName: String? = null
+                    var contentType: String? = null
+                    multipart.forEachPart { part ->
+                        when (part) {
+                            is PartData.FileItem -> {
+                                if (part.name == "image" || bytes == null) {
+                                    bytes = part.provider().readRemaining().readByteArray()
+                                    originalName = part.originalFileName
+                                    contentType = part.contentType?.toString()
+                                }
+                            }
+                            else -> Unit
+                        }
+                        part.dispose()
+                    }
+                    val imageBytes = bytes
+                        ?: throw BadRequestException("Missing image file. Use multipart field name \"image\".")
+                    call.respond(
+                        HttpStatusCode.Created,
+                        userService.uploadProfileImage(imageBytes, originalName, contentType)
+                    )
+                }
+            }
+
+            route("/api/business") {
+                get {
+                    val userId = currentUserId(call)
+                    call.respond(businessService.getBusinessForUser(userId))
+                }
+                put {
+                    val userId = currentUserId(call)
+                    val request = call.receive<UpdateBusinessRequest>()
+                    call.respond(businessService.upsertBusiness(userId, request))
+                }
+                post("/image") {
+                    val multipart = call.receiveMultipart()
+                    var bytes: ByteArray? = null
+                    var originalName: String? = null
+                    var contentType: String? = null
+                    multipart.forEachPart { part ->
+                        when (part) {
+                            is PartData.FileItem -> {
+                                if (part.name == "image" || bytes == null) {
+                                    bytes = part.provider().readRemaining().readByteArray()
+                                    originalName = part.originalFileName
+                                    contentType = part.contentType?.toString()
+                                }
+                            }
+                            else -> Unit
+                        }
+                        part.dispose()
+                    }
+                    val imageBytes = bytes
+                        ?: throw BadRequestException("Missing image file. Use multipart field name \"image\".")
+                    call.respond(
+                        HttpStatusCode.Created,
+                        businessService.uploadBusinessImage(imageBytes, originalName, contentType)
+                    )
+                }
+            }
+
             route("/api/products") {
                 get {
                     call.respond(productService.getProducts())
@@ -258,4 +336,11 @@ fun Application.configureRouting() {
             }
         }
     }
+}
+
+private fun currentUserId(call: ApplicationCall): Int {
+    val principal = call.principal<JWTPrincipal>()
+        ?: throw BadRequestException("Authentication required")
+    return principal.payload.getClaim("userId").asInt()
+        ?: throw BadRequestException("Invalid authentication token")
 }

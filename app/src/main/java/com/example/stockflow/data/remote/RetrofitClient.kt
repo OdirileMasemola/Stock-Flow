@@ -52,4 +52,14 @@ object RetrofitClient {
     val dashboardApi: DashboardApi by lazy {
         retrofit.create(DashboardApi::class.java)
     }
+
+    /** Authenticated profile — callers pass the Bearer JWT header. */
+    val userApi: UserApi by lazy {
+        retrofit.create(UserApi::class.java)
+    }
+
+    /** Authenticated business/store — callers pass the Bearer JWT header. */
+    val businessApi: BusinessApi by lazy {
+        retrofit.create(BusinessApi::class.java)
+    }
 }

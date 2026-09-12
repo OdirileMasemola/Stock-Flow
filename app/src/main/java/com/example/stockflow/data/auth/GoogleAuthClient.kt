@@ -210,25 +210,27 @@ class GoogleAuthClient(private val activity: Activity) {
 
     private suspend fun exchangeGoogleIdToken(googleIdToken: String): Result<String> {
         return try {
-            val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
-            val authResult = FirebaseAuth.getInstance()
-                .signInWithCredential(firebaseCredential)
-                .await()
-            val firebaseIdToken = authResult.user
-                ?.getIdToken(true)
-                ?.await()
-                ?.token
-            if (firebaseIdToken.isNullOrBlank()) {
-                Log.w(TAG, "Firebase Auth succeeded but ID token was blank")
-                Result.failure(IllegalStateException("Unable to complete Google Sign-In. Please try again."))
-            } else {
-                Log.d(TAG, "Firebase Auth exchange succeeded")
-                Result.success(firebaseIdToken)
+            // Keep a local Firebase session for logout / auth-state helpers when Firebase is present.
+            if (FirebaseApp.getApps(activity).isNotEmpty()) {
+                try {
+                    val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
+                    FirebaseAuth.getInstance()
+                        .signInWithCredential(firebaseCredential)
+                        .await()
+                    Log.d(TAG, "Local Firebase session established")
+                } catch (e: Exception) {
+                    Log.w(
+                        TAG,
+                        "Local Firebase sign-in failed; continuing with Google ID token: ${e.javaClass.simpleName}"
+                    )
+                }
             }
+            // StockFlow backend verifies the Google ID token directly (no Admin SDK required).
+            Result.success(googleIdToken)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.w(TAG, "Firebase Auth exchange failed: ${e.javaClass.simpleName}")
+            Log.w(TAG, "Google token exchange failed: ${e.javaClass.simpleName}")
             Result.failure(
                 IllegalStateException(e.message ?: "Unable to complete Google Sign-In. Please try again.")
             )
@@ -275,7 +277,7 @@ class GoogleAuthClient(private val activity: Activity) {
     }
 
     private fun isConfigured(): Boolean {
-        return resolveWebClientId().isNotBlank() && FirebaseApp.getApps(activity).isNotEmpty()
+        return resolveWebClientId().isNotBlank()
     }
 
     companion object {

@@ -7,22 +7,39 @@ import java.io.File
 import java.util.UUID
 
 /**
- * Stores product images on local disk and returns a public relative URL path
- * served by Ktor static files under `/uploads/products/...`.
+ * Local disk image storage under [AppConfig.uploadsDir].
+ * Paths returned as relative URLs (`/uploads/{folder}/…`) for PostgreSQL and static serving.
+ * Compatible with a future Part 3 blob backend: swap this class without changing API contracts.
  */
 class ProductImageStorage(
     private val rootDir: File = File(AppConfig.uploadsDir)
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val productsDir: File = File(rootDir, "products")
 
     init {
-        if (!productsDir.exists() && !productsDir.mkdirs()) {
-            logger.warn("Unable to create product uploads directory at {}", productsDir.absolutePath)
+        ImageFolder.entries.forEach { folder ->
+            val dir = File(rootDir, folder.dirName)
+            if (!dir.exists() && !dir.mkdirs()) {
+                logger.warn("Unable to create uploads directory at {}", dir.absolutePath)
+            }
         }
     }
 
-    fun saveProductImage(bytes: ByteArray, originalFileName: String?, contentType: String?): String {
+    fun saveProductImage(bytes: ByteArray, originalFileName: String?, contentType: String?): String =
+        save(ImageFolder.PRODUCTS, bytes, originalFileName, contentType)
+
+    fun saveProfileImage(bytes: ByteArray, originalFileName: String?, contentType: String?): String =
+        save(ImageFolder.PROFILES, bytes, originalFileName, contentType)
+
+    fun saveBusinessImage(bytes: ByteArray, originalFileName: String?, contentType: String?): String =
+        save(ImageFolder.BUSINESSES, bytes, originalFileName, contentType)
+
+    fun save(
+        folder: ImageFolder,
+        bytes: ByteArray,
+        originalFileName: String?,
+        contentType: String?
+    ): String {
         if (bytes.isEmpty()) {
             throw BadRequestException("Image file is empty")
         }
@@ -34,21 +51,21 @@ class ProductImageStorage(
             ?: throw BadRequestException("Only JPEG, PNG, or WebP images are allowed")
 
         val fileName = "${UUID.randomUUID()}.$extension"
-        val target = File(productsDir, fileName)
+        val target = File(File(rootDir, folder.dirName), fileName)
+        target.parentFile?.mkdirs()
         target.writeBytes(bytes)
 
-        // Relative URL path stored on the product and returned to clients.
-        return "/uploads/products/$fileName"
+        return "${folder.urlPrefix}$fileName"
     }
 
     fun deleteIfManaged(imageUrl: String?) {
         val path = imageUrl?.trim().orEmpty()
-        if (!path.startsWith(MANAGED_PREFIX)) return
-        val fileName = path.removePrefix(MANAGED_PREFIX)
+        val folder = ImageFolder.entries.firstOrNull { path.startsWith(it.urlPrefix) } ?: return
+        val fileName = path.removePrefix(folder.urlPrefix)
         if (fileName.isBlank() || fileName.contains('/') || fileName.contains('\\')) return
-        val file = File(productsDir, fileName)
+        val file = File(File(rootDir, folder.dirName), fileName)
         if (file.exists() && !file.delete()) {
-            logger.warn("Failed to delete product image {}", file.absolutePath)
+            logger.warn("Failed to delete image {}", file.absolutePath)
         }
     }
 
@@ -69,9 +86,16 @@ class ProductImageStorage(
         }
     }
 
+    enum class ImageFolder(val dirName: String) {
+        PRODUCTS("products"),
+        PROFILES("profiles"),
+        BUSINESSES("businesses");
+
+        val urlPrefix: String get() = "/uploads/$dirName/"
+    }
+
     companion object {
         private const val MAX_BYTES = 5 * 1024 * 1024
-        private const val MANAGED_PREFIX = "/uploads/products/"
         private val ALLOWED_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp")
     }
 }

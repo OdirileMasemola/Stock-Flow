@@ -9,7 +9,8 @@ data class User(
     val username: String,
     val email: String,
     val fullName: String,
-    val roleId: Int? = null
+    val roleId: Int? = null,
+    val profileImageUrl: String? = null
 )
 
 object Users : Table("users") {
@@ -20,6 +21,7 @@ object Users : Table("users") {
     val passwordHash = varchar("password_hash", 255).nullable()
     val firebaseUid = varchar("firebase_uid", 128).nullable().uniqueIndex()
     val roleId = integer("role_id").references(Roles.id).index()
+    val profileImageUrl = varchar("profile_image_url", 500).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

@@ -87,10 +87,45 @@
     <string name="settings_section_logout">Log out</string>
     <string name="settings_profile">Profile</string>
     <string name="settings_profile_subtitle">Account details</string>
-    <string name="settings_profile_placeholder">Profile management will be available in a future update.</string>
     <string name="settings_business">Business</string>
     <string name="settings_business_subtitle">Store information</string>
-    <string name="settings_business_placeholder">Business settings will be available in a future update.</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="profile_section_account">Account details</string>
+    <string name="profile_section_hint">Update how your name appears across StockFlow.</string>
+    <string name="profile_email_readonly_hint">Email is used for sign-in and cannot be changed here.</string>
+    <string name="profile_save">Save profile</string>
+    <string name="profile_updated">Profile updated</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="profile_change_photo">Change photo</string>
+    <string name="profile_remove_photo">Remove</string>
+
+    <string name="business_info_title">Business / Store Info</string>
+    <string name="business_section_store">Store information</string>
+    <string name="business_section_hint">These details belong to your account and stay private to you.</string>
+    <string name="label_store_name">Store name</string>
+    <string name="hint_store_name">e.g. Masemola Mini Market</string>
+    <string name="label_owner_name">Owner / contact name</string>
+    <string name="hint_owner_name">Contact person</string>
+    <string name="hint_business_email">store@example.com</string>
+    <string name="business_save">Save store info</string>
+    <string name="business_updated">Store information saved</string>
+    <string name="business_store_image">Store image</string>
+    <string name="business_change_image">Change image</string>
+    <string name="business_remove_image">Remove</string>
+
+    <string name="store_location_title">Store Location</string>
+    <string name="use_current_location">Use Current Location</string>
+    <string name="current_location_label">Current location:</string>
+    <string name="location_not_set">Not set</string>
+    <string name="location_captured">Current location captured</string>
+    <string name="location_permission_denied">Location permission is required to set your store location.</string>
+    <string name="location_services_disabled">Turn on location services to use your current location.</string>
+    <string name="location_unavailable">Could not get your current location. Try again.</string>
+    <string name="location_timeout">Location request timed out. Try again outdoors or with a clearer signal.</string>
+    <string name="fullscreen_image">Full-screen image</string>
+    <string name="save_to_view_fullscreen">Save first to open the full-screen viewer.</string>
+    <string name="no_image_to_view">No image to display.</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_system">System default</string>
     <string name="settings_theme_light">Light</string>

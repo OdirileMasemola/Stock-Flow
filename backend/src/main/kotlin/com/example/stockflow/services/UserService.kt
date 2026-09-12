@@ -13,11 +13,60 @@ import java.util.*
 
 class UserService(
     private val repository: UserRepository = UserRepositoryImpl(),
-    private val firebaseTokenVerifier: FirebaseTokenVerifier = FirebaseTokenVerifier()
+    private val firebaseTokenVerifier: FirebaseTokenVerifier = FirebaseTokenVerifier(),
+    private val imageStorage: ProductImageStorage = ProductImageStorage()
 ) {
     suspend fun getUser(id: Int): User? {
         return repository.findUserById(id)
     }
+
+    suspend fun getProfile(userId: Int): ProfileResponse {
+        val user = repository.findUserById(userId)
+            ?: throw NotFoundException("User not found")
+        return user.toProfileResponse()
+    }
+
+    suspend fun updateProfile(userId: Int, request: UpdateProfileRequest): ProfileResponse {
+        val fullName = request.fullName.trim()
+        if (fullName.isBlank()) {
+            throw BadRequestException("Full name cannot be blank")
+        }
+        if (fullName.length > 100) {
+            throw BadRequestException("Full name is too long")
+        }
+
+        val existing = repository.findUserById(userId)
+            ?: throw NotFoundException("User not found")
+
+        val newImageUrl = request.profileImageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        val updated = repository.updateProfile(userId, fullName, newImageUrl)
+            ?: throw NotFoundException("User not found")
+
+        val oldUrl = existing.profileImageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        if (oldUrl != null && oldUrl != newImageUrl) {
+            imageStorage.deleteIfManaged(oldUrl)
+        }
+
+        return updated.toProfileResponse()
+    }
+
+    fun uploadProfileImage(
+        bytes: ByteArray,
+        originalFileName: String?,
+        contentType: String?
+    ): ImageUploadResponse {
+        val imageUrl = imageStorage.saveProfileImage(bytes, originalFileName, contentType)
+        return ImageUploadResponse(imageUrl = imageUrl)
+    }
+
+    private fun User.toProfileResponse() = ProfileResponse(
+        id = id ?: throw NotFoundException("User not found"),
+        username = username,
+        email = email,
+        fullName = fullName,
+        roleId = roleId,
+        profileImageUrl = profileImageUrl
+    )
 
     suspend fun authenticateUser(request: LoginRequest): LoginResponse {
         if (request.identifier.isBlank() || request.password.isBlank()) {

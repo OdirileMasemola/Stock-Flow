@@ -44,7 +44,10 @@ data class RoleDto(
     val name: String,
     val description: String? = null
 ) {
-    override fun toString(): String = name
+    override fun toString(): String {
+        val detail = description?.takeIf { it.isNotBlank() }
+        return if (detail != null) "$name — $detail" else name
+    }
 }
 
 data class GoogleAuthRequest(

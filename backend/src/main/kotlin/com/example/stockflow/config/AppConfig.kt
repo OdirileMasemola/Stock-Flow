@@ -37,6 +37,15 @@ object AppConfig {
     val firebaseCredentialsPath = getEnv("FIREBASE_CREDENTIALS_PATH")
 
     /**
+     * OAuth 2.0 Web client ID used to validate Google ID token `aud` claims.
+     * Must match the Android app's requestIdToken / google_web_client_id.
+     */
+    val googleWebClientId: String = getEnv("GOOGLE_WEB_CLIENT_ID")
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: "664389052883-cqddukkpbu4tp5ffre0mh9l2hpegsek5.apps.googleusercontent.com"
+
+    /**
      * Directory for uploaded product images (relative or absolute).
      * Defaults work from either the repo root or the backend module working directory.
      */

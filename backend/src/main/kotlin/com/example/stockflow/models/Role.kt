@@ -13,7 +13,7 @@ data class Role(
 object Roles : Table("roles") {
     val id = integer("id").autoIncrement()
     val name = varchar("name", 20).uniqueIndex()
-    val description = varchar("description", 100).nullable()
+    val description = varchar("description", 500).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

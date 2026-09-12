@@ -33,13 +33,13 @@ object DatabaseFactory {
                     Sales, 
                     SaleItems, 
                     PurchaseOrders, 
-                    PurchaseOrderItems
+                    PurchaseOrderItems,
+                    Businesses
                 )
-                // Users + Products: add nullable columns on existing DBs (e.g. image_url).
-                SchemaUtils.createMissingTablesAndColumns(Users, Products)
+                // Users/Products/Businesses/Roles: add or widen columns on existing DBs.
+                SchemaUtils.createMissingTablesAndColumns(Users, Products, Businesses, Roles)
+                // Required for signup/role picker — not test data.
                 seedDefaultRolesIfEmpty()
-                // One default category so products can be created before Category CRUD exists.
-                seedDefaultCategoryIfEmpty()
                 logger.info("Database schema verification completed.")
             }
         } catch (e: Exception) {
@@ -68,9 +68,9 @@ object DatabaseFactory {
         }
         logger.info("Seeding default roles...")
         listOf(
-            "Owner" to "Store owner with full access",
-            "Manager" to "Store manager",
-            "Staff" to "Store staff"
+            "Owner" to OWNER_ROLE_DESCRIPTION,
+            "Staff" to STAFF_ROLE_DESCRIPTION,
+            "Supplier" to SUPPLIER_ROLE_DESCRIPTION
         ).forEach { (name, description) ->
             Roles.insert {
                 it[Roles.name] = name
@@ -79,17 +79,15 @@ object DatabaseFactory {
         }
     }
 
-    private fun seedDefaultCategoryIfEmpty() {
-        if (Categories.selectAll().count() > 0) {
-            return
-        }
-        logger.info("Seeding default category...")
-        Categories.insert {
-            it[name] = "General"
-            it[description] = "Default category"
-        }
-    }
-
     suspend fun <T> dbQuery(block: suspend () -> T): T =
         org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction { block() }
+
+    private const val OWNER_ROLE_DESCRIPTION =
+        "Full access to the app. Manage products, sales, suppliers, purchase orders, reports, staff, and store settings. Can update business and account information."
+
+    private const val STAFF_ROLE_DESCRIPTION =
+        "Access to daily shop operations. View/manage inventory and make sales. View relevant stock and sales information. Should not manage staff, business settings, or sensitive owner information."
+
+    private const val SUPPLIER_ROLE_DESCRIPTION =
+        "Limited supplier-focused access. View their products/orders and purchase orders relevant to them. See order status and quantities. No access to the shop's sales, reports, staff, or private business settings."
 }
