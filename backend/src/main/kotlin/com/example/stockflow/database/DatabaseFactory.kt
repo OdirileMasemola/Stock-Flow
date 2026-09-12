@@ -54,7 +54,12 @@ object DatabaseFactory {
             jdbcUrl = AppConfig.dbUrl
             username = AppConfig.dbUser
             password = AppConfig.dbPassword
-            maximumPoolSize = 3
+            maximumPoolSize = 10
+            minimumIdle = 2
+            connectionTimeout = 30_000
+            idleTimeout = 600_000
+            maxLifetime = 1_800_000
+            leakDetectionThreshold = 60_000
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
             validate()

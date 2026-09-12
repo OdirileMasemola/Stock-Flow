@@ -33,7 +33,6 @@
     <color name="bottom_nav_inactive">#9AA0A6</color>
     <color name="bottom_nav_active_bg">#2A3A4F</color>
     <color name="bottom_nav_stroke">#553A4558</color>
-    <color name="bottom_nav_ripple_fill">#33F3F4F6</color>
 
     <color name="icon_bg_profile">#1A2A3A</color>
     <color name="icon_bg_business">#1A3330</color>

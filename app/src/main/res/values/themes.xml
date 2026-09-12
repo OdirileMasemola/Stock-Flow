@@ -19,11 +19,4 @@
         <item name="android:textColor">@color/bottom_nav_active</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
-
-    <style name="TextAppearance.StockFlow.BottomNav.Inactive" parent="TextAppearance.MaterialComponents.Caption">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/bottom_nav_inactive</item>
-        <item name="android:letterSpacing">0.01</item>
-    </style>
 </resources>

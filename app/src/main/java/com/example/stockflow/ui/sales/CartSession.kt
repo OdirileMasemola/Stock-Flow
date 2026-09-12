@@ -23,8 +23,6 @@ object CartSession {
         val lines: List<CartLine> = emptyList(),
         /** Total units in the cart (badge count). */
         val itemCount: Int = 0,
-        /** Distinct product rows. */
-        val productCount: Int = 0,
         val total: Double = 0.0
     )
 
@@ -120,7 +118,6 @@ object CartSession {
         _state.value = CartUiState(
             lines = lines,
             itemCount = lines.sumOf { it.quantity },
-            productCount = lines.size,
             total = lines.sumOf { it.unitPrice * it.quantity }
         )
     }

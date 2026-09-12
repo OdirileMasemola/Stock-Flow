@@ -12,6 +12,7 @@ import com.example.stockflow.data.remote.CreateProductRequest
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.UpdateProductRequest
 import com.example.stockflow.data.repository.ProductRepository
+import com.example.stockflow.ui.common.ProductImages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -177,26 +178,16 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
             if (!mimeType.startsWith("image/")) {
                 return@withContext Result.failure(Exception("Please choose a valid image file"))
             }
-            val bytes = resolver.openInputStream(uri)?.use { it.readBytes() }
-                ?: return@withContext Result.failure(Exception("Unable to read the selected image"))
-            if (bytes.isEmpty()) {
-                return@withContext Result.failure(Exception("Selected image is empty"))
+            val bytes = try {
+                ProductImages.readCompressedImageBytes(getApplication(), uri, MAX_UPLOAD_BYTES)
+            } catch (e: IllegalArgumentException) {
+                return@withContext Result.failure(Exception(e.message ?: "Unable to read the selected image"))
             }
-            if (bytes.size > MAX_UPLOAD_BYTES) {
-                return@withContext Result.failure(Exception("Image must be 5 MB or smaller"))
-            }
-            val extension = extensionForMime(mimeType)
-            val fileName = "product.$extension"
-            repository.uploadProductImage(bytes, fileName, mimeType)
+            val fileName = "product.jpg"
+            repository.uploadProductImage(bytes, fileName, "image/jpeg")
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: "Could not upload the product image. Product was not saved."))
         }
-    }
-
-    private fun extensionForMime(mimeType: String): String = when (mimeType.lowercase()) {
-        "image/png" -> "png"
-        "image/webp" -> "webp"
-        else -> "jpg"
     }
 
     private fun validateLocal(

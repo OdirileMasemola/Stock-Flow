@@ -13,6 +13,9 @@ fun Application.configureHTTP() {
         allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        anyHost() // Don't do this in production if you don't have to
+        // Native Android clients ignore CORS. Restrict browser origins for local tooling.
+        allowHost("localhost", schemes = listOf("http", "https"))
+        allowHost("127.0.0.1", schemes = listOf("http", "https"))
+        allowHost("10.0.2.2", schemes = listOf("http"))
     }
 }

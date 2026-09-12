@@ -31,6 +31,8 @@ class SalesFragment : Fragment() {
     private lateinit var historyAdapter: SaleHistoryAdapter
 
     private var showingHistory = false
+    /** Refresh POS catalog after cart/scan; skip redundant reloads on mere tab re-show. */
+    private var refreshProductsOnResume = true
 
     private val scanProduct = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -82,6 +84,7 @@ class SalesFragment : Fragment() {
         binding.btnRetryHistory.setOnClickListener { viewModel.loadSalesHistory() }
 
         binding.btnOpenCart.setOnClickListener {
+            refreshProductsOnResume = true
             startActivity(Intent(requireContext(), CartActivity::class.java))
         }
 
@@ -112,7 +115,8 @@ class SalesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadProducts()
+        viewModel.loadProducts(force = refreshProductsOnResume)
+        refreshProductsOnResume = false
         if (showingHistory) {
             viewModel.loadSalesHistory()
         }

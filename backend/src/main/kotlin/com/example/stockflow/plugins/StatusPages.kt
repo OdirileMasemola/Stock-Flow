@@ -26,9 +26,8 @@ fun Application.configureStatusPages() {
             call.respond(HttpStatusCode.Unauthorized, body)
         }
         exception<IllegalStateException> { call, cause ->
-            val message = cause.message?.takeIf { it.isNotBlank() }
-                ?: "An unexpected error occurred"
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to message))
+            call.application.environment.log.warn("IllegalStateException: {}", cause.message)
+            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid request"))
         }
         exception<Throwable> { call, cause ->
             call.application.environment.log.error("Unhandled error", cause)

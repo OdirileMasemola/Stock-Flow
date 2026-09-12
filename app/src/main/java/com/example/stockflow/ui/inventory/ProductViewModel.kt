@@ -36,17 +36,32 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
     private val _lookupLoading = MutableLiveData(false)
     val lookupLoading: LiveData<Boolean> = _lookupLoading
 
-    fun loadProducts() {
+    private var lastQuery: String = ""
+    private var loadInFlight = false
+
+    fun loadProducts(force: Boolean = true) {
+        if (loadInFlight) return
+        if (!force) {
+            val current = _uiState.value
+            if (current is ProductsUiState.Success || current is ProductsUiState.Empty) {
+                return
+            }
+        }
+        loadInFlight = true
         _uiState.value = ProductsUiState.Loading
         viewModelScope.launch {
-            val result = repository.getProducts()
-            if (result.isSuccess) {
-                allProducts = result.getOrDefault(emptyList())
-                publishFiltered("")
-            } else {
-                _uiState.postValue(
-                    ProductsUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load products")
-                )
+            try {
+                val result = repository.getProducts()
+                if (result.isSuccess) {
+                    allProducts = result.getOrDefault(emptyList())
+                    publishFiltered(lastQuery)
+                } else {
+                    _uiState.postValue(
+                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load products")
+                    )
+                }
+            } finally {
+                loadInFlight = false
             }
         }
     }
@@ -88,7 +103,7 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
 
     fun findBySku(sku: String) {
         val normalized = sku.trim()
-        if (normalized.isEmpty()) {
+        if (normalized.isEmpty() || normalized.length > 50) {
             _lookupMessage.value = "Product not found"
             return
         }
@@ -105,8 +120,6 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
-
-    private var lastQuery: String = ""
 
     private fun publishFiltered(query: String) {
         lastQuery = query

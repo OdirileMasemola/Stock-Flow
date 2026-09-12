@@ -28,8 +28,9 @@ object AppConfig {
     val dbUser = getEnv("DB_USER") ?: "postgres"
     val dbPassword = getEnv("DB_PASSWORD") ?: throw RuntimeException("DB_PASSWORD environment variable is missing")
 
-    // JWT Configuration
-    val jwtSecret = getEnv("JWT_SECRET") ?: "stockflow-super-secret-key-12345"
+    // JWT Configuration — fail closed if secret is missing (never use a hardcoded default).
+    val jwtSecret = getEnv("JWT_SECRET")?.trim()?.takeIf { it.isNotEmpty() }
+        ?: throw RuntimeException("JWT_SECRET environment variable is missing")
     val jwtIssuer = getEnv("JWT_ISSUER") ?: "com.example.stockflow"
     val jwtAudience = getEnv("JWT_AUDIENCE") ?: "stockflow-users"
     val jwtExpiration = getEnv("JWT_EXPIRATION")?.toLong() ?: 3600000L // Default 1 hour in ms

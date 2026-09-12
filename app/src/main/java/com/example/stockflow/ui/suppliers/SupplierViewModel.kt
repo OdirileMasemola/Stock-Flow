@@ -20,6 +20,8 @@ class SupplierViewModel(application: Application) : AndroidViewModel(application
     )
 
     private var allSuppliers: List<SupplierDto> = emptyList()
+    private var lastQuery: String = ""
+    private var loadInFlight = false
 
     private val _uiState = MutableLiveData<SuppliersUiState>(SuppliersUiState.Loading)
     val uiState: LiveData<SuppliersUiState> = _uiState
@@ -27,19 +29,31 @@ class SupplierViewModel(application: Application) : AndroidViewModel(application
     private val _deleteMessage = MutableLiveData<String?>()
     val deleteMessage: LiveData<String?> = _deleteMessage
 
-    fun loadSuppliers() {
+    fun loadSuppliers(force: Boolean = true) {
+        if (loadInFlight) return
+        if (!force) {
+            val current = _uiState.value
+            if (current is SuppliersUiState.Success || current is SuppliersUiState.Empty) {
+                return
+            }
+        }
+        loadInFlight = true
         _uiState.value = SuppliersUiState.Loading
         viewModelScope.launch {
-            val result = repository.getSuppliers()
-            if (result.isSuccess) {
-                allSuppliers = result.getOrDefault(emptyList())
-                publishFiltered("")
-            } else {
-                _uiState.postValue(
-                    SuppliersUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Unable to load suppliers"
+            try {
+                val result = repository.getSuppliers()
+                if (result.isSuccess) {
+                    allSuppliers = result.getOrDefault(emptyList())
+                    publishFiltered(lastQuery)
+                } else {
+                    _uiState.postValue(
+                        SuppliersUiState.Error(
+                            result.exceptionOrNull()?.message ?: "Unable to load suppliers"
+                        )
                     )
-                )
+                }
+            } finally {
+                loadInFlight = false
             }
         }
     }
@@ -69,8 +83,6 @@ class SupplierViewModel(application: Application) : AndroidViewModel(application
     fun clearDeleteMessage() {
         _deleteMessage.value = null
     }
-
-    private var lastQuery: String = ""
 
     private fun publishFiltered(query: String) {
         lastQuery = query

@@ -53,9 +53,11 @@ class PosProductAdapter(
                 return
             }
             binding.ivProductPlaceholderIcon.visibility = View.GONE
+            val thumbPx = (120 * binding.root.resources.displayMetrics.density).toInt()
             binding.ivProductImage.load(resolved) {
                 placeholder(R.drawable.bg_product_image_placeholder)
                 error(R.drawable.bg_product_image_placeholder)
+                size(thumbPx, thumbPx)
                 listener(
                     onError = { _, _ ->
                         binding.ivProductPlaceholderIcon.visibility = View.VISIBLE

@@ -20,7 +20,6 @@ interface UserRepository {
         roleId: Int
     ): User
 
-    suspend fun updateFullName(userId: Int, fullName: String): User?
     suspend fun updateProfile(userId: Int, fullName: String, profileImageUrl: String?): User?
 }
 
@@ -91,16 +90,6 @@ class UserRepositoryImpl : UserRepository {
 
         insertStatement.resultedValues?.first()?.let { toUser(it) }
             ?: throw RuntimeException("Failed to create user")
-    }
-
-    override suspend fun updateFullName(userId: Int, fullName: String): User? = dbQuery {
-        val updated = Users.update({ Users.id eq userId }) {
-            it[Users.fullName] = fullName
-        }
-        if (updated == 0) return@dbQuery null
-        Users.selectAll().where { Users.id eq userId }
-            .map { toUser(it) }
-            .singleOrNull()
     }
 
     override suspend fun updateProfile(

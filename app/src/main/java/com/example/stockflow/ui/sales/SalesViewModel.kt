@@ -23,6 +23,7 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
 
     private var allProducts: List<ProductDto> = emptyList()
     private var lastQuery: String = ""
+    private var productsLoadInFlight = false
 
     private val _productsState = MutableLiveData<ProductsUiState>(ProductsUiState.Loading)
     val productsState: LiveData<ProductsUiState> = _productsState
@@ -35,18 +36,30 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
     private val _historyState = MutableLiveData<HistoryUiState>(HistoryUiState.Loading)
     val historyState: LiveData<HistoryUiState> = _historyState
 
-    fun loadProducts() {
+    fun loadProducts(force: Boolean = true) {
+        if (productsLoadInFlight) return
+        if (!force) {
+            val current = _productsState.value
+            if (current is ProductsUiState.Success || current is ProductsUiState.Empty) {
+                return
+            }
+        }
+        productsLoadInFlight = true
         _productsState.value = ProductsUiState.Loading
         viewModelScope.launch {
-            val result = productRepository.getProducts()
-            if (result.isSuccess) {
-                allProducts = result.getOrDefault(emptyList())
-                CartSession.syncWithProducts(allProducts)
-                publishFiltered(lastQuery)
-            } else {
-                _productsState.postValue(
-                    ProductsUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load products")
-                )
+            try {
+                val result = productRepository.getProducts()
+                if (result.isSuccess) {
+                    allProducts = result.getOrDefault(emptyList())
+                    CartSession.syncWithProducts(allProducts)
+                    publishFiltered(lastQuery)
+                } else {
+                    _productsState.postValue(
+                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load products")
+                    )
+                }
+            } finally {
+                productsLoadInFlight = false
             }
         }
     }
@@ -67,7 +80,7 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addToCartBySku(sku: String) {
         val normalized = sku.trim()
-        if (normalized.isEmpty()) {
+        if (normalized.isEmpty() || normalized.length > 50) {
             _message.value = "Product not found"
             return
         }

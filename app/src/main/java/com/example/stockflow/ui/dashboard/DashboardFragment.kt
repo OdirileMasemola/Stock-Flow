@@ -96,7 +96,8 @@ class DashboardFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         bindGreeting()
-        viewModel.loadDashboard()
+        // Refresh when returning from other activities; skip if already loaded (tab hide/show).
+        viewModel.loadDashboard(force = viewModel.uiState.value !is DashboardViewModel.DashboardUiState.Success)
     }
 
     private fun bindSummary(summary: DashboardSummaryDto) {
