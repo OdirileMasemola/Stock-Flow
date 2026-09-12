@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:name=".StockFlowApp"
@@ -53,6 +58,11 @@
         <activity
             android:name=".ui.inventory.AddProductActivity"
             android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.scanner.BarcodeScannerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.StockFlow" />
         <activity
             android:name=".ui.suppliers.AddSupplierActivity"

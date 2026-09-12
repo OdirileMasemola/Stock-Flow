@@ -42,7 +42,7 @@
                 android:id="@+id/btnToggleHistory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_stat_card_green"
                 android:backgroundTint="@color/soft_green_bg"
                 android:paddingHorizontal="12dp"
@@ -51,6 +51,27 @@
                 android:textColor="@color/brand_primary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnScanProduct"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/brand_primary"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="12dp"
+                android:text="@string/scan_product"
+                android:textAllCaps="false"
+                android:textColor="@color/brand_background"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:cornerRadius="6dp"
+                app:icon="@drawable/ic_barcode"
+                app:iconPadding="4dp"
+                app:iconSize="14dp"
+                app:iconTint="@color/brand_background" />
 
             <FrameLayout
                 android:id="@+id/btnOpenCart"

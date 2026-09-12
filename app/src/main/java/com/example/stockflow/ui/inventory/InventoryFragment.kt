@@ -1,5 +1,6 @@
 package com.example.stockflow.ui.inventory
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.FragmentInventoryBinding
+import com.example.stockflow.ui.scanner.BarcodeScannerActivity
 
 class InventoryFragment : Fragment() {
 
@@ -23,6 +26,20 @@ class InventoryFragment : Fragment() {
 
     private val viewModel: ProductViewModel by viewModels()
     private lateinit var adapter: ProductAdapter
+
+    private val scanProduct = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        val value = result.data
+            ?.getStringExtra(BarcodeScannerActivity.EXTRA_SCAN_VALUE)
+            ?.trim()
+            .orEmpty()
+        if (value.isNotEmpty()) {
+            Toast.makeText(requireContext(), R.string.scan_looking_up, Toast.LENGTH_SHORT).show()
+            viewModel.findBySku(value)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,6 +65,10 @@ class InventoryFragment : Fragment() {
             startActivity(Intent(requireContext(), AddProductActivity::class.java))
         }
 
+        binding.btnScanProduct.setOnClickListener {
+            scanProduct.launch(Intent(requireContext(), BarcodeScannerActivity::class.java))
+        }
+
         binding.btnRetry.setOnClickListener {
             viewModel.loadProducts()
         }
@@ -69,6 +90,24 @@ class InventoryFragment : Fragment() {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 viewModel.clearDeleteMessage()
             }
+        }
+
+        viewModel.lookupMessage.observe(viewLifecycleOwner) { message ->
+            if (message != null) {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                viewModel.clearLookupMessage()
+            }
+        }
+
+        viewModel.lookupProduct.observe(viewLifecycleOwner) { product ->
+            if (product != null) {
+                openEdit(product)
+                viewModel.clearLookupProduct()
+            }
+        }
+
+        viewModel.lookupLoading.observe(viewLifecycleOwner) { loading ->
+            binding.btnScanProduct.isEnabled = loading != true
         }
     }
 

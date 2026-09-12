@@ -1,5 +1,6 @@
 package com.example.stockflow.ui.sales
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -17,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.SaleDto
 import com.example.stockflow.databinding.FragmentSalesBinding
+import com.example.stockflow.ui.scanner.BarcodeScannerActivity
 
 class SalesFragment : Fragment() {
 
@@ -28,6 +31,19 @@ class SalesFragment : Fragment() {
     private lateinit var historyAdapter: SaleHistoryAdapter
 
     private var showingHistory = false
+
+    private val scanProduct = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        val value = result.data
+            ?.getStringExtra(BarcodeScannerActivity.EXTRA_SCAN_VALUE)
+            ?.trim()
+            .orEmpty()
+        if (value.isNotEmpty()) {
+            viewModel.addToCartBySku(value)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,6 +85,10 @@ class SalesFragment : Fragment() {
             startActivity(Intent(requireContext(), CartActivity::class.java))
         }
 
+        binding.btnScanProduct.setOnClickListener {
+            scanProduct.launch(Intent(requireContext(), BarcodeScannerActivity::class.java))
+        }
+
         binding.btnToggleHistory.setOnClickListener {
             showingHistory = !showingHistory
             renderMode()
@@ -108,6 +128,7 @@ class SalesFragment : Fragment() {
             if (showingHistory) R.string.pos_history else R.string.pos_title
         )
         binding.btnOpenCart.isVisible = !showingHistory
+        binding.btnScanProduct.isVisible = !showingHistory
     }
 
     private fun renderCartBadge(state: CartSession.CartUiState) {

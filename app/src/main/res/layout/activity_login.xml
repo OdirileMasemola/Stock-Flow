@@ -156,7 +156,7 @@
                         android:autofillHints="emailAddress"
                         android:background="@color/transparent"
                         android:hint="@string/hint_email_phone"
-                        android:inputType="textEmailAddress|textPhonetic"
+                        android:inputType="textEmailAddress"
                         android:textColor="@color/brand_text_dark"
                         android:textColorHint="@color/brand_text_light"
                         android:textSize="14sp" />

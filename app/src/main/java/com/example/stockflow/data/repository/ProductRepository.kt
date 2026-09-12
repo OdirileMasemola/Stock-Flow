@@ -1,5 +1,6 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CreateProductRequest
@@ -67,6 +68,34 @@ class ProductRepository(
             Result.failure(Exception("Unable to reach the server. Check your connection."))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: "Unable to load product"))
+        }
+    }
+
+    suspend fun getProductBySku(sku: String): Result<ProductDto> {
+        return try {
+            val candidates = ProductSkuCodes.lookupCandidates(sku)
+            if (candidates.isEmpty()) {
+                return Result.failure(Exception("Product not found"))
+            }
+            var lastError: Exception? = null
+            for (candidate in candidates) {
+                val response = api.getProductBySku(authHeader(), candidate)
+                if (response.isSuccessful) {
+                    val body = response.body()
+                        ?: return Result.failure(Exception("Product not found"))
+                    return Result.success(body)
+                }
+                if (response.code() == 404) {
+                    lastError = Exception("Product not found")
+                    continue
+                }
+                return Result.failure(Exception(errorMessage(response, "Unable to find product")))
+            }
+            Result.failure(lastError ?: Exception("Product not found"))
+        } catch (_: IOException) {
+            Result.failure(Exception("Unable to reach the server. Check your connection."))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Unable to find product"))
         }
     }
 

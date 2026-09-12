@@ -140,18 +140,44 @@
                     android:textColor="@color/brand_text_light"
                     android:textSize="12sp" />
 
-                <EditText
-                    android:id="@+id/etSku"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/bg_input_box"
-                    android:hint="@string/hint_sku"
-                    android:inputType="text"
-                    android:paddingHorizontal="12dp"
-                    android:textColor="@color/brand_text_dark"
-                    android:textColorHint="@color/brand_text_light"
-                    android:textSize="14sp" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingEnd="4dp">
+
+                    <EditText
+                        android:id="@+id/etSku"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="@string/hint_sku"
+                        android:inputType="text"
+                        android:paddingHorizontal="12dp"
+                        android:textColor="@color/brand_text_dark"
+                        android:textColorHint="@color/brand_text_light"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnScanSku"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:minWidth="0dp"
+                        android:text="@string/scan_barcode"
+                        android:textAllCaps="false"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_barcode"
+                        app:iconPadding="4dp"
+                        app:iconSize="16dp"
+                        app:iconTint="@color/brand_primary" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"

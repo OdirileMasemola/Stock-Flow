@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.CreateProductRequest
 import com.example.stockflow.data.remote.ProductDto
@@ -101,7 +102,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         val minStockLevel = minStockLevelText.toInt()
         val categoryId = categoryIdText.toInt()
         val supplierId = supplierIdText.trim().takeIf { it.isNotEmpty() }?.toInt()
-        val normalizedSku = sku.trim().takeIf { it.isNotEmpty() }
+        val normalizedSku = ProductSkuCodes.toStockFlowSku(sku) ?: sku.trim().takeIf { it.isNotEmpty() }
 
         _formState.value = FormState.Loading
         viewModelScope.launch {

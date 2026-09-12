@@ -33,6 +33,12 @@ interface ProductApi {
         @Path("id") id: Int
     ): Response<ProductDto>
 
+    @GET("api/products/sku/{sku}")
+    suspend fun getProductBySku(
+        @Header("Authorization") authorization: String,
+        @Path("sku") sku: String
+    ): Response<ProductDto>
+
     @POST("api/products")
     suspend fun createProduct(
         @Header("Authorization") authorization: String,

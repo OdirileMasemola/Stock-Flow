@@ -1,5 +1,6 @@
 package com.example.stockflow.ui.inventory
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -14,6 +15,7 @@ import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.ActivityAddProductBinding
 import com.example.stockflow.ui.common.ProductImages
 import com.example.stockflow.ui.common.SystemBars
+import com.example.stockflow.ui.scanner.BarcodeScannerActivity
 
 /**
  * Create a new product or edit an existing one.
@@ -36,6 +38,20 @@ class AddProductActivity : AppCompatActivity() {
             previewUri = uri
             viewModel.setPendingImage(uri)
             showLocalPreview(uri)
+        }
+    }
+
+    private val scanBarcode = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        val value = result.data
+            ?.getStringExtra(BarcodeScannerActivity.EXTRA_SCAN_VALUE)
+            ?.trim()
+            .orEmpty()
+        if (value.isNotEmpty()) {
+            binding.etSku.setText(value)
+            binding.etSku.setSelection(value.length)
         }
     }
 
@@ -69,6 +85,10 @@ class AddProductActivity : AppCompatActivity() {
             previewUri = null
             viewModel.clearImage()
             showEmptyImageState()
+        }
+
+        binding.btnScanSku.setOnClickListener {
+            scanBarcode.launch(Intent(this, BarcodeScannerActivity::class.java))
         }
 
         binding.btnSave.setOnClickListener {
@@ -171,6 +191,7 @@ class AddProductActivity : AppCompatActivity() {
         binding.btnSave.isEnabled = !loading
         binding.imagePickerArea.isEnabled = !loading
         binding.btnRemoveImage.isEnabled = !loading
+        binding.btnScanSku.isEnabled = !loading
         if (loading) {
             binding.tvFormError.visibility = View.GONE
         }
