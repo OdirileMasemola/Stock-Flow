@@ -12,6 +12,9 @@ object RetrofitClient {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
+            // Default pool reuses keep-alive connections. Do not add automatic POST retries
+            // (sales must never be double-submitted by the HTTP client).
+            .retryOnConnectionFailure(true)
             .build()
     }
 

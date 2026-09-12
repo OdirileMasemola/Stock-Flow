@@ -7,6 +7,7 @@ import android.net.Uri
 import android.widget.ImageView
 import coil.load
 import coil.request.CachePolicy
+import coil.size.Size
 import com.example.stockflow.BuildConfig
 import com.example.stockflow.R
 import java.io.ByteArrayOutputStream
@@ -26,7 +27,12 @@ object ProductImages {
         return "$base/${raw.trimStart('/')}"
     }
 
-    fun loadInto(imageView: ImageView, imageUrl: String?, placeholderRes: Int = R.drawable.bg_product_image_placeholder) {
+    fun loadInto(
+        imageView: ImageView,
+        imageUrl: String?,
+        placeholderRes: Int = R.drawable.bg_product_image_placeholder,
+        targetSizePx: Int? = null
+    ) {
         val url = resolveUrl(imageUrl)
         imageView.load(url) {
             placeholder(placeholderRes)
@@ -35,6 +41,9 @@ object ProductImages {
             crossfade(true)
             memoryCachePolicy(CachePolicy.ENABLED)
             diskCachePolicy(CachePolicy.ENABLED)
+            if (targetSizePx != null && targetSizePx > 0) {
+                size(Size(targetSizePx, targetSizePx))
+            }
         }
     }
 

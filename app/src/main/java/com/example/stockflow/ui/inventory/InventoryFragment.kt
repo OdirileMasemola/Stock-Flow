@@ -26,6 +26,8 @@ class InventoryFragment : Fragment() {
 
     private val viewModel: ProductViewModel by viewModels()
     private lateinit var adapter: ProductAdapter
+    /** Reload after add/edit/scan flows; skip when merely re-showing a hidden tab. */
+    private var refreshOnResume = true
 
     private val scanProduct = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -62,10 +64,12 @@ class InventoryFragment : Fragment() {
         binding.rvProducts.adapter = adapter
 
         binding.btnAddProduct.setOnClickListener {
+            refreshOnResume = true
             startActivity(Intent(requireContext(), AddProductActivity::class.java))
         }
 
         binding.btnScanProduct.setOnClickListener {
+            refreshOnResume = true
             scanProduct.launch(Intent(requireContext(), BarcodeScannerActivity::class.java))
         }
 
@@ -113,8 +117,8 @@ class InventoryFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Reload whenever the screen is shown (e.g. after adding/editing a product)
-        viewModel.loadProducts()
+        viewModel.loadProducts(force = refreshOnResume)
+        refreshOnResume = false
     }
 
     private fun renderState(state: ProductViewModel.ProductsUiState) {
@@ -158,6 +162,7 @@ class InventoryFragment : Fragment() {
     }
 
     private fun openEdit(product: ProductDto) {
+        refreshOnResume = true
         val intent = Intent(requireContext(), AddProductActivity::class.java).apply {
             putExtra(AddProductActivity.EXTRA_PRODUCT_ID, product.id)
         }

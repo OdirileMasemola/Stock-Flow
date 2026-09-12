@@ -42,6 +42,10 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
     fun selectPaymentMethod(method: String) = CartSession.selectPaymentMethod(method)
 
     fun completeSale() {
+        // Prevent double-submit before LiveData observers disable the button.
+        if (_checkoutState.value is CheckoutUiState.Loading) {
+            return
+        }
         val lines = CartSession.snapshotLines()
         if (lines.isEmpty()) {
             _checkoutState.value = CheckoutUiState.Error("Cart is empty")

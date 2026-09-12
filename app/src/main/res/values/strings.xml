@@ -37,9 +37,6 @@
     <string name="already_have_account">Already have an account? </string>
 
     <!-- Get Started / Onboarding -->
-    <string name="get_started_title">Welcome to StockFlow</string>
-    <string name="get_started_subtitle">Manage your stock, sales and suppliers all in one place.</string>
-    <string name="get_started_body">StockFlow helps shop owners keep track of products, monitor low stock, record sales and manage suppliers — so your store stays organised and ready for every customer.</string>
     <string name="lets_get_started">Let\'s Get Started</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_slide1_title">Welcome to StockFlow</string>
@@ -54,9 +51,7 @@
     <string name="good_morning">Good Morning,</string>
     <string name="good_afternoon">Good Afternoon,</string>
     <string name="good_evening">Good Evening,</string>
-    <string name="user_name">Thabo</string>
     <string name="today_sales_label">Today\'s Sales</string>
-    <string name="monthly_sales_label">Monthly Sales</string>
     <string name="total_products_label">Total Products</string>
     <string name="low_stock_label">Low Stock</string>
     <string name="quick_actions_title">Quick Actions</string>
@@ -65,18 +60,15 @@
     <string name="supplier_action">Supplier</string>
     <string name="reports_action">Reports</string>
     <string name="weekly_performance_title">Weekly Performance</string>
-    <string name="avg_performance_label">R12,320 Avg</string>
     <string name="weekly_total_format">R%1$.2f this week</string>
     <string name="weekly_chart_empty">No sales in the last 7 days.</string>
     <string name="recent_sales_title">Recent Sales</string>
-    <string name="best_selling_title">Best Selling Items</string>
 
     <!-- Bottom Nav Labels -->
     <string name="nav_dashboard">Dashboard</string>
     <string name="nav_inventory">Inventory</string>
     <string name="nav_sales">Sales</string>
     <string name="nav_suppliers">Suppliers</string>
-    <string name="nav_more">More</string>
     <string name="action_logout">Log out</string>
     <string name="action_settings">Settings</string>
 
@@ -220,7 +212,6 @@
     <string name="pos_products_empty_search">No products match \"%1$s\"</string>
     <string name="pos_stock_format">Stock: %1$d</string>
     <string name="pos_cart_count">Cart (%1$d items)</string>
-    <string name="pos_cart_empty_count">Cart (0 items)</string>
     <string name="pos_clear_cart">Clear Cart</string>
     <string name="pos_payment_method">Payment method</string>
     <string name="payment_cash">Cash</string>

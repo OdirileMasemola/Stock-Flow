@@ -78,7 +78,10 @@ class UserService(
 
         val (user, passwordHash) = userPair
 
-        if (passwordHash.isNullOrBlank() || !BCrypt.checkpw(request.password, passwordHash)) {
+        val passwordOk = withContext(Dispatchers.IO) {
+            !passwordHash.isNullOrBlank() && BCrypt.checkpw(request.password, passwordHash)
+        }
+        if (!passwordOk) {
             throw UnauthorizedException("Invalid username/email or password")
         }
 
@@ -113,7 +116,9 @@ class UserService(
             throw BadRequestException("Invalid role ID")
         }
 
-        val passwordHash = BCrypt.hashpw(request.password, BCrypt.gensalt())
+        val passwordHash = withContext(Dispatchers.IO) {
+            BCrypt.hashpw(request.password, BCrypt.gensalt())
+        }
         val user = repository.createUser(request, passwordHash)
 
         return RegisterResponse(
@@ -185,6 +190,11 @@ class UserService(
     }
 
     private fun isValidEmail(email: String): Boolean {
-        return email.contains("@") && email.contains(".")
+        val trimmed = email.trim()
+        if (trimmed.length > 254) return false
+        val at = trimmed.indexOf('@')
+        if (at <= 0 || at != trimmed.lastIndexOf('@')) return false
+        val domain = trimmed.substring(at + 1)
+        return domain.contains('.') && !domain.startsWith('.') && !domain.endsWith('.')
     }
 }

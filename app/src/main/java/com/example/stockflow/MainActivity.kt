@@ -183,13 +183,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun selectNavItem(itemId: Int, animate: Boolean) {
         val tab = navTabs.firstOrNull { it.id == itemId } ?: return
-        val alreadySelected = selectedNavId == itemId &&
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) != null
         selectedNavId = itemId
         applyNavSelection(itemId, animate)
-        if (!alreadySelected) {
-            loadFragment(tab.fragmentFactory(), getString(tab.titleRes))
-        }
+        showNavFragment(tab)
     }
 
     private fun applyNavSelection(itemId: Int, animate: Boolean) {
@@ -223,12 +219,33 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.requestLayout()
     }
 
-    private fun loadFragment(fragment: Fragment, title: String) {
-        binding.topAppBar.title = title
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment, fragment)
-            .commit()
+    /**
+     * Keeps tab fragments alive with hide/show so ViewModels and loaded data survive
+     * tab switches (avoids destroy/recreate + duplicate API loads from replace()).
+     */
+    private fun showNavFragment(tab: NavTab) {
+        binding.topAppBar.title = getString(tab.titleRes)
+        val tag = navTag(tab.id)
+        val manager = supportFragmentManager
+        val existing = manager.findFragmentByTag(tag)
+        val transaction = manager.beginTransaction()
+
+        navTabs.forEach { other ->
+            val otherFragment = manager.findFragmentByTag(navTag(other.id))
+            if (otherFragment != null && other.id != tab.id && !otherFragment.isHidden) {
+                transaction.hide(otherFragment)
+            }
+        }
+
+        if (existing != null) {
+            transaction.show(existing)
+        } else {
+            transaction.add(R.id.nav_host_fragment, tab.fragmentFactory(), tag)
+        }
+        transaction.commit()
     }
+
+    private fun navTag(navId: Int): String = "main_nav_$navId"
 
     private fun logout() {
         sessionStore.clearSession()

@@ -19,7 +19,13 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     private val _uiState = MutableLiveData<DashboardUiState>(DashboardUiState.Loading)
     val uiState: LiveData<DashboardUiState> = _uiState
 
-    fun loadDashboard() {
+    fun loadDashboard(force: Boolean = true) {
+        if (!force && _uiState.value is DashboardUiState.Loading) {
+            return
+        }
+        if (!force && _uiState.value is DashboardUiState.Success) {
+            return
+        }
         _uiState.value = DashboardUiState.Loading
         viewModelScope.launch {
             val result = repository.getSummary()

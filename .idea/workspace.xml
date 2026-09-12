@@ -5,6 +5,16 @@
       <config />
     </shared>
     <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_bottom_nav.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_bottom_nav_item.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_input_box.xml">
         <config>
           <theme>@style/Theme.StockFlow</theme>
@@ -16,6 +26,11 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_login_card.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_product_image_picker.xml">
         <config>
           <theme>@style/Theme.StockFlow</theme>
         </config>
@@ -130,6 +145,11 @@
           <theme>@style/Theme.StockFlow</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_settings.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_signup.xml">
         <config>
           <theme>@style/Theme.StockFlow</theme>
@@ -160,41 +180,196 @@
           <theme>@style/Theme.StockFlow</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/item_product.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/item_settings_row.xml">
+        <config>
+          <theme>@style/Theme.StockFlow</theme>
+        </config>
+      </layout>
     </layouts>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="101e2d8d-5d23-4681-a718-b2346d090776" name="Changes" comment="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates">
+    <list default="true" id="101e2d8d-5d23-4681-a718-b2346d090776" name="Changes" comment="feat: implement semantic color system and initialize settings flow&#10;&#10;- Introduce a comprehensive semantic color palette in `colors.xml` to support theme-aware surfaces and action-specific icons&#10;- Update the app theme to `DayNight` and refactor layouts to use color resources instead of hardcoded hex values&#10;- Create `SettingsActivity` and integrate it into the `MainActivity` overflow menu&#10;- Add extensive string and style resources for settings sections, including Account, Appearance, and Language&#10;- Update `ProductAdapter` and custom drawables to use theme-aware color resources for stock status indicators&#10;- Enhance `SystemBars` utility to dynamically adjust status and navigation bar appearance based on the system's dark mode state&#10;- Register the new activity and custom `StockFlowApp` class in `AndroidManifest.xml`&#10;- Configure API base URL placeholders in `local.properties` for development environments">
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/checksums/md5-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/checksums/sha1-checksums.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/fileHashes.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.4.1/fileHashes/resourceHashesCache.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_chart.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_chart.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_eye.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_eye.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_inventory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_inventory.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_launcher_foreground.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_launcher_foreground.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_lock.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_lock.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_mail.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_mail.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_phone.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_phone.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_suppliers.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_suppliers.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_user.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/ic_user.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_add_product.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_add_product.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_dashboard.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_dashboard.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_low_stock.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_low_stock.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_purchase_order.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_purchase_order.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_reports.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_reports.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_signup.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_signup.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_dashboard.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_dashboard.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_inventory.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_inventory.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_sales.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_sales.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_suppliers.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_suppliers.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/data/local/SessionStore.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/data/local/SessionStore.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/data/remote/RetrofitClient.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/data/remote/RetrofitClient.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/common/ProductImages.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/common/ProductImages.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/DashboardFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/DashboardFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/DashboardViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/dashboard/DashboardViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/AddProductViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/AddProductViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/InventoryFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/InventoryFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/ProductAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/ProductAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/ProductViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/inventory/ProductViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/CartSession.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/CartSession.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/CartViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/CartViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/PosProductAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/PosProductAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/SalesFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/SalesFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/SalesViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/sales/SalesViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/suppliers/SupplierViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/suppliers/SupplierViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/suppliers/SuppliersFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/suppliers/SuppliersFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/theme/Color.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/theme/Theme.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/stockflow/ui/theme/Type.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/color/bottom_nav_colors.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/color/bottom_nav_ripple.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/bg_login_card.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_more.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/ic_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_dashboard.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values-night/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-night/colors.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/themes.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/themes.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/xml/backup_rules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/xml/backup_rules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/xml/data_extraction_rules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/xml/data_extraction_rules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/xml/network_security_config.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/xml/network_security_config.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/config/AppConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/config/AppConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/database/DatabaseFactory$dbQuery$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/database/DatabaseFactory$dbQuery$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/database/DatabaseFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/database/DatabaseFactory.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/BadRequestException.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/BadRequestException.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/ConflictException.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/ConflictException.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Product$$serializer.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Product$$serializer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Product.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Product.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Products.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Products.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Roles.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Roles.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/UnauthorizedException.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/UnauthorizedException.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/User$$serializer.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/User$$serializer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/User.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/User.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Users.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/models/Users.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/HTTPKt.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/HTTPKt.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt$configureRouting$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt$configureRouting$1$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt$configureRouting$1$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt$configureRouting$1$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt$configureRouting$1$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt$configureRouting$1$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/RoutingKt.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt$configureStatusPages$1$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/plugins/StatusPagesKt.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$createUser$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$createUser$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findByEmail$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findByEmail$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findByIdentifier$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findByIdentifier$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findByUsername$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findByUsername$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findUserById$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$findUserById$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$roleExists$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl$roleExists$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/repositories/UserRepositoryImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/services/UserService$authenticateUser$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/services/UserService$authenticateUser$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/services/UserService$registerUser$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/services/UserService$registerUser$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/services/UserService.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/classes/kotlin/main/com/example/stockflow/services/UserService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/distributions/StockFlowBackend-0.0.1.tar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/distributions/StockFlowBackend-0.0.1.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/package-parts.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.s" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/counters.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/counters.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.len" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.len" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab_i" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups/lookups.tab_i" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/last-build.bin" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/cacheable/last-build.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build/kotlin/compileKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/libs/StockFlowBackend-0.0.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/build/reports/problems/problems-report.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/config/AppConfig.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/config/AppConfig.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/database/DatabaseFactory.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/database/DatabaseFactory.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/plugins/HTTP.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/plugins/HTTP.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/plugins/Routing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/plugins/Routing.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/plugins/StatusPages.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/plugins/StatusPages.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/repositories/DashboardRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/repositories/DashboardRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/repositories/PurchaseOrderRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/repositories/PurchaseOrderRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/repositories/UserRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/repositories/UserRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/services/UserService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/kotlin/com/example/stockflow/services/UserService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/libs.versions.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/local.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -247,8 +422,9 @@
     <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;4fa523ff&quot;,
   &quot;associatedIndex&quot;: 5,
-  &quot;fromUser&quot;: false
+  &quot;fromUser&quot;: true
 }</component>
   <component name="ProjectId" id="3IOWwixluDbElCQrdoCduUkYcQf" />
   <component name="ProjectLevelVcsManager">
@@ -283,6 +459,9 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Odirile Masemola\AndroidStudioProjects\StockFlow\app\src\main\res\drawable" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Odirile Masemola\AndroidStudioProjects\StockFlow\app\src\main\res\drawable" />
     </key>
   </component>
@@ -540,7 +719,15 @@
       <option name="project" value="LOCAL" />
       <updated>1788906248849</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Implement multi-slide onboarding and refine app-wide UI components&#10;&#10;- Implement a 3-slide onboarding flow in `GetStartedActivity` with swipe gesture support and cross-fade animations&#10;- Redesign `activity_get_started.xml` using `ConstraintLayout` and add dot indicators for page navigation&#10;- Create a reusable `ShapeAppearanceOverlay.StockFlow.SheetCard` style for cards with rounded top corners&#10;- Update action and navigation icons across `InventoryFragment`, `SalesFragment`, `SuppliersFragment`, and various activities for better visual context&#10;- Enhance Dashboard screens with warning icons for low stock alerts&#10;- Apply the new `SheetCard` style to Login, Sign-up, Add Product, and Purchase Order screens&#10;- Integrate Google brand icons into social sign-in buttons&#10;- Add new string resources and image assets to support the multi-slide onboarding experience&#10;- Refine adaptive launcher icon scaling and clean up vector drawable paths">
+      <option name="closed" value="true" />
+      <created>1788910596530</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1788910596530</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -565,19 +752,20 @@
     <MESSAGE value="Added app logo by replacing all logo place holders" />
     <MESSAGE value="Update project dependencies, JDK configuration, and Google Auth logic&#10;&#10;- Upgrade Kotlin version to `2.2.10` in the top-level `build.gradle.kts`&#10;- Update Gradle properties to use local JDK 21 and disable automatic toolchain downloads&#10;- Refactor `GoogleAuthClient.kt` to use `GetGoogleIdOption` directly within `GetCredentialRequest` and remove the redundant `requestToken` helper method&#10;- Update `google_web_client_id` with a valid client ID in `strings.xml`&#10;- Cleanup unused dependencies (`androidx.core.ktx` and `androidx.lifecycle.runtime.ktx`) in `app/build.gradle.kts`&#10;- Update IDE configuration in `.idea/workspace.xml` to include new drawable resources and reflect recent project changes&#10;- Remove deprecated toolchain download URLs from `gradle/gradle-daemon-jvm.properties`" />
     <MESSAGE value="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor sign-up role selection and update app branding to StockFlow&#10;&#10;- Replace the legacy `Spinner` with a Material `ExposedDropdownMenu` (`AutoCompleteTextView`) for role selection in `SignUpActivity`&#10;- Update app branding references from &quot;SpazaStock&quot; to &quot;StockFlow&quot; across string resources and layouts&#10;- Integrate a `SystemBars` utility to handle status and navigation bar styling across all major activities&#10;- Configure `navigationBarColor` and `windowLightNavigationBar` in `themes.xml` for consistent system UI appearance&#10;- Adjust header padding in `activity_login.xml` and `activity_signup.xml` for better visual balance&#10;- Implement `onItemClickListener` in `SignUpActivity` to manage role selection state from the new dropdown&#10;- Update the IDE workspace configuration to reflect recent project changes and resource updates" />
+    <MESSAGE value="Implement multi-slide onboarding and refine app-wide UI components&#10;&#10;- Implement a 3-slide onboarding flow in `GetStartedActivity` with swipe gesture support and cross-fade animations&#10;- Redesign `activity_get_started.xml` using `ConstraintLayout` and add dot indicators for page navigation&#10;- Create a reusable `ShapeAppearanceOverlay.StockFlow.SheetCard` style for cards with rounded top corners&#10;- Update action and navigation icons across `InventoryFragment`, `SalesFragment`, `SuppliersFragment`, and various activities for better visual context&#10;- Enhance Dashboard screens with warning icons for low stock alerts&#10;- Apply the new `SheetCard` style to Login, Sign-up, Add Product, and Purchase Order screens&#10;- Integrate Google brand icons into social sign-in buttons&#10;- Add new string resources and image assets to support the multi-slide onboarding experience&#10;- Refine adaptive launcher icon scaling and clean up vector drawable paths" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implement multi-slide onboarding and refine app-wide UI components&#10;&#10;- Implement a 3-slide onboarding flow in `GetStartedActivity` with swipe gesture support and cross-fade animations&#10;- Redesign `activity_get_started.xml` using `ConstraintLayout` and add dot indicators for page navigation&#10;- Create a reusable `ShapeAppearanceOverlay.StockFlow.SheetCard` style for cards with rounded top corners&#10;- Update action and navigation icons across `InventoryFragment`, `SalesFragment`, `SuppliersFragment`, and various activities for better visual context&#10;- Enhance Dashboard screens with warning icons for low stock alerts&#10;- Apply the new `SheetCard` style to Login, Sign-up, Add Product, and Purchase Order screens&#10;- Integrate Google brand icons into social sign-in buttons&#10;- Add new string resources and image assets to support the multi-slide onboarding experience&#10;- Refine adaptive launcher icon scaling and clean up vector drawable paths" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
       <map>
         <entry key="com.example.stockflow">
           <value>
-            <CheckInfo lastCheckTimestamp="1788831517044" />
+            <CheckInfo lastCheckTimestamp="1789249694824" />
           </value>
         </entry>
         <entry key="com.example.stockflow.test">
           <value>
-            <CheckInfo lastCheckTimestamp="1788831517045" />
+            <CheckInfo lastCheckTimestamp="1789249694770" />
           </value>
         </entry>
       </map>

@@ -19,8 +19,12 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.count
+import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.sum
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -37,56 +41,34 @@ interface DashboardRepository {
 class DashboardRepositoryImpl : DashboardRepository {
 
     override suspend fun getSummary(recentLimit: Int): DashboardSummaryResponse = dbQuery {
-        val productRows = Products.selectAll().toList()
-        var totalStock = 0
-        var inventoryValue = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
-        var lowStockCount = 0
-        val lowStockPreview = mutableListOf<DashboardLowStockItem>()
-
-        for (row in productRows) {
-            val stock = row[Products.stockLevel]
-            val min = row[Products.minStockLevel]
-            val cost = row[Products.costPrice]
-            totalStock += stock
-            inventoryValue = inventoryValue.add(
-                cost.multiply(BigDecimal.valueOf(stock.toLong())).setScale(2, RoundingMode.HALF_UP)
-            )
-            if (stock <= min) {
-                lowStockCount++
-                if (lowStockPreview.size < recentLimit) {
-                    lowStockPreview += DashboardLowStockItem(
-                        id = row[Products.id],
-                        name = row[Products.name],
-                        stockLevel = stock,
-                        minStockLevel = min
-                    )
-                }
-            }
-        }
+        val inventory = loadInventoryStats(recentLimit)
 
         val todayStart = LocalDate.now().atStartOfDay()
         val todayEnd = LocalDate.now().plusDays(1).atStartOfDay()
-        val todaySales = Sales
+        val todayAmountSum = Sales.totalAmount.sum()
+        val todayTotal = Sales
+            .select(todayAmountSum)
+            .where { (Sales.createdAt greaterEq todayStart) and (Sales.createdAt less todayEnd) }
+            .singleOrNull()
+            ?.get(todayAmountSum)
+            ?: BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
+        val todaySalesCount = Sales
             .selectAll()
             .where { (Sales.createdAt greaterEq todayStart) and (Sales.createdAt less todayEnd) }
-            .toList()
-
-        var todayTotal = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
-        for (sale in todaySales) {
-            todayTotal = todayTotal.add(sale[Sales.totalAmount])
-        }
+            .count()
+            .toInt()
 
         DashboardSummaryResponse(
-            totalProducts = productRows.size,
-            totalStockQuantity = totalStock,
-            inventoryValue = inventoryValue.toDouble(),
+            totalProducts = inventory.totalProducts,
+            totalStockQuantity = inventory.totalStock,
+            inventoryValue = inventory.inventoryValue.toDouble(),
             todaySalesTotal = todayTotal.toDouble(),
-            todaySalesCount = todaySales.size,
-            lowStockCount = lowStockCount,
+            todaySalesCount = todaySalesCount,
+            lowStockCount = inventory.lowStockCount,
             weeklySales = loadWeeklySales(),
             recentSales = loadRecentSales(recentLimit),
             recentPurchaseOrders = loadRecentPurchaseOrders(recentLimit),
-            lowStockPreview = lowStockPreview
+            lowStockPreview = inventory.lowStockPreview
         )
     }
 
@@ -120,34 +102,25 @@ class DashboardRepositoryImpl : DashboardRepository {
                 .toDouble()
         }
 
-        val productRows = Products.selectAll().toList()
-        var totalStock = 0
-        var inventoryValue = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
-        var lowStockCount = 0
-        for (row in productRows) {
-            val stock = row[Products.stockLevel]
-            totalStock += stock
-            inventoryValue = inventoryValue.add(
-                row[Products.costPrice]
-                    .multiply(BigDecimal.valueOf(stock.toLong()))
-                    .setScale(2, RoundingMode.HALF_UP)
-            )
-            if (stock <= row[Products.minStockLevel]) {
-                lowStockCount++
-            }
-        }
+        val inventory = loadInventoryStats(previewLimit = 0)
 
-        val purchaseRows = PurchaseOrders.selectAll().toList()
-        var pending = 0
-        var received = 0
-        var purchasingTotal = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
-        for (po in purchaseRows) {
-            purchasingTotal = purchasingTotal.add(po[PurchaseOrders.totalAmount])
-            when (po[PurchaseOrders.status]) {
-                "Pending" -> pending++
-                "Received" -> received++
-            }
-        }
+        val purchaseCount = PurchaseOrders.selectAll().count().toInt()
+        val pending = PurchaseOrders
+            .selectAll()
+            .where { PurchaseOrders.status eq "Pending" }
+            .count()
+            .toInt()
+        val received = PurchaseOrders
+            .selectAll()
+            .where { PurchaseOrders.status eq "Received" }
+            .count()
+            .toInt()
+        val purchasingSum = PurchaseOrders.totalAmount.sum()
+        val purchasingTotal = PurchaseOrders
+            .select(purchasingSum)
+            .singleOrNull()
+            ?.get(purchasingSum)
+            ?: BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
 
         ReportsResponse(
             range = rangeLabel,
@@ -172,13 +145,13 @@ class DashboardRepositoryImpl : DashboardRepository {
                 }
             ),
             inventory = InventoryReportSection(
-                totalProducts = productRows.size,
-                totalStockQuantity = totalStock,
-                inventoryValue = inventoryValue.toDouble(),
-                lowStockCount = lowStockCount
+                totalProducts = inventory.totalProducts,
+                totalStockQuantity = inventory.totalStock,
+                inventoryValue = inventory.inventoryValue.toDouble(),
+                lowStockCount = inventory.lowStockCount
             ),
             purchases = PurchaseReportSection(
-                purchaseOrderCount = purchaseRows.size,
+                purchaseOrderCount = purchaseCount,
                 pendingCount = pending,
                 receivedCount = received,
                 purchasingTotal = purchasingTotal.toDouble(),
@@ -187,13 +160,65 @@ class DashboardRepositoryImpl : DashboardRepository {
         )
     }
 
+    /**
+     * Aggregates inventory using SQL COUNT/SUM where possible, and only reads
+     * cost/stock columns for inventory value (not full product rows / image URLs).
+     */
+    private fun loadInventoryStats(previewLimit: Int): InventoryStats {
+        val totalProducts = Products.selectAll().count().toInt()
+        val stockSum = Products.stockLevel.sum()
+        val totalStock = Products
+            .select(stockSum)
+            .singleOrNull()
+            ?.get(stockSum)
+            ?: 0
+
+        var inventoryValue = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
+        Products
+            .select(Products.costPrice, Products.stockLevel)
+            .forEach { row ->
+                val stock = row[Products.stockLevel]
+                inventoryValue = inventoryValue.add(
+                    row[Products.costPrice]
+                        .multiply(BigDecimal.valueOf(stock.toLong()))
+                        .setScale(2, RoundingMode.HALF_UP)
+                )
+            }
+
+        val lowStockCount = Products
+            .selectAll()
+            .where { Products.stockLevel lessEq Products.minStockLevel }
+            .count()
+            .toInt()
+
+        val lowStockPreview = if (previewLimit <= 0) {
+            emptyList()
+        } else {
+            Products
+                .selectAll()
+                .where { Products.stockLevel lessEq Products.minStockLevel }
+                .orderBy(Products.stockLevel, SortOrder.ASC)
+                .limit(previewLimit)
+                .map { row ->
+                    DashboardLowStockItem(
+                        id = row[Products.id],
+                        name = row[Products.name],
+                        stockLevel = row[Products.stockLevel],
+                        minStockLevel = row[Products.minStockLevel]
+                    )
+                }
+        }
+
+        return InventoryStats(totalProducts, totalStock, inventoryValue, lowStockCount, lowStockPreview)
+    }
+
     private fun loadWeeklySales(): List<WeeklySalesDay> {
         val today = LocalDate.now()
         val weekStart = today.minusDays(6).atStartOfDay()
         val weekEnd = today.plusDays(1).atStartOfDay()
 
         val sales = Sales
-            .selectAll()
+            .select(Sales.createdAt, Sales.totalAmount)
             .where { (Sales.createdAt greaterEq weekStart) and (Sales.createdAt less weekEnd) }
             .toList()
 
@@ -239,21 +264,15 @@ class DashboardRepositoryImpl : DashboardRepository {
 
     private fun loadRecentPurchaseOrders(limit: Int): List<DashboardPurchaseOrderItem> =
         PurchaseOrders
+            .leftJoin(Suppliers)
             .selectAll()
             .orderBy(PurchaseOrders.createdAt, SortOrder.DESC)
             .limit(limit)
             .map { row ->
-                val supplierId = row[PurchaseOrders.supplierId]
-                val supplierName = Suppliers
-                    .selectAll()
-                    .where { Suppliers.id eq supplierId }
-                    .singleOrNull()
-                    ?.get(Suppliers.name)
-
                 DashboardPurchaseOrderItem(
                     id = row[PurchaseOrders.id],
-                    supplierId = supplierId,
-                    supplierName = supplierName,
+                    supplierId = row[PurchaseOrders.supplierId],
+                    supplierName = row.getOrNull(Suppliers.name),
                     totalAmount = row[PurchaseOrders.totalAmount].toDouble(),
                     status = row[PurchaseOrders.status],
                     createdAt = formatDateTime(row[PurchaseOrders.createdAt])
@@ -262,6 +281,14 @@ class DashboardRepositoryImpl : DashboardRepository {
 
     private fun formatDateTime(value: LocalDateTime): String =
         value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+    private data class InventoryStats(
+        val totalProducts: Int,
+        val totalStock: Int,
+        val inventoryValue: BigDecimal,
+        val lowStockCount: Int,
+        val lowStockPreview: List<DashboardLowStockItem>
+    )
 }
 
 /** Resolve a simple report range label into [start, end). */

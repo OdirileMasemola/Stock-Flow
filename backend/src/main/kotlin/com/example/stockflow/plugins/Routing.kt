@@ -324,19 +324,7 @@ fun Application.configureRouting() {
             }
         }
 
-        get("/users/{id}") {
-            val id = call.parameters["id"]?.toIntOrNull()
-            if (id == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid ID"))
-                return@get
-            }
-            val user = userService.getUser(id)
-            if (user != null) {
-                call.respond(user)
-            } else {
-                call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
-            }
-        }
+        // Public user-by-id lookup removed — use authenticated GET /api/users/me instead.
     }
 }
 

@@ -23,6 +23,7 @@ class SuppliersFragment : Fragment() {
 
     private val viewModel: SupplierViewModel by viewModels()
     private lateinit var adapter: SupplierAdapter
+    private var refreshOnResume = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,10 +47,12 @@ class SuppliersFragment : Fragment() {
         binding.rvSuppliers.adapter = adapter
 
         binding.btnAddSupplier.setOnClickListener {
+            refreshOnResume = true
             startActivity(Intent(requireContext(), AddSupplierActivity::class.java))
         }
 
         binding.btnPurchaseOrders.setOnClickListener {
+            refreshOnResume = true
             startActivity(Intent(requireContext(), PurchaseOrdersActivity::class.java))
         }
 
@@ -79,7 +82,8 @@ class SuppliersFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadSuppliers()
+        viewModel.loadSuppliers(force = refreshOnResume)
+        refreshOnResume = false
     }
 
     private fun renderState(state: SupplierViewModel.SuppliersUiState) {
@@ -123,6 +127,7 @@ class SuppliersFragment : Fragment() {
     }
 
     private fun openEdit(supplier: SupplierDto) {
+        refreshOnResume = true
         startActivity(
             Intent(requireContext(), AddSupplierActivity::class.java).apply {
                 putExtra(AddSupplierActivity.EXTRA_SUPPLIER_ID, supplier.id)
@@ -131,6 +136,7 @@ class SuppliersFragment : Fragment() {
     }
 
     private fun openCreateOrder(supplier: SupplierDto) {
+        refreshOnResume = true
         startActivity(
             Intent(requireContext(), PurchaseOrderActivity::class.java).apply {
                 putExtra(PurchaseOrderActivity.EXTRA_SUPPLIER_ID, supplier.id)

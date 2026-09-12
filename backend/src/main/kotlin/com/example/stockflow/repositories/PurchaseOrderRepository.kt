@@ -16,6 +16,7 @@ import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.leftJoin
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 import java.math.BigDecimal
@@ -61,15 +62,14 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
 
     override suspend fun getAllPurchaseOrders(): List<PurchaseOrderResponse> = dbQuery {
         PurchaseOrders
+            .leftJoin(Suppliers)
             .selectAll()
             .orderBy(PurchaseOrders.createdAt, SortOrder.DESC)
             .map { row ->
-                val poId = row[PurchaseOrders.id]
-                val supplierId = row[PurchaseOrders.supplierId]
                 PurchaseOrderResponse(
-                    id = poId,
-                    supplierId = supplierId,
-                    supplierName = supplierName(supplierId),
+                    id = row[PurchaseOrders.id],
+                    supplierId = row[PurchaseOrders.supplierId],
+                    supplierName = row.getOrNull(Suppliers.name),
                     totalAmount = row[PurchaseOrders.totalAmount].toDouble(),
                     status = row[PurchaseOrders.status],
                     expectedDeliveryDate = row[PurchaseOrders.expectedDeliveryDate]?.let { formatDateTime(it) },
@@ -246,6 +246,7 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
 
     private fun loadPurchaseOrder(id: Int): PurchaseOrderResponse? {
         val row = PurchaseOrders
+            .leftJoin(Suppliers)
             .selectAll()
             .where { PurchaseOrders.id eq id }
             .singleOrNull()
@@ -253,20 +254,14 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
 
         val supplierId = row[PurchaseOrders.supplierId]
         val items = PurchaseOrderItems
+            .leftJoin(Products)
             .selectAll()
             .where { PurchaseOrderItems.purchaseOrderId eq id }
             .map { itemRow ->
-                val productId = itemRow[PurchaseOrderItems.productId]
-                val productName = Products
-                    .selectAll()
-                    .where { Products.id eq productId }
-                    .singleOrNull()
-                    ?.get(Products.name)
-
                 PurchaseOrderItemResponse(
                     id = itemRow[PurchaseOrderItems.id],
-                    productId = productId,
-                    productName = productName,
+                    productId = itemRow[PurchaseOrderItems.productId],
+                    productName = itemRow.getOrNull(Products.name),
                     quantity = itemRow[PurchaseOrderItems.quantity],
                     unitCost = itemRow[PurchaseOrderItems.unitCost].toDouble(),
                     subtotal = itemRow[PurchaseOrderItems.subtotal].toDouble()
@@ -276,7 +271,7 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
         return PurchaseOrderResponse(
             id = row[PurchaseOrders.id],
             supplierId = supplierId,
-            supplierName = supplierName(supplierId),
+            supplierName = row.getOrNull(Suppliers.name),
             totalAmount = row[PurchaseOrders.totalAmount].toDouble(),
             status = row[PurchaseOrders.status],
             expectedDeliveryDate = row[PurchaseOrders.expectedDeliveryDate]?.let { formatDateTime(it) },
@@ -284,13 +279,6 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
             items = items
         )
     }
-
-    private fun supplierName(supplierId: Int): String? =
-        Suppliers
-            .selectAll()
-            .where { Suppliers.id eq supplierId }
-            .singleOrNull()
-            ?.get(Suppliers.name)
 
     private fun formatDateTime(value: LocalDateTime): String =
         value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
