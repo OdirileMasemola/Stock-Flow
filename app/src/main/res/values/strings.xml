@@ -13,7 +13,11 @@
     <string name="or">or</string>
     <string name="continue_with_google">Continue with Google</string>
     <string name="choose_your_role">Choose your role</string>
-    <string name="choose_your_role_subtitle">Select the StockFlow role for this account.</string>
+    <string name="choose_your_role_subtitle">Pick how you\'ll use StockFlow.</string>
+    <string name="role_desc_owner">Full store access and settings</string>
+    <string name="role_desc_staff">Inventory and daily sales</string>
+    <string name="role_desc_supplier">Orders and supply only</string>
+    <string name="role_desc_default">Continue with this role</string>
     <string name="continue_label">Continue</string>
     <string name="google_web_client_id" translatable="false">664389052883-cqddukkpbu4tp5ffre0mh9l2hpegsek5.apps.googleusercontent.com</string>
     <string name="new_to_stockflow">New to StockFlow? </string>
@@ -102,6 +106,7 @@
 
     <string name="business_info_title">Business / Store Info</string>
     <string name="business_section_store">Store information</string>
+    <string name="business_section_contact">Contact details</string>
     <string name="business_section_hint">These details belong to your account and stay private to you.</string>
     <string name="label_store_name">Store name</string>
     <string name="hint_store_name">e.g. Masemola Mini Market</string>
@@ -224,6 +229,7 @@
     <string name="pos_total">Total</string>
     <string name="pos_complete_sale">Complete Sale</string>
     <string name="pos_remove">Remove</string>
+    <string name="pos_unit_price_each">R%1$.2f each</string>
     <string name="pos_history_empty">No sales yet</string>
     <string name="pos_cart_title">Cart</string>
     <string name="pos_cart_title_count">Cart (%1$d)</string>
@@ -315,6 +321,18 @@
     <string name="range_today">Today</string>
     <string name="range_7d">Last 7 days</string>
     <string name="range_30d">Last 30 days</string>
+    <string name="range_custom">Custom</string>
+    <string name="export_section_title">Export</string>
+    <string name="export_section_subtitle">Pick any date range, then export a PDF of that report.</string>
+    <string name="pick_export_dates">Choose date range</string>
+    <string name="export_dates_none">No export dates selected yet</string>
+    <string name="export_dates_selected">Export range: %1$s</string>
+    <string name="showing_range">Showing: %1$s</string>
+    <string name="export_as_pdf">Export as PDF</string>
+    <string name="export_pdf_ready">PDF ready</string>
+    <string name="export_pdf_share">Share or open your StockFlow report PDF.</string>
+    <string name="export_pdf_pick_dates_first">Choose a date range first</string>
+    <string name="date_range_picker_title">Select date range</string>
     <string name="sales_report_title">Sales Report</string>
     <string name="inventory_report_title">Inventory Report</string>
     <string name="purchase_report_title">Purchase Report</string>

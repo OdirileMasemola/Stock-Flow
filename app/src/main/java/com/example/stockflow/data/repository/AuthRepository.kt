@@ -24,8 +24,10 @@ class AuthRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception("Login failed"))
-                sessionStore?.saveToken(body.token)
-                sessionStore?.saveUserFullName(body.user.fullName)
+                val token = body.token?.takeIf { it.isNotBlank() }
+                    ?: return Result.failure(Exception("Login failed"))
+                sessionStore?.saveToken(token)
+                sessionStore?.saveUserFullName(displayNameFrom(body.user))
                 Result.success(true)
             } else {
                 Result.failure(Exception(errorMessage(response, fallback = "Invalid username/email or password")))
@@ -92,8 +94,10 @@ class AuthRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception("Google Sign-In failed"))
-                sessionStore?.saveToken(body.token)
-                sessionStore?.saveUserFullName(body.user.fullName)
+                val token = body.token?.takeIf { it.isNotBlank() }
+                    ?: return Result.failure(Exception("Google Sign-In failed"))
+                sessionStore?.saveToken(token)
+                sessionStore?.saveUserFullName(displayNameFrom(body.user))
                 Result.success(GoogleAuthOutcome.Authenticated)
             } else if (response.code() == 401) {
                 val apiError = parseError(response)
@@ -110,6 +114,15 @@ class AuthRepository(
         } catch (_: Exception) {
             Result.failure(Exception("Google Sign-In failed. Please try again."))
         }
+    }
+
+    private fun displayNameFrom(user: com.example.stockflow.data.remote.AuthUser): String {
+        user.fullName?.takeIf { it.isNotBlank() }?.let { return it }
+        user.username?.takeIf { it.isNotBlank() }?.let { return it }
+        user.email?.takeIf { it.isNotBlank() }?.let { email ->
+            return email.substringBefore("@").ifBlank { email }
+        }
+        return "User"
     }
 
     private fun parseError(response: Response<*>): ApiErrorResponse? {

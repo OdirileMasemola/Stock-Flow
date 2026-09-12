@@ -43,12 +43,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_stat_card_green"
-                android:backgroundTint="@color/soft_green_bg"
+                android:background="@drawable/bg_cart_qty_button"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="@string/pos_history"
-                android:textColor="@color/brand_primary"
+                android:textColor="@color/brand_text_dark"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 

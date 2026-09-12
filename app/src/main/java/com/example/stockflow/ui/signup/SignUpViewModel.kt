@@ -22,7 +22,7 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
     private val _signUpState = MutableLiveData<SignUpState>()
     val signUpState: LiveData<SignUpState> = _signUpState
 
-    private val _googleSignUpState = MutableLiveData<GoogleSignUpState>()
+    private val _googleSignUpState = MutableLiveData<GoogleSignUpState>(GoogleSignUpState.Idle)
     val googleSignUpState: LiveData<GoogleSignUpState> = _googleSignUpState
 
     private val _rolesState = MutableLiveData<RolesState>()
@@ -30,6 +30,10 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         loadRoles()
+    }
+
+    fun currentRoles(): List<RoleDto> {
+        return (_rolesState.value as? RolesState.Success)?.roles.orEmpty()
     }
 
     fun loadRoles() {
@@ -151,6 +155,14 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
 
     fun cancelPendingGoogleSignUp() {
         pendingGoogleIdToken = null
+        _googleSignUpState.value = GoogleSignUpState.Idle
+    }
+
+    /** Clears sticky NeedsRole after the dialog is shown so rotation does not re-open it. */
+    fun acknowledgeRolePrompt() {
+        if (_googleSignUpState.value is GoogleSignUpState.NeedsRole) {
+            _googleSignUpState.value = GoogleSignUpState.Idle
+        }
     }
 
     sealed class SignUpState {
@@ -160,6 +172,7 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     sealed class GoogleSignUpState {
+        object Idle : GoogleSignUpState()
         object Loading : GoogleSignUpState()
         object NeedsRole : GoogleSignUpState()
         object Success : GoogleSignUpState()

@@ -278,3 +278,25 @@ fun resolveReportRange(range: String): Triple<LocalDateTime, LocalDateTime, Stri
             Triple(today.minusDays(6).atStartOfDay(), end, "7d")
     }
 }
+
+/**
+ * Resolve an inclusive calendar date range from ISO-8601 dates (yyyy-MM-dd).
+ * End is exclusive at the start of the day after [toDate].
+ */
+fun resolveCustomReportRange(fromDate: String, toDate: String): Triple<LocalDateTime, LocalDateTime, String> {
+    val from = try {
+        LocalDate.parse(fromDate.trim())
+    } catch (_: Exception) {
+        throw IllegalArgumentException("Invalid from date. Use yyyy-MM-dd.")
+    }
+    val to = try {
+        LocalDate.parse(toDate.trim())
+    } catch (_: Exception) {
+        throw IllegalArgumentException("Invalid to date. Use yyyy-MM-dd.")
+    }
+    if (to.isBefore(from)) {
+        throw IllegalArgumentException("End date must be on or after start date.")
+    }
+    val label = "${from} to ${to}"
+    return Triple(from.atStartOfDay(), to.plusDays(1).atStartOfDay(), label)
+}

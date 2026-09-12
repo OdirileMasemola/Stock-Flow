@@ -18,6 +18,8 @@ interface DashboardApi {
     @GET("api/reports")
     suspend fun getReports(
         @Header("Authorization") authorization: String,
-        @Query("range") range: String
+        @Query("range") range: String? = null,
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
     ): Response<ReportsDto>
 }

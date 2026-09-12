@@ -6,7 +6,7 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    val token: String,
+    val token: String? = null,
     val user: AuthUser
 )
 
@@ -27,11 +27,11 @@ data class RegisterResponse(
 )
 
 data class AuthUser(
-    val id: Int?,
-    val username: String,
-    val email: String,
-    val fullName: String,
-    val roleId: Int?
+    val id: Int? = null,
+    val username: String? = null,
+    val email: String? = null,
+    val fullName: String? = null,
+    val roleId: Int? = null
 )
 
 data class ApiErrorResponse(
@@ -44,10 +44,7 @@ data class RoleDto(
     val name: String,
     val description: String? = null
 ) {
-    override fun toString(): String {
-        val detail = description?.takeIf { it.isNotBlank() }
-        return if (detail != null) "$name — $detail" else name
-    }
+    override fun toString(): String = name
 }
 
 data class GoogleAuthRequest(

@@ -109,10 +109,10 @@ class DashboardFragment : Fragment() {
         binding.tvTotalProducts.text = summary.totalProducts.toString()
         binding.tvLowStockCount.text = summary.lowStockCount.toString()
 
-        renderWeeklyChart(summary.weeklySales)
-        renderSales(summary.recentSales)
-        renderLowStock(summary.lowStockPreview)
-        renderPurchaseOrders(summary.recentPurchaseOrders)
+        renderWeeklyChart(summary.weeklySales.orEmpty())
+        renderSales(summary.recentSales.orEmpty())
+        renderLowStock(summary.lowStockPreview.orEmpty())
+        renderPurchaseOrders(summary.recentPurchaseOrders.orEmpty())
     }
 
     private fun renderWeeklyChart(days: List<WeeklySalesDayDto>) {

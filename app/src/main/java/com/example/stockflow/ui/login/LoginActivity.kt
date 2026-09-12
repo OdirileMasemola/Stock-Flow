@@ -38,7 +38,11 @@ class LoginActivity : AppCompatActivity() {
 
         // If a session already exists, skip login and open the dashboard.
         if (SessionStore(this).hasValidSession()) {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(
+                Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
             finish()
             return
         }
@@ -153,7 +157,11 @@ class LoginActivity : AppCompatActivity() {
                 is LoginViewModel.LoginState.Success -> {
                     showLoading(false)
                     Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, MainActivity::class.java))
+                    startActivity(
+                        Intent(this, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                    )
                     finish()
                 }
                 is LoginViewModel.LoginState.Error -> {

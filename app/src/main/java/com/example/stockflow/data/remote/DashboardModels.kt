@@ -37,44 +37,44 @@ data class DashboardSummaryDto(
     val todaySalesTotal: Double,
     val todaySalesCount: Int,
     val lowStockCount: Int,
-    val weeklySales: List<WeeklySalesDayDto> = emptyList(),
-    val recentSales: List<DashboardSaleItemDto> = emptyList(),
-    val recentPurchaseOrders: List<DashboardPurchaseOrderItemDto> = emptyList(),
-    val lowStockPreview: List<DashboardLowStockItemDto> = emptyList()
+    val weeklySales: List<WeeklySalesDayDto>? = emptyList(),
+    val recentSales: List<DashboardSaleItemDto>? = emptyList(),
+    val recentPurchaseOrders: List<DashboardPurchaseOrderItemDto>? = emptyList(),
+    val lowStockPreview: List<DashboardLowStockItemDto>? = emptyList()
 )
 
 data class PaymentMethodBreakdownDto(
-    val paymentMethod: String,
-    val salesCount: Int,
-    val totalAmount: Double
+    val paymentMethod: String? = null,
+    val salesCount: Int = 0,
+    val totalAmount: Double = 0.0
 )
 
 data class SalesReportSectionDto(
-    val totalSales: Double,
-    val salesCount: Int,
-    val averageSaleValue: Double,
-    val byPaymentMethod: List<PaymentMethodBreakdownDto> = emptyList(),
-    val recentSales: List<DashboardSaleItemDto> = emptyList()
+    val totalSales: Double = 0.0,
+    val salesCount: Int = 0,
+    val averageSaleValue: Double = 0.0,
+    val byPaymentMethod: List<PaymentMethodBreakdownDto>? = emptyList(),
+    val recentSales: List<DashboardSaleItemDto>? = emptyList()
 )
 
 data class InventoryReportSectionDto(
-    val totalProducts: Int,
-    val totalStockQuantity: Int,
-    val inventoryValue: Double,
-    val lowStockCount: Int
+    val totalProducts: Int = 0,
+    val totalStockQuantity: Int = 0,
+    val inventoryValue: Double = 0.0,
+    val lowStockCount: Int = 0
 )
 
 data class PurchaseReportSectionDto(
-    val purchaseOrderCount: Int,
-    val pendingCount: Int,
-    val receivedCount: Int,
-    val purchasingTotal: Double,
-    val recentPurchaseOrders: List<DashboardPurchaseOrderItemDto> = emptyList()
+    val purchaseOrderCount: Int = 0,
+    val pendingCount: Int = 0,
+    val receivedCount: Int = 0,
+    val purchasingTotal: Double = 0.0,
+    val recentPurchaseOrders: List<DashboardPurchaseOrderItemDto>? = emptyList()
 )
 
 data class ReportsDto(
-    val range: String,
-    val sales: SalesReportSectionDto,
-    val inventory: InventoryReportSectionDto,
-    val purchases: PurchaseReportSectionDto
+    val range: String? = null,
+    val sales: SalesReportSectionDto? = null,
+    val inventory: InventoryReportSectionDto? = null,
+    val purchases: PurchaseReportSectionDto? = null
 )

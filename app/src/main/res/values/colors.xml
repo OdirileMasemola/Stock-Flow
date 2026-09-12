@@ -29,12 +29,13 @@
     <color name="page_background">#F5F6FA</color>
     <color name="surface">#FFFFFFFF</color>
     <color name="sheet_surface">#FFFFFFFF</color>
-    <color name="settings_row_icon_bg">#E8F9ED</color>
+    <color name="settings_row_icon_bg">#F2F3F5</color>
     <color name="logout_text">#D32F2F</color>
     <color name="stat_card_surface">#FFFFFFFF</color>
-    <color name="stat_card_green_bg">#E8F9ED</color>
+    <color name="stat_card_green_bg">#FFFFFFFF</color>
     <color name="stat_card_red_bg">#FCEBEB</color>
-    <color name="soft_green_bg">#E8F9ED</color>
+    <!-- Soft green kept as a light touch only (not a wash) -->
+    <color name="soft_green_bg">#F3F8F5</color>
     <color name="chip_background">#F5F6FA</color>
     <color name="progress_track">#F5F6FA</color>
 
@@ -64,12 +65,13 @@
     <color name="icon_phone">#27AE60</color>
     <color name="icon_user">#3498DB</color>
     <color name="icon_logout">#D32F2F</color>
+    <color name="export_pdf_button">#E53935</color>
 
     <!-- Floating bottom nav dock -->
     <color name="bottom_nav_glass">#D9FFFFFF</color>
     <color name="bottom_nav_active">#1B2438</color>
     <color name="bottom_nav_inactive">#5D6D7E</color>
-    <color name="bottom_nav_active_bg">#E8F9ED</color>
+    <color name="bottom_nav_active_bg">#F3F8F5</color>
     <color name="bottom_nav_stroke">#66E8ECF1</color>
     <color name="bottom_nav_ripple_fill">#331B2438</color>
 
