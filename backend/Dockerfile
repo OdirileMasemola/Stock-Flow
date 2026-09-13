@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Copy root gradle files for the build context (assumes build runs from repo root)
 COPY gradlew .
+RUN chmod +x gradlew
 COPY gradle gradle
 COPY settings.gradle.kts .
 COPY build.gradle.kts .
