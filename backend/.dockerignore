@@ -1,0 +1,14 @@
+.gradle
+.idea
+build
+.env
+.env.local
+local.properties
+*.log
+uploads
+**/uploads
+app/
+.git
+.github
+.cursor
+.kotlin
