@@ -24,9 +24,13 @@ object AppConfig {
     }
 
     val dbDriver = getEnv("DB_DRIVER") ?: "org.postgresql.Driver"
-    val dbUrl = getEnv("DB_URL") ?: "jdbc:postgresql://localhost:5432/stockflow_db"
-    val dbUser = getEnv("DB_USER") ?: "postgres"
+    val dbUrl = getEnv("DB_URL") ?: "jdbc:postgresql://aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+    val dbUser = getEnv("DB_USER") ?: "postgres.vvwciismgnblpvpurujb"
     val dbPassword = getEnv("DB_PASSWORD") ?: throw RuntimeException("DB_PASSWORD environment variable is missing")
+
+    // Server Configuration
+    val serverPort = getEnv("PORT")?.toIntOrNull() ?: 8080
+    val corsAllowedHosts = getEnv("CORS_ALLOWED_HOSTS")?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
 
     // JWT Configuration — fail closed if secret is missing (never use a hardcoded default).
     val jwtSecret = getEnv("JWT_SECRET")?.trim()?.takeIf { it.isNotEmpty() }
