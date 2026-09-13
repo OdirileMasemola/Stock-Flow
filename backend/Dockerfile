@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM eclipse-temurin:25-jdk AS build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 
 # Copy root gradle files for the build context (assumes build runs from repo root)
@@ -17,7 +17,7 @@ COPY backend backend
 RUN ./gradlew :backend:shadowJar --no-daemon
 
 # Stage 2: Runtime
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the fat JAR from the build stage
