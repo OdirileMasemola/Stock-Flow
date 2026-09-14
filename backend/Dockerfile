@@ -13,6 +13,9 @@ COPY gradle.properties .
 # Copy backend module
 COPY backend backend
 
+# Copy minimal app module configuration for Gradle project structure validation
+COPY app/build.gradle.kts app/
+
 # Build the Shadow JAR
 RUN ./gradlew :backend:shadowJar --no-daemon
 
