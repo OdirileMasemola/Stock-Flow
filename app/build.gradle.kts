@@ -15,7 +15,7 @@ val localProperties = Properties().apply {
 }
 val apiBaseUrl: String = localProperties.getProperty(
     "api.base.url",
-    "http://10.0.2.2:8080/"
+    "https://stock-flow-trbq.onrender.com/"
 )
 
 android {
