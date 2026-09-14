@@ -65,8 +65,9 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      # v3 uses Node 20 and can 404 on cmdline-tools downloads; v4 is Node 24 + pinned tools.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
