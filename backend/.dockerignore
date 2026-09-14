@@ -7,7 +7,13 @@ local.properties
 *.log
 uploads
 **/uploads
-app/
+app/src/
+app/build/
+app/local.properties
+app/.gradle/
+app/.kotlin/
+app/.idea/
+app/google-services.json
 .git
 .github
 .cursor
