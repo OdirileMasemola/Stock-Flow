@@ -44,7 +44,7 @@ object Businesses : Table("businesses") {
     val phone = varchar("phone", 30).nullable()
     val email = varchar("email", 100).nullable()
     val address = varchar("address", 255).nullable()
-    val imageUrl = varchar("image_url", 500).nullable()
+    val imageUrl = varchar("image_url", 1024).nullable()
     val latitude = double("latitude").nullable()
     val longitude = double("longitude").nullable()
     val createdAt = datetime("created_at").default(LocalDateTime.now())

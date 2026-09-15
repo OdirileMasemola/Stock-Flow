@@ -1,5 +1,6 @@
 package com.example.stockflow.services
 
+import com.example.stockflow.config.AppConfig
 import com.example.stockflow.models.BadRequestException
 import com.example.stockflow.models.ConflictException
 import com.example.stockflow.models.CreateProductRequest
@@ -158,8 +159,8 @@ class ProductService(
         }
 
         val trimmedImage = imageUrl?.trim()?.takeIf { it.isNotEmpty() }
-        if (trimmedImage != null && trimmedImage.length > 500) {
-            throw BadRequestException("Image URL must be 500 characters or fewer")
+        if (trimmedImage != null && trimmedImage.length > AppConfig.IMAGE_URL_MAX_LENGTH) {
+            throw BadRequestException("Image URL must be ${AppConfig.IMAGE_URL_MAX_LENGTH} characters or fewer")
         }
 
         if (!repository.categoryExists(categoryId)) {

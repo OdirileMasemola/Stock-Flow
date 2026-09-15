@@ -39,6 +39,9 @@ class UserService(
             ?: throw NotFoundException("User not found")
 
         val newImageUrl = request.profileImageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        if (newImageUrl != null && newImageUrl.length > AppConfig.IMAGE_URL_MAX_LENGTH) {
+            throw BadRequestException("Image URL must be ${AppConfig.IMAGE_URL_MAX_LENGTH} characters or fewer")
+        }
         val updated = repository.updateProfile(userId, fullName, newImageUrl)
             ?: throw NotFoundException("User not found")
 

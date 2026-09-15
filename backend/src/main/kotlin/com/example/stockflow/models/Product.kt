@@ -27,7 +27,7 @@ object Products : Table("products") {
     val minStockLevel = integer("min_stock_level").default(5)
     val categoryId = integer("category_id").references(Categories.id).index()
     val supplierId = integer("supplier_id").references(Suppliers.id).nullable().index()
-    val imageUrl = varchar("image_url", 500).nullable()
+    val imageUrl = varchar("image_url", 1024).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

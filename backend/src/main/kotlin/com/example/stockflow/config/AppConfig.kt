@@ -52,9 +52,43 @@ object AppConfig {
 
     /**
      * Directory for uploaded product images (relative or absolute).
-     * Defaults work from either the repo root or the backend module working directory.
+     * Used when [storageProvider] is `local`. Defaults work from repo root or backend cwd.
      */
     val uploadsDir: String = resolveUploadsDir()
+
+    /**
+     * Image blob backend: `local` (disk + `/uploads` static) or `supabase` (Storage API).
+     * Production should set `supabase` once bucket credentials are configured on Render.
+     */
+    val storageProvider: String = getEnv("STORAGE_PROVIDER")
+        ?.trim()
+        ?.lowercase()
+        ?.takeIf { it.isNotEmpty() }
+        ?: STORAGE_PROVIDER_LOCAL
+
+    val isLocalStorage: Boolean get() = storageProvider != STORAGE_PROVIDER_SUPABASE
+
+    /** Supabase project URL, e.g. https://xxxx.supabase.co (no trailing slash). */
+    val supabaseUrl: String? = getEnv("SUPABASE_URL")?.trim()?.takeIf { it.isNotEmpty() }
+
+    /**
+     * Service-role key — server-side only. Never ship to Android / client builds.
+     */
+    val supabaseServiceRoleKey: String? =
+        getEnv("SUPABASE_SERVICE_ROLE_KEY")?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** Public Storage bucket for product / profile / business images. */
+    val supabaseStorageBucket: String =
+        getEnv("SUPABASE_STORAGE_BUCKET")?.trim()?.takeIf { it.isNotEmpty() }
+            ?: "stockflow-images"
+
+    /** Max upload size in bytes (default 5 MiB). */
+    val uploadMaxBytes: Int =
+        getEnv("UPLOAD_MAX_BYTES")?.toIntOrNull()?.takeIf { it > 0 }
+            ?: (5 * 1024 * 1024)
+
+    /** Max characters stored for image URL columns (matches Exposed varchar width). */
+    const val IMAGE_URL_MAX_LENGTH = 1024
 
     private fun resolveUploadsDir(): String {
         val configured = getEnv("UPLOADS_DIR")?.trim()?.takeIf { it.isNotEmpty() }
@@ -69,4 +103,7 @@ object AppConfig {
     private fun getEnv(key: String): String? {
         return System.getenv(key) ?: dotenv.get(key)
     }
+
+    const val STORAGE_PROVIDER_LOCAL = "local"
+    const val STORAGE_PROVIDER_SUPABASE = "supabase"
 }
