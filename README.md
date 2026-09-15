@@ -268,19 +268,6 @@ StockFlow is deployed using a containerized approach.
 
 ---
 
-## AI-Assisted Development
-
-This project used AI tools (such as Cursor, Claude, and GitHub Copilot) for:
-
-- Architecture design and boilerplate generation.
-- Debugging and performance troubleshooting.
-- Documentation and README drafting.
-- Refactoring complex logic into MVVM patterns.
-
-All AI-generated code was reviewed, tested, and integrated to meet project specifications.
-
----
-
 ## Author
 
 **Odirile Masemola**
