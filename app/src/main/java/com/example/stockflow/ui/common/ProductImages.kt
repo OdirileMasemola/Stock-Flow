@@ -15,7 +15,7 @@ import kotlin.math.max
 
 /**
  * Resolves image paths from the API into absolute URLs Coil can load.
- * Backend stores relative paths such as `/uploads/products/….jpg`.
+ * Accepts absolute `https://…` cloud URLs (Supabase) or relative `/uploads/…` local paths.
  */
 object ProductImages {
 

@@ -30,6 +30,7 @@ import com.example.stockflow.models.UpdatePurchaseOrderRequest
 import com.example.stockflow.models.UpdateProfileRequest
 import com.example.stockflow.models.UpdateBusinessRequest
 import com.example.stockflow.models.BadRequestException
+import com.example.stockflow.config.AppConfig
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 
@@ -54,8 +55,10 @@ fun Application.configureRouting() {
             call.respond(mapOf("status" to "up"))
         }
 
-        // Public product image files (paths stored on products as /uploads/products/...).
-        staticFiles("/uploads", productService.uploadsRoot())
+        // Local-disk images only. Cloud (Supabase) URLs are absolute and served by Supabase CDN.
+        if (AppConfig.isLocalStorage) {
+            staticFiles("/uploads", productService.uploadsRoot())
+        }
 
         get("/api/roles") {
             call.respond(roleService.listRoles())

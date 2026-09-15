@@ -239,6 +239,7 @@ StockFlow is deployed using a containerized approach.
 - **API base URL**: `https://stock-flow-trbq.onrender.com`
 - **Health check**: `https://stock-flow-trbq.onrender.com/api/health`
 - **Platform**: Render (web service) and Supabase (managed database).
+- **Image storage env (Render)**: `STORAGE_PROVIDER=supabase`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, optional `SUPABASE_STORAGE_BUCKET=stockflow-images`, `UPLOAD_MAX_BYTES`.
 
 ---
 
@@ -246,8 +247,6 @@ StockFlow is deployed using a containerized approach.
 
 - **Offline first**: Local SQLite caching for operations without internet.
 - **Push notifications**: Alerts for low stock and received orders.
-- **Cloud storage**: Firebase Storage or AWS S3 for product images.
-- **Multilingual**: Native support for IsiZulu, Sesotho, and Setswana.
 - **Play Store**: Final optimization and signing for public release.
 
 ---
@@ -255,7 +254,7 @@ StockFlow is deployed using a containerized approach.
 ## Known Limitations
 
 - **Connection dependency**: Real-time sales require an active internet connection (offline mode planned).
-- **Image storage**: Currently uses local persistent volumes; migration to cloud storage is pending.
+- **Image storage**: Backend supports `STORAGE_PROVIDER=local|supabase`. Production should use Supabase Storage with a public `stockflow-images` bucket; set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` on Render. PostgreSQL stores URLs only.
 
 ---
 

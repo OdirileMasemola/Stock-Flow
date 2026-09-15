@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.slf4j.LoggerFactory
 
 object DatabaseFactory {
@@ -38,6 +39,7 @@ object DatabaseFactory {
                 )
                 // Users/Products/Businesses/Roles: add or widen columns on existing DBs.
                 SchemaUtils.createMissingTablesAndColumns(Users, Products, Businesses, Roles)
+                widenImageUrlColumns()
                 // Required for signup/role picker — not test data.
                 seedDefaultRolesIfEmpty()
                 logger.info("Database schema verification completed.")
@@ -67,7 +69,23 @@ object DatabaseFactory {
         return HikariDataSource(config)
     }
 
+    /**
+     * Cloud public URLs fit in 500 chars, but widen to 1024 for headroom
+     * (custom domains / longer object keys). Safe no-op if already widened.
+     */
+    private fun widenImageUrlColumns() {
+        val tx = TransactionManager.currentOrNull() ?: return
+        try {
+            tx.exec("ALTER TABLE products ALTER COLUMN image_url TYPE VARCHAR(1024)")
+            tx.exec("ALTER TABLE users ALTER COLUMN profile_image_url TYPE VARCHAR(1024)")
+            tx.exec("ALTER TABLE businesses ALTER COLUMN image_url TYPE VARCHAR(1024)")
+        } catch (e: Exception) {
+            logger.warn("Could not widen image URL columns (may already match): {}", e.message)
+        }
+    }
+
     private fun seedDefaultRolesIfEmpty() {
+
         if (Roles.selectAll().count() > 0) {
             return
         }

@@ -21,7 +21,7 @@ object Users : Table("users") {
     val passwordHash = varchar("password_hash", 255).nullable()
     val firebaseUid = varchar("firebase_uid", 128).nullable().uniqueIndex()
     val roleId = integer("role_id").references(Roles.id).index()
-    val profileImageUrl = varchar("profile_image_url", 500).nullable()
+    val profileImageUrl = varchar("profile_image_url", 1024).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
