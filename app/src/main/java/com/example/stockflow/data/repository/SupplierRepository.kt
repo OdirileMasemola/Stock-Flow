@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CreateSupplierRequest
@@ -26,12 +29,12 @@ class SupplierRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load suppliers")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_suppliers))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load suppliers"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_suppliers)))
         }
     }
 
@@ -40,15 +43,15 @@ class SupplierRepository(
             val response = api.getSupplier(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Supplier not found"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_supplier_not_found)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load supplier")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_supplier))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load supplier"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_supplier)))
         }
     }
 
@@ -57,15 +60,15 @@ class SupplierRepository(
             val response = api.createSupplier(authHeader(), request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to create supplier"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_create_supplier)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to create supplier")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_create_supplier))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to create supplier"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_create_supplier)))
         }
     }
 
@@ -74,15 +77,15 @@ class SupplierRepository(
             val response = api.updateSupplier(authHeader(), id, request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to update supplier"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_supplier)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to update supplier")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_supplier))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to update supplier"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_update_supplier)))
         }
     }
 
@@ -92,19 +95,19 @@ class SupplierRepository(
             if (response.isSuccessful || response.code() == 204) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to delete supplier")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_delete_supplier))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to delete supplier"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_delete_supplier)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }

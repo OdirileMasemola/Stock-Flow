@@ -37,7 +37,7 @@ class ProductAdapter(
             binding.tvStockStats.text = context.getString(R.string.stock_count, product.stockLevel)
 
             val category = product.categoryName?.takeIf { it.isNotBlank() }
-                ?: "Category #${product.categoryId}"
+                ?: context.getString(R.string.category_fallback, product.categoryId)
             binding.tvMeta.text = if (product.sku.isNullOrBlank()) {
                 category
             } else {

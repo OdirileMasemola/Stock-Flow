@@ -9,6 +9,7 @@ import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.SupplierDto
 import com.example.stockflow.data.repository.SupplierRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 /**
  * Loads suppliers for the Suppliers screen and supports local search + delete.
@@ -48,7 +49,7 @@ class SupplierViewModel(application: Application) : AndroidViewModel(application
                 } else {
                     _uiState.postValue(
                         SuppliersUiState.Error(
-                            result.exceptionOrNull()?.message ?: "Unable to load suppliers"
+                            result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_suppliers)
                         )
                     )
                 }
@@ -70,11 +71,11 @@ class SupplierViewModel(application: Application) : AndroidViewModel(application
             val result = repository.deleteSupplier(supplier.id)
             if (result.isSuccess) {
                 allSuppliers = allSuppliers.filterNot { it.id == supplier.id }
-                _deleteMessage.postValue("\"${supplier.name}\" deleted")
+                _deleteMessage.postValue(getApplication<Application>().getString(R.string.item_deleted, supplier.name))
                 publishFiltered(lastQuery)
             } else {
                 _deleteMessage.postValue(
-                    result.exceptionOrNull()?.message ?: "Failed to delete supplier"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_delete_supplier)
                 )
             }
         }

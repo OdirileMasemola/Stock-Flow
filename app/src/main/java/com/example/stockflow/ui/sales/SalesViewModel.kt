@@ -11,6 +11,7 @@ import com.example.stockflow.data.remote.SaleDto
 import com.example.stockflow.data.repository.ProductRepository
 import com.example.stockflow.data.repository.SaleRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 /**
  * POS catalog + sales history. Cart lives in [CartSession].
@@ -55,7 +56,7 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
                     publishFiltered(lastQuery)
                 } else {
                     _productsState.postValue(
-                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load products")
+                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_products))
                     )
                 }
             } finally {
@@ -74,14 +75,14 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
         if (error != null) {
             _message.value = error
         } else {
-            _message.value = "Added \"${product.name}\" to cart"
+            _message.value = getApplication<Application>().getString(R.string.msg_added_to_cart, product.name)
         }
     }
 
     fun addToCartBySku(sku: String) {
         val normalized = sku.trim()
         if (normalized.isEmpty() || normalized.length > 50) {
-            _message.value = "Product not found"
+            _message.value = getApplication<Application>().getString(R.string.product_not_found)
             return
         }
         viewModelScope.launch {
@@ -89,18 +90,18 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
             if (result.isSuccess) {
                 val product = result.getOrNull()
                 if (product == null) {
-                    _message.postValue("Product not found")
+                    _message.postValue(getApplication<Application>().getString(R.string.product_not_found))
                 } else {
                     val error = CartSession.addProduct(product)
                     if (error != null) {
                         _message.postValue(error)
                     } else {
-                        _message.postValue("Added \"${product.name}\" to cart")
+                        _message.postValue(getApplication<Application>().getString(R.string.msg_added_to_cart, product.name))
                     }
                 }
             } else {
                 _message.postValue(
-                    result.exceptionOrNull()?.message ?: "Product not found"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.product_not_found)
                 )
             }
         }
@@ -121,7 +122,7 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
                 )
             } else {
                 _historyState.postValue(
-                    HistoryUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load sales")
+                    HistoryUiState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_sales))
                 )
             }
         }

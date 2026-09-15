@@ -10,7 +10,13 @@ import com.example.stockflow.data.local.ThemePreferences
 class StockFlowApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        instance = this
         ThemePreferences(this).applySavedMode()
         LanguagePreferences(this).applySavedLanguage()
+    }
+
+    companion object {
+        lateinit var instance: StockFlowApp
+            private set
     }
 }

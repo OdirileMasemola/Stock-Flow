@@ -19,6 +19,7 @@ import com.example.stockflow.ui.signup.SignUpActivity
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import com.example.stockflow.R
 
 class LoginActivity : AppCompatActivity() {
 
@@ -84,7 +85,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.tvForgotPassword.setOnClickListener {
-            Toast.makeText(this, "Forgot Password clicked", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.forgot_password_clicked), Toast.LENGTH_SHORT).show()
         }
 
         binding.tvCreateAccount.setOnClickListener {
@@ -112,7 +113,7 @@ class LoginActivity : AppCompatActivity() {
                             showLoading(false)
                             Toast.makeText(
                                 this@LoginActivity,
-                                error.message ?: "Unable to complete Google Sign-In. Please try again.",
+                                error.message ?: getString(R.string.error_google_signin_retry),
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -122,7 +123,7 @@ class LoginActivity : AppCompatActivity() {
                     showLoading(false)
                     Toast.makeText(
                         this@LoginActivity,
-                        "Google Sign-In was cancelled.",
+                        getString(R.string.error_google_signin_cancelled),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -156,7 +157,7 @@ class LoginActivity : AppCompatActivity() {
                 is LoginViewModel.LoginState.Loading -> showLoading(true)
                 is LoginViewModel.LoginState.Success -> {
                     showLoading(false)
-                    Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.msg_login_successful), Toast.LENGTH_SHORT).show()
                     startActivity(
                         Intent(this, MainActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

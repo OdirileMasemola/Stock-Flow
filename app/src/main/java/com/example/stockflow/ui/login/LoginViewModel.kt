@@ -9,6 +9,7 @@ import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.repository.AuthRepository
 import com.example.stockflow.data.repository.GoogleAuthOutcome
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -25,7 +26,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         if (username.isEmpty() || password.isEmpty()) {
-            _loginState.value = LoginState.Error("Please fill in all fields")
+            _loginState.value = LoginState.Error(getApplication<Application>().getString(R.string.error_fill_all_fields))
             return
         }
 
@@ -36,7 +37,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             if (result.isSuccess) {
                 _loginState.postValue(LoginState.Success)
             } else {
-                _loginState.postValue(LoginState.Error(result.exceptionOrNull()?.message ?: "Login failed"))
+                _loginState.postValue(LoginState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_login_failed)))
             }
         }
     }
@@ -53,13 +54,13 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 when (result.getOrNull()) {
                     GoogleAuthOutcome.Authenticated -> _loginState.postValue(LoginState.Success)
                     GoogleAuthOutcome.AccountNotFound -> _loginState.postValue(
-                        LoginState.Error("No StockFlow account was found for this Google account. Please sign up first.")
+                        LoginState.Error(getApplication<Application>().getString(R.string.error_google_account_not_found))
                     )
-                    null -> _loginState.postValue(LoginState.Error("Login failed"))
+                    null -> _loginState.postValue(LoginState.Error(getApplication<Application>().getString(R.string.error_login_failed)))
                 }
             } else {
                 _loginState.postValue(
-                    LoginState.Error(result.exceptionOrNull()?.message ?: "Login failed")
+                    LoginState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_login_failed))
                 )
             }
         }

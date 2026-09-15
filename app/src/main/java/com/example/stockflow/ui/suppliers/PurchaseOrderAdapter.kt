@@ -32,7 +32,7 @@ class PurchaseOrderAdapter(
         fun bind(order: PurchaseOrderDto) {
             val ctx = binding.root.context
             binding.tvOrderId.text = ctx.getString(R.string.po_id_format, order.id)
-            binding.tvSupplier.text = order.supplierName ?: "Supplier #${order.supplierId}"
+            binding.tvSupplier.text = order.supplierName ?: ctx.getString(R.string.supplier_fallback, order.supplierId)
             binding.tvStatus.text = order.status
             binding.tvDate.text = order.createdAt.replace('T', ' ').take(16)
             binding.tvTotal.text = ctx.getString(R.string.price_format, order.totalAmount)

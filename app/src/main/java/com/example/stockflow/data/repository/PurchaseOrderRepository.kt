@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CreatePurchaseOrderRequest
@@ -26,12 +29,12 @@ class PurchaseOrderRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load purchase orders")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_purchase_orders))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load purchase orders"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_purchase_orders)))
         }
     }
 
@@ -40,15 +43,15 @@ class PurchaseOrderRepository(
             val response = api.getPurchaseOrder(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Purchase order not found"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.po_not_found)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load purchase order")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_purchase_order))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load purchase order"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_purchase_order)))
         }
     }
 
@@ -57,15 +60,15 @@ class PurchaseOrderRepository(
             val response = api.createPurchaseOrder(authHeader(), request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to create purchase order"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_create_po)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to create purchase order")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_create_po))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to create purchase order"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_create_po)))
         }
     }
 
@@ -77,15 +80,15 @@ class PurchaseOrderRepository(
             val response = api.updatePurchaseOrder(authHeader(), id, request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to update purchase order"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_po)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to update purchase order")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_po))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to update purchase order"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_update_po)))
         }
     }
 
@@ -94,22 +97,22 @@ class PurchaseOrderRepository(
             val response = api.receivePurchaseOrder(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to receive purchase order"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_receive_po)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to receive purchase order")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_receive_po))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to receive purchase order"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_receive_po)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }

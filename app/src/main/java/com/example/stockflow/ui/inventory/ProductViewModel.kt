@@ -9,6 +9,7 @@ import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.repository.ProductRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 /**
  * Loads products for the Inventory screen and supports local search + delete.
@@ -57,7 +58,7 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
                     publishFiltered(lastQuery)
                 } else {
                     _uiState.postValue(
-                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: "Unable to load products")
+                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_products))
                     )
                 }
             } finally {
@@ -79,11 +80,11 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
             val result = repository.deleteProduct(product.id)
             if (result.isSuccess) {
                 allProducts = allProducts.filterNot { it.id == product.id }
-                _deleteMessage.postValue("\"${product.name}\" deleted")
+                _deleteMessage.postValue(getApplication<Application>().getString(R.string.item_deleted, product.name))
                 publishFiltered(lastQuery)
             } else {
                 _deleteMessage.postValue(
-                    result.exceptionOrNull()?.message ?: "Failed to delete product"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_delete_product)
                 )
             }
         }
@@ -104,7 +105,7 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
     fun findBySku(sku: String) {
         val normalized = sku.trim()
         if (normalized.isEmpty() || normalized.length > 50) {
-            _lookupMessage.value = "Product not found"
+            _lookupMessage.value = getApplication<Application>().getString(R.string.product_not_found)
             return
         }
         _lookupLoading.value = true
@@ -115,7 +116,7 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
                 _lookupProduct.postValue(result.getOrNull())
             } else {
                 _lookupMessage.postValue(
-                    result.exceptionOrNull()?.message ?: "Product not found"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.product_not_found)
                 )
             }
         }

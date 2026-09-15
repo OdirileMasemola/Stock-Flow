@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CreateSaleRequest
@@ -25,12 +28,12 @@ class SaleRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load sales")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_sales))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load sales"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_sales)))
         }
     }
 
@@ -39,15 +42,15 @@ class SaleRepository(
             val response = api.getSale(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Sale not found"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_sale_not_found)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load sale")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_sale))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load sale"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_sale)))
         }
     }
 
@@ -56,22 +59,22 @@ class SaleRepository(
             val response = api.createSale(authHeader(), request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to complete sale"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_complete_sale)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to complete sale")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_complete_sale))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to complete sale"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_complete_sale)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }

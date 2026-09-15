@@ -11,6 +11,7 @@ import com.example.stockflow.data.remote.SupplierDto
 import com.example.stockflow.data.remote.UpdateSupplierRequest
 import com.example.stockflow.data.repository.SupplierRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 /**
  * Create or edit a supplier.
@@ -36,7 +37,7 @@ class AddSupplierViewModel(application: Application) : AndroidViewModel(applicat
                 _formState.postValue(FormState.Idle)
             } else {
                 _formState.postValue(
-                    FormState.Error(result.exceptionOrNull()?.message ?: "Unable to load supplier")
+                    FormState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_supplier))
                 )
             }
         }
@@ -52,7 +53,7 @@ class AddSupplierViewModel(application: Application) : AndroidViewModel(applicat
     ) {
         val trimmedName = name.trim()
         if (trimmedName.isEmpty()) {
-            _formState.value = FormState.Error("Supplier name is required")
+            _formState.value = FormState.Error(getApplication<Application>().getString(R.string.error_supplier_name_required))
             return
         }
 
@@ -62,7 +63,7 @@ class AddSupplierViewModel(application: Application) : AndroidViewModel(applicat
         val addressVal = address.trim().ifEmpty { null }
 
         if (emailVal != null && (!emailVal.contains("@") || !emailVal.contains("."))) {
-            _formState.value = FormState.Error("Invalid email format")
+            _formState.value = FormState.Error(getApplication<Application>().getString(R.string.error_invalid_email))
             return
         }
 
@@ -95,7 +96,7 @@ class AddSupplierViewModel(application: Application) : AndroidViewModel(applicat
                 _formState.postValue(FormState.Success(isUpdate = supplierId != null))
             } else {
                 _formState.postValue(
-                    FormState.Error(result.exceptionOrNull()?.message ?: "Failed to save supplier")
+                    FormState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_save_supplier))
                 )
             }
         }

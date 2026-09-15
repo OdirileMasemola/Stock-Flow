@@ -2,7 +2,9 @@ package com.example.stockflow.ui.sales
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
+import com.example.stockflow.ui.common.AppStrings
 
 /**
  * In-memory cart shared by the POS screen and CartActivity.
@@ -40,12 +42,12 @@ object CartSession {
     /** @return error message, or null on success */
     fun addProduct(product: ProductDto): String? {
         if (product.stockLevel <= 0) {
-            return "\"${product.name}\" is out of stock"
+            return AppStrings.get(R.string.cart_out_of_stock, product.name)
         }
         val existing = linesById[product.id]
         val nextQty = (existing?.quantity ?: 0) + 1
         if (nextQty > product.stockLevel) {
-            return "Only ${product.stockLevel} in stock for \"${product.name}\""
+            return AppStrings.get(R.string.cart_only_in_stock, product.stockLevel, product.name)
         }
         linesById[product.id] = CartLine(
             productId = product.id,
@@ -61,7 +63,7 @@ object CartSession {
     fun increase(productId: Int): String? {
         val line = linesById[productId] ?: return null
         if (line.quantity >= line.stockLevel) {
-            return "Only ${line.stockLevel} in stock for \"${line.name}\""
+            return AppStrings.get(R.string.cart_only_in_stock, line.stockLevel, line.name)
         }
         linesById[productId] = line.copy(quantity = line.quantity + 1)
         publish()

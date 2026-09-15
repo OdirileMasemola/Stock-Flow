@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
@@ -30,12 +33,12 @@ class ProductRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load products")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_products))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load products"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_products)))
         }
     }
 
@@ -45,12 +48,12 @@ class ProductRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load low-stock products")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_low_stock))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load low-stock products"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_low_stock)))
         }
     }
 
@@ -59,15 +62,15 @@ class ProductRepository(
             val response = api.getProduct(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Product not found"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.product_not_found)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load product")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_product))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load product"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_product)))
         }
     }
 
@@ -75,27 +78,27 @@ class ProductRepository(
         return try {
             val candidates = ProductSkuCodes.lookupCandidates(sku)
             if (candidates.isEmpty()) {
-                return Result.failure(Exception("Product not found"))
+                return Result.failure(Exception(AppStrings.get(R.string.product_not_found)))
             }
             var lastError: Exception? = null
             for (candidate in candidates) {
                 val response = api.getProductBySku(authHeader(), candidate)
                 if (response.isSuccessful) {
                     val body = response.body()
-                        ?: return Result.failure(Exception("Product not found"))
+                        ?: return Result.failure(Exception(AppStrings.get(R.string.product_not_found)))
                     return Result.success(body)
                 }
                 if (response.code() == 404) {
-                    lastError = Exception("Product not found")
+                    lastError = Exception(AppStrings.get(R.string.product_not_found))
                     continue
                 }
-                return Result.failure(Exception(errorMessage(response, "Unable to find product")))
+                return Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_find_product))))
             }
-            Result.failure(lastError ?: Exception("Product not found"))
+            Result.failure(lastError ?: Exception(AppStrings.get(R.string.product_not_found)))
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to find product"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_find_product)))
         }
     }
 
@@ -104,15 +107,15 @@ class ProductRepository(
             val response = api.createProduct(authHeader(), request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to create product"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_create_product)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to create product")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_create_product))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to create product"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_create_product)))
         }
     }
 
@@ -121,15 +124,15 @@ class ProductRepository(
             val response = api.updateProduct(authHeader(), id, request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to update product"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_product)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to update product")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_product))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to update product"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_update_product)))
         }
     }
 
@@ -140,12 +143,12 @@ class ProductRepository(
             if (response.isSuccessful || response.code() == 204) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to delete product")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_delete_product))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to delete product"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_delete_product)))
         }
     }
 
@@ -167,24 +170,24 @@ class ProductRepository(
             if (response.isSuccessful) {
                 val uploaded = response.body()?.imageUrl?.trim().orEmpty()
                 if (uploaded.isEmpty()) {
-                    Result.failure(Exception("Image upload failed"))
+                    Result.failure(Exception(AppStrings.get(R.string.error_image_upload_failed)))
                 } else {
                     Result.success(uploaded)
                 }
             } else {
-                Result.failure(Exception(errorMessage(response, "Image upload failed")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_image_upload_failed))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to upload image. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_upload_image_connection)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Image upload failed"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_image_upload_failed)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }

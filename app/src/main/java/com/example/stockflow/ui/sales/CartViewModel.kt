@@ -11,6 +11,7 @@ import com.example.stockflow.data.remote.CreateSaleRequest
 import com.example.stockflow.data.remote.SaleDto
 import com.example.stockflow.data.repository.SaleRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 /**
  * Cart screen: qty edits, payment method, complete sale.
@@ -48,16 +49,16 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
         }
         val lines = CartSession.snapshotLines()
         if (lines.isEmpty()) {
-            _checkoutState.value = CheckoutUiState.Error("Cart is empty")
+            _checkoutState.value = CheckoutUiState.Error(getApplication<Application>().getString(R.string.error_cart_empty))
             return
         }
         if (lines.any { it.quantity <= 0 }) {
-            _checkoutState.value = CheckoutUiState.Error("All quantities must be greater than zero")
+            _checkoutState.value = CheckoutUiState.Error(getApplication<Application>().getString(R.string.error_quantities_gt_zero))
             return
         }
         val payment = CartSession.paymentMethod.value?.trim().orEmpty()
         if (payment.isEmpty()) {
-            _checkoutState.value = CheckoutUiState.Error("Select a payment method")
+            _checkoutState.value = CheckoutUiState.Error(getApplication<Application>().getString(R.string.error_select_payment_method))
             return
         }
 
@@ -76,7 +77,7 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
                 _checkoutState.postValue(CheckoutUiState.Success(sale))
             } else {
                 _checkoutState.postValue(
-                    CheckoutUiState.Error(result.exceptionOrNull()?.message ?: "Failed to complete sale")
+                    CheckoutUiState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_complete_sale))
                 )
             }
         }
