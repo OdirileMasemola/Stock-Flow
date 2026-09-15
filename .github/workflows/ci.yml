@@ -20,11 +20,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Matches gradle/gradle-daemon-jvm.properties (toolchainVersion=21).
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -56,18 +56,32 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Matches gradle/gradle-daemon-jvm.properties (toolchainVersion=21).
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
-      # v3 uses Node 20 and can 404 on cmdline-tools downloads; v4 is Node 24 + pinned tools.
+      # Default packages ("tools platform-tools") fail because legacy "tools" is deprecated
+      # (android-actions/setup-android#537). Install platform-tools only, then platform/build-tools.
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: 12266719
+          packages: platform-tools
+          accept-android-sdk-licenses: true
+
+      - name: Install Android platform and build-tools
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-}"
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          test -d "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/platforms/android-35"
+          test -d "${ANDROID_SDK_ROOT:-$ANDROID_HOME}/build-tools/35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
