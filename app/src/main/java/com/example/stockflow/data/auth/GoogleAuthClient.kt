@@ -116,7 +116,7 @@ class GoogleAuthClient(private val activity: Activity) {
             GoogleAccountResult.Cancelled
         } else {
             GoogleAccountResult.Error(
-                "Google Sign-In failed. Please try again.",
+                activity.getString(R.string.error_google_signin_failed_retry),
                 statusCode = resultCode
             )
         }
@@ -128,7 +128,7 @@ class GoogleAuthClient(private val activity: Activity) {
      */
     suspend fun signInWithCredentialManager(): Result<String> {
         if (!isConfigured()) {
-            return Result.failure(IllegalStateException("Google Sign-In is not configured."))
+            return Result.failure(IllegalStateException(activity.getString(R.string.error_google_signin_not_configured)))
         }
         val webClientId = resolveWebClientId()
         return try {
@@ -145,7 +145,7 @@ class GoogleAuthClient(private val activity: Activity) {
         } catch (e: Exception) {
             Result.failure(
                 IllegalStateException(
-                    e.message ?: "Unable to complete Google Sign-In. Please try again."
+                    e.message ?: activity.getString(R.string.error_google_signin_retry)
                 )
             )
         }
@@ -153,15 +153,14 @@ class GoogleAuthClient(private val activity: Activity) {
 
     suspend fun exchangeGoogleAccount(account: GoogleSignInAccount): Result<String> {
         if (!isConfigured()) {
-            return Result.failure(IllegalStateException("Google Sign-In is not configured."))
+            return Result.failure(IllegalStateException(activity.getString(R.string.error_google_signin_not_configured)))
         }
         val googleIdToken = account.idToken
         if (googleIdToken.isNullOrBlank()) {
             Log.w(TAG, "Google account had no ID token (often SHA-1 / OAuth client mismatch)")
             return Result.failure(
                 IllegalStateException(
-                    "Google Sign-In failed. Add this app's debug SHA-1 in Firebase Console, " +
-                        "download an updated google-services.json, and try again."
+                    activity.getString(R.string.error_google_sha1_config)
                 )
             )
         }
@@ -182,28 +181,26 @@ class GoogleAuthClient(private val activity: Activity) {
                 GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> GoogleAccountResult.Cancelled
                 CommonStatusCodes.DEVELOPER_ERROR,
                 GoogleSignInStatusCodes.SIGN_IN_FAILED -> GoogleAccountResult.Error(
-                    "Google Sign-In is misconfigured. Add the app debug SHA-1/SHA-256 in " +
-                        "Firebase Console (Project settings → Your apps), then download a new " +
-                        "google-services.json.",
+                    activity.getString(R.string.error_google_signin_misconfigured),
                     statusCode = e.statusCode
                 )
                 CommonStatusCodes.NETWORK_ERROR -> GoogleAccountResult.Error(
-                    "Network error during Google Sign-In. Check your connection and try again.",
+                    activity.getString(R.string.error_google_signin_network),
                     statusCode = e.statusCode
                 )
                 GoogleSignInStatusCodes.SIGN_IN_CURRENTLY_IN_PROGRESS -> GoogleAccountResult.Error(
-                    "Google Sign-In is already in progress. Please wait and try again.",
+                    activity.getString(R.string.error_google_signin_in_progress),
                     statusCode = e.statusCode
                 )
                 else -> GoogleAccountResult.Error(
-                    "Google Sign-In failed (code ${e.statusCode}). Please try again.",
+                    activity.getString(R.string.error_google_signin_failed_code, e.statusCode),
                     statusCode = e.statusCode
                 )
             }
         } catch (e: Exception) {
             Log.w(TAG, "GoogleSignIn unexpected error: ${e.javaClass.simpleName}")
             GoogleAccountResult.Error(
-                e.message ?: "Unable to complete Google Sign-In. Please try again."
+                e.message ?: activity.getString(R.string.error_google_signin_retry)
             )
         }
     }
@@ -232,7 +229,7 @@ class GoogleAuthClient(private val activity: Activity) {
         } catch (e: Exception) {
             Log.w(TAG, "Google token exchange failed: ${e.javaClass.simpleName}")
             Result.failure(
-                IllegalStateException(e.message ?: "Unable to complete Google Sign-In. Please try again.")
+                IllegalStateException(e.message ?: activity.getString(R.string.error_google_signin_retry))
             )
         }
     }
@@ -273,7 +270,7 @@ class GoogleAuthClient(private val activity: Activity) {
         ) {
             return GoogleIdTokenCredential.createFrom(credential.data).idToken
         }
-        throw IllegalStateException("Unable to complete Google Sign-In. Please try again.")
+        throw IllegalStateException(activity.getString(R.string.error_google_signin_retry))
     }
 
     private fun isConfigured(): Boolean {

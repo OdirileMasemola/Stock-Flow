@@ -10,6 +10,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.stockflow.R
 
 /**
  * Builds a simple StockFlow business report PDF using the platform [PdfDocument] API.
@@ -94,12 +95,13 @@ object ReportsPdfExporter {
             }
         }
 
-        canvas.drawText("StockFlow Business Report", margin, y, titlePaint)
+        canvas.drawText(context.getString(R.string.pdf_report_title), margin, y, titlePaint)
         y += 22f
-        canvas.drawText("Date range: $rangeLabel", margin, y, subtitlePaint)
+        canvas.drawText(context.getString(R.string.pdf_date_range, rangeLabel), margin, y, subtitlePaint)
         y += 14f
+        val generatedAt = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault()).format(Date())
         canvas.drawText(
-            "Generated: ${SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault()).format(Date())}",
+            context.getString(R.string.pdf_generated, generatedAt),
             margin,
             y,
             subtitlePaint
@@ -108,36 +110,40 @@ object ReportsPdfExporter {
         drawLine()
 
         val sales = reports.sales
-        drawHeading("Sales")
-        drawBody("Total sales: R${"%.2f".format(sales?.totalSales ?: 0.0)}")
-        drawBody("Sales count: ${sales?.salesCount ?: 0}")
-        drawBody("Average sale: R${"%.2f".format(sales?.averageSaleValue ?: 0.0)}")
+        drawHeading(context.getString(R.string.pdf_section_sales))
+        drawBody(context.getString(R.string.report_sales_total, sales?.totalSales ?: 0.0))
+        drawBody(context.getString(R.string.report_sales_count, sales?.salesCount ?: 0))
+        drawBody(context.getString(R.string.report_sales_average, sales?.averageSaleValue ?: 0.0))
         val payments = sales?.byPaymentMethod.orEmpty()
         if (payments.isEmpty()) {
-            drawBody("No sales in this range.")
+            drawBody(context.getString(R.string.report_payment_none))
         } else {
-            drawBody("Payment breakdown:")
+            drawBody(context.getString(R.string.pdf_payment_breakdown))
             for (method in payments) {
                 drawBody(
-                    "• ${method.paymentMethod.orEmpty()} — ${method.salesCount} sales · " +
-                        "R${"%.2f".format(method.totalAmount)}"
+                    "• " + context.getString(
+                        R.string.report_payment_line,
+                        method.paymentMethod.orEmpty(),
+                        method.salesCount,
+                        method.totalAmount
+                    )
                 )
             }
         }
 
         val inv = reports.inventory
-        drawHeading("Inventory")
-        drawBody("Products: ${inv?.totalProducts ?: 0}")
-        drawBody("Total stock: ${inv?.totalStockQuantity ?: 0}")
-        drawBody("Inventory value: R${"%.2f".format(inv?.inventoryValue ?: 0.0)}")
-        drawBody("Low stock: ${inv?.lowStockCount ?: 0}")
+        drawHeading(context.getString(R.string.pdf_section_inventory))
+        drawBody(context.getString(R.string.report_inv_products, inv?.totalProducts ?: 0))
+        drawBody(context.getString(R.string.report_inv_stock, inv?.totalStockQuantity ?: 0))
+        drawBody(context.getString(R.string.report_inv_value, inv?.inventoryValue ?: 0.0))
+        drawBody(context.getString(R.string.report_inv_low, inv?.lowStockCount ?: 0))
 
         val purchases = reports.purchases
-        drawHeading("Purchases")
-        drawBody("Purchase orders: ${purchases?.purchaseOrderCount ?: 0}")
-        drawBody("Pending: ${purchases?.pendingCount ?: 0}")
-        drawBody("Received: ${purchases?.receivedCount ?: 0}")
-        drawBody("Purchasing total: R${"%.2f".format(purchases?.purchasingTotal ?: 0.0)}")
+        drawHeading(context.getString(R.string.pdf_section_purchases))
+        drawBody(context.getString(R.string.report_po_count, purchases?.purchaseOrderCount ?: 0))
+        drawBody(context.getString(R.string.report_po_pending, purchases?.pendingCount ?: 0))
+        drawBody(context.getString(R.string.report_po_received, purchases?.receivedCount ?: 0))
+        drawBody(context.getString(R.string.report_po_total, purchases?.purchasingTotal ?: 0.0))
 
         document.finishPage(pageInfo)
         FileOutputStream(outFile).use { document.writeTo(it) }

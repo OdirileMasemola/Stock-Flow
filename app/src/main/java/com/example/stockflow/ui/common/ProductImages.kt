@@ -80,7 +80,7 @@ object ProductImages {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val bitmap = resolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, options)
-        } ?: throw IllegalArgumentException("Unable to read the selected image")
+        } ?: throw IllegalArgumentException(AppStrings.get(R.string.error_unable_read_image))
 
         val stream = ByteArrayOutputStream()
         var quality = 85
@@ -93,10 +93,10 @@ object ProductImages {
         bitmap.recycle()
         val bytes = stream.toByteArray()
         if (bytes.isEmpty()) {
-            throw IllegalArgumentException("Selected image is empty")
+            throw IllegalArgumentException(AppStrings.get(R.string.error_image_empty))
         }
         if (bytes.size > maxBytes) {
-            throw IllegalArgumentException("Image must be 5 MB or smaller")
+            throw IllegalArgumentException(AppStrings.get(R.string.error_image_too_large))
         }
         return bytes
     }

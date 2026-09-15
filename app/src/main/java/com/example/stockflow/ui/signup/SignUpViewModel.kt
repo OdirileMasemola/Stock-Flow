@@ -10,6 +10,7 @@ import com.example.stockflow.data.remote.RoleDto
 import com.example.stockflow.data.repository.AuthRepository
 import com.example.stockflow.data.repository.GoogleAuthOutcome
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 class SignUpViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -43,13 +44,13 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
             if (result.isSuccess) {
                 val roles = result.getOrDefault(emptyList())
                 if (roles.isEmpty()) {
-                    _rolesState.postValue(RolesState.Error("No roles available. Please try again later."))
+                    _rolesState.postValue(RolesState.Error(getApplication<Application>().getString(R.string.error_no_roles)))
                 } else {
                     _rolesState.postValue(RolesState.Success(roles))
                 }
             } else {
                 _rolesState.postValue(
-                    RolesState.Error(result.exceptionOrNull()?.message ?: "Unable to load roles")
+                    RolesState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_roles))
                 )
             }
         }
@@ -68,22 +69,22 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         if (name.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            _signUpState.value = SignUpState.Error("Please fill in all fields")
+            _signUpState.value = SignUpState.Error(getApplication<Application>().getString(R.string.error_fill_all_fields))
             return
         }
 
         if (roleId == null) {
-            _signUpState.value = SignUpState.Error("Please select a role")
+            _signUpState.value = SignUpState.Error(getApplication<Application>().getString(R.string.error_select_role))
             return
         }
 
         if (password != confirmPass) {
-            _signUpState.value = SignUpState.Error("Passwords do not match")
+            _signUpState.value = SignUpState.Error(getApplication<Application>().getString(R.string.error_passwords_mismatch))
             return
         }
 
         if (password.length < 8) {
-            _signUpState.value = SignUpState.Error("Password must be at least 8 characters")
+            _signUpState.value = SignUpState.Error(getApplication<Application>().getString(R.string.error_password_min_length))
             return
         }
 
@@ -94,7 +95,7 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
             if (result.isSuccess) {
                 _signUpState.postValue(SignUpState.Success)
             } else {
-                _signUpState.postValue(SignUpState.Error(result.exceptionOrNull()?.message ?: "Signup failed"))
+                _signUpState.postValue(SignUpState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_signup_failed)))
             }
         }
     }
@@ -117,11 +118,11 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
                         pendingGoogleIdToken = idToken
                         _googleSignUpState.postValue(GoogleSignUpState.NeedsRole)
                     }
-                    null -> _googleSignUpState.postValue(GoogleSignUpState.Error("Google Sign-In failed"))
+                    null -> _googleSignUpState.postValue(GoogleSignUpState.Error(getApplication<Application>().getString(R.string.error_google_signin_failed)))
                 }
             } else {
                 _googleSignUpState.postValue(
-                    GoogleSignUpState.Error(result.exceptionOrNull()?.message ?: "Google Sign-In failed")
+                    GoogleSignUpState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_google_signin_failed))
                 )
             }
         }
@@ -130,7 +131,7 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
     fun completeGoogleSignUp(roleId: Int) {
         val idToken = pendingGoogleIdToken
         if (idToken.isNullOrBlank()) {
-            _googleSignUpState.value = GoogleSignUpState.Error("Google Sign-In expired. Please try again.")
+            _googleSignUpState.value = GoogleSignUpState.Error(getApplication<Application>().getString(R.string.error_google_signin_expired))
             return
         }
         if (_googleSignUpState.value is GoogleSignUpState.Loading) {
@@ -144,10 +145,10 @@ class SignUpViewModel(application: Application) : AndroidViewModel(application) 
                 pendingGoogleIdToken = null
                 _googleSignUpState.postValue(GoogleSignUpState.Success)
             } else if (result.isSuccess && result.getOrNull() is GoogleAuthOutcome.AccountNotFound) {
-                _googleSignUpState.postValue(GoogleSignUpState.Error("Please select a role to continue."))
+                _googleSignUpState.postValue(GoogleSignUpState.Error(getApplication<Application>().getString(R.string.error_select_role_continue)))
             } else {
                 _googleSignUpState.postValue(
-                    GoogleSignUpState.Error(result.exceptionOrNull()?.message ?: "Google Sign-In failed")
+                    GoogleSignUpState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_google_signin_failed))
                 )
             }
         }

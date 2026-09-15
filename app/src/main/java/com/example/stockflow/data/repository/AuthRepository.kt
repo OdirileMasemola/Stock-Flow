@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.AuthApi
@@ -23,19 +26,19 @@ class AuthRepository(
             val response = api.login(LoginRequest(identifier = username, password = password))
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Login failed"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_login_failed)))
                 val token = body.token?.takeIf { it.isNotBlank() }
-                    ?: return Result.failure(Exception("Login failed"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_login_failed)))
                 sessionStore?.saveToken(token)
                 sessionStore?.saveUserFullName(displayNameFrom(body.user))
                 Result.success(true)
             } else {
-                Result.failure(Exception(errorMessage(response, fallback = "Invalid username/email or password")))
+                Result.failure(Exception(errorMessage(response, fallback = AppStrings.get(R.string.error_invalid_credentials))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (_: Exception) {
-            Result.failure(Exception("Login failed. Please try again."))
+            Result.failure(Exception(AppStrings.get(R.string.error_login_failed_retry)))
         }
     }
 
@@ -45,12 +48,12 @@ class AuthRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, fallback = "Unable to load roles")))
+                Result.failure(Exception(errorMessage(response, fallback = AppStrings.get(R.string.error_unable_load_roles))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (_: Exception) {
-            Result.failure(Exception("Unable to load roles. Please try again."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_load_roles_retry)))
         }
     }
 
@@ -63,7 +66,7 @@ class AuthRepository(
     ): Result<Boolean> {
         val username = phone.filterNot { it.isWhitespace() }
         if (username.isEmpty()) {
-            return Result.failure(Exception("Phone number is required"))
+            return Result.failure(Exception(AppStrings.get(R.string.error_phone_required)))
         }
 
         return try {
@@ -79,12 +82,12 @@ class AuthRepository(
             if (response.isSuccessful) {
                 Result.success(true)
             } else {
-                Result.failure(Exception(errorMessage(response, fallback = "Signup failed")))
+                Result.failure(Exception(errorMessage(response, fallback = AppStrings.get(R.string.error_signup_failed))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (_: Exception) {
-            Result.failure(Exception("Signup failed. Please try again."))
+            Result.failure(Exception(AppStrings.get(R.string.error_signup_failed_retry)))
         }
     }
 
@@ -93,9 +96,9 @@ class AuthRepository(
             val response = api.authenticateGoogle(GoogleAuthRequest(idToken = idToken, roleId = roleId))
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Google Sign-In failed"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_google_signin_failed)))
                 val token = body.token?.takeIf { it.isNotBlank() }
-                    ?: return Result.failure(Exception("Google Sign-In failed"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_google_signin_failed)))
                 sessionStore?.saveToken(token)
                 sessionStore?.saveUserFullName(displayNameFrom(body.user))
                 Result.success(GoogleAuthOutcome.Authenticated)
@@ -104,15 +107,15 @@ class AuthRepository(
                 if (apiError?.code == "ACCOUNT_NOT_FOUND") {
                     Result.success(GoogleAuthOutcome.AccountNotFound)
                 } else {
-                    Result.failure(Exception(apiError?.error?.takeIf { it.isNotBlank() } ?: "Google Sign-In failed"))
+                    Result.failure(Exception(apiError?.error?.takeIf { it.isNotBlank() } ?: AppStrings.get(R.string.error_google_signin_failed)))
                 }
             } else {
-                Result.failure(Exception(errorMessage(response, fallback = "Google Sign-In failed")))
+                Result.failure(Exception(errorMessage(response, fallback = AppStrings.get(R.string.error_google_signin_failed))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (_: Exception) {
-            Result.failure(Exception("Google Sign-In failed. Please try again."))
+            Result.failure(Exception(AppStrings.get(R.string.error_google_signin_failed_retry)))
         }
     }
 
@@ -122,7 +125,7 @@ class AuthRepository(
         user.email?.takeIf { it.isNotBlank() }?.let { email ->
             return email.substringBefore("@").ifBlank { email }
         }
-        return "User"
+        return AppStrings.get(R.string.default_user_name)
     }
 
     private fun parseError(response: Response<*>): ApiErrorResponse? {

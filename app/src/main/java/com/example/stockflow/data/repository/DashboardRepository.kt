@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.DashboardApi
@@ -24,15 +27,15 @@ class DashboardRepository(
             val response = api.getSummary(authHeader())
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Unable to load dashboard"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_dashboard)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load dashboard")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_dashboard))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load dashboard"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_dashboard)))
         }
     }
 
@@ -50,22 +53,22 @@ class DashboardRepository(
             )
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Unable to load reports"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_reports)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load reports")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_reports))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load reports"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_reports)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }

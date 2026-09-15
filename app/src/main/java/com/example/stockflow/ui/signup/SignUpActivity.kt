@@ -130,7 +130,7 @@ class SignUpActivity : AppCompatActivity() {
                             showLoading(false)
                             Toast.makeText(
                                 this@SignUpActivity,
-                                error.message ?: "Unable to complete Google Sign-In. Please try again.",
+                                error.message ?: getString(R.string.error_google_signin_retry),
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -140,7 +140,7 @@ class SignUpActivity : AppCompatActivity() {
                     showLoading(false)
                     Toast.makeText(
                         this@SignUpActivity,
-                        "Google Sign-In was cancelled.",
+                        getString(R.string.error_google_signin_cancelled),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -208,7 +208,7 @@ class SignUpActivity : AppCompatActivity() {
                         pendingRoleDialog = false
                         Toast.makeText(
                             this,
-                            "Unable to load roles. Please try Google Sign-In again.",
+                            getString(R.string.msg_unable_load_roles_google),
                             Toast.LENGTH_SHORT
                         ).show()
                         viewModel.cancelPendingGoogleSignUp()
@@ -222,7 +222,7 @@ class SignUpActivity : AppCompatActivity() {
                 is SignUpViewModel.SignUpState.Loading -> showLoading(true)
                 is SignUpViewModel.SignUpState.Success -> {
                     showLoading(false)
-                    Toast.makeText(this, "Account Created Successfully!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.msg_account_created), Toast.LENGTH_SHORT).show()
                     finish()
                 }
                 is SignUpViewModel.SignUpState.Error -> {
@@ -258,7 +258,7 @@ class SignUpActivity : AppCompatActivity() {
         if (availableRoles.isEmpty()) {
             pendingRoleDialog = true
             viewModel.loadRoles()
-            Toast.makeText(this, "Loading roles…", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.msg_loading_roles), Toast.LENGTH_SHORT).show()
             return
         }
         roles = availableRoles
@@ -333,7 +333,7 @@ class SignUpActivity : AppCompatActivity() {
         } catch (_: Exception) {
             roleDialog = null
             viewModel.cancelPendingGoogleSignUp()
-            Toast.makeText(this, "Unable to show role selection. Please try again.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_show_role_selection), Toast.LENGTH_SHORT).show()
         }
     }
 

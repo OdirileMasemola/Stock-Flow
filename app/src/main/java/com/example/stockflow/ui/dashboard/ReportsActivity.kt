@@ -97,7 +97,7 @@ class ReportsActivity : AppCompatActivity() {
                 is ReportsViewModel.ExportState.Loading -> {
                     binding.btnExportPdf.isEnabled = false
                     binding.btnPickExportDates.isEnabled = false
-                    Toast.makeText(this, "Creating PDF…", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.msg_creating_pdf), Toast.LENGTH_SHORT).show()
                 }
                 is ReportsViewModel.ExportState.Success -> {
                     binding.btnExportPdf.isEnabled = true

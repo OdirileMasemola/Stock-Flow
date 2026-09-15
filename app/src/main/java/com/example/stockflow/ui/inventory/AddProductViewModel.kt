@@ -16,6 +16,7 @@ import com.example.stockflow.ui.common.ProductImages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.stockflow.R
 
 /**
  * Handles create and edit product form submissions, including optional image upload.
@@ -54,7 +55,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                 _formState.postValue(FormState.Idle)
             } else {
                 _formState.postValue(
-                    FormState.Error(result.exceptionOrNull()?.message ?: "Unable to load product")
+                    FormState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_product))
                 )
             }
         }
@@ -112,7 +113,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                 _formState.postValue(
                     FormState.Error(
                         imageUrlResult.exceptionOrNull()?.message
-                            ?: "Could not upload the product image. Product was not saved."
+                            ?: getApplication<Application>().getString(R.string.image_upload_failed)
                     )
                 )
                 return@launch
@@ -154,7 +155,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                 _formState.postValue(FormState.Success(result.getOrNull()!!, isUpdate = productId != null))
             } else {
                 _formState.postValue(
-                    FormState.Error(result.exceptionOrNull()?.message ?: "Failed to save product")
+                    FormState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_save_product))
                 )
             }
         }
@@ -176,17 +177,17 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
             val resolver = getApplication<Application>().contentResolver
             val mimeType = resolver.getType(uri) ?: "image/jpeg"
             if (!mimeType.startsWith("image/")) {
-                return@withContext Result.failure(Exception("Please choose a valid image file"))
+                return@withContext Result.failure(Exception(getApplication<Application>().getString(R.string.error_choose_valid_image)))
             }
             val bytes = try {
                 ProductImages.readCompressedImageBytes(getApplication(), uri, MAX_UPLOAD_BYTES)
             } catch (e: IllegalArgumentException) {
-                return@withContext Result.failure(Exception(e.message ?: "Unable to read the selected image"))
+                return@withContext Result.failure(Exception(e.message ?: getApplication<Application>().getString(R.string.error_unable_read_image)))
             }
             val fileName = "product.jpg"
             repository.uploadProductImage(bytes, fileName, "image/jpeg")
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Could not upload the product image. Product was not saved."))
+            Result.failure(Exception(e.message ?: getApplication<Application>().getString(R.string.image_upload_failed)))
         }
     }
 
@@ -199,19 +200,19 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         categoryIdText: String,
         supplierIdText: String
     ): String? {
-        if (name.isBlank()) return "Product name is required"
-        if (costPriceText.toDoubleOrNull() == null) return "Enter a valid cost price"
-        if (sellingPriceText.toDoubleOrNull() == null) return "Enter a valid selling price"
-        if (stockLevelText.toIntOrNull() == null) return "Enter a valid stock level"
-        if (minStockLevelText.toIntOrNull() == null) return "Enter a valid minimum stock level"
-        if (categoryIdText.toIntOrNull() == null) return "Enter a valid category ID"
+        if (name.isBlank()) return getApplication<Application>().getString(R.string.error_product_name_required)
+        if (costPriceText.toDoubleOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_cost_price)
+        if (sellingPriceText.toDoubleOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_selling_price)
+        if (stockLevelText.toIntOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_stock_level)
+        if (minStockLevelText.toIntOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_min_stock)
+        if (categoryIdText.toIntOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_category_id)
         if (supplierIdText.isNotBlank() && supplierIdText.toIntOrNull() == null) {
-            return "Enter a valid supplier ID (or leave blank)"
+            return getApplication<Application>().getString(R.string.error_valid_supplier_id)
         }
-        if (costPriceText.toDouble() < 0) return "Cost price cannot be negative"
-        if (sellingPriceText.toDouble() < 0) return "Selling price cannot be negative"
-        if (stockLevelText.toInt() < 0) return "Stock level cannot be negative"
-        if (minStockLevelText.toInt() < 0) return "Minimum stock cannot be negative"
+        if (costPriceText.toDouble() < 0) return getApplication<Application>().getString(R.string.error_cost_price_negative)
+        if (sellingPriceText.toDouble() < 0) return getApplication<Application>().getString(R.string.error_selling_price_negative)
+        if (stockLevelText.toInt() < 0) return getApplication<Application>().getString(R.string.error_stock_level_negative)
+        if (minStockLevelText.toInt() < 0) return getApplication<Application>().getString(R.string.error_min_stock_negative)
         return null
     }
 

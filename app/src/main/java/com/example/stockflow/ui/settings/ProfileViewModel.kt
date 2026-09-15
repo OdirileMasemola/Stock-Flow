@@ -13,6 +13,7 @@ import com.example.stockflow.ui.common.ProductImages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.stockflow.R
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -42,7 +43,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.value = UiState.Idle
                 }
                 .onFailure { error ->
-                    _uiState.value = UiState.Error(error.message ?: "Unable to load profile")
+                    _uiState.value = UiState.Error(error.message ?: getApplication<Application>().getString(R.string.error_unable_load_profile))
                 }
         }
     }
@@ -63,7 +64,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun saveProfile(fullName: String) {
         val trimmed = fullName.trim()
         if (trimmed.isBlank()) {
-            _uiState.value = UiState.Error("Full name cannot be blank")
+            _uiState.value = UiState.Error(getApplication<Application>().getString(R.string.error_full_name_blank))
             return
         }
 
@@ -72,7 +73,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             val imageResult = resolveImageUrlForSave()
             if (imageResult.isFailure) {
                 _uiState.value = UiState.Error(
-                    imageResult.exceptionOrNull()?.message ?: "Image upload failed"
+                    imageResult.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_image_upload_failed)
                 )
                 return@launch
             }
@@ -86,7 +87,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.value = UiState.Success
                 }
                 .onFailure { error ->
-                    _uiState.value = UiState.Error(error.message ?: "Failed to update profile")
+                    _uiState.value = UiState.Error(error.message ?: getApplication<Application>().getString(R.string.error_failed_update_profile))
                 }
         }
     }
@@ -107,7 +108,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             val bytes = ProductImages.readCompressedImageBytes(getApplication(), uri)
             repository.uploadProfileImage(bytes, "profile.jpg", "image/jpeg")
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Could not upload the profile picture"))
+            Result.failure(Exception(e.message ?: getApplication<Application>().getString(R.string.error_upload_profile_picture)))
         }
     }
 

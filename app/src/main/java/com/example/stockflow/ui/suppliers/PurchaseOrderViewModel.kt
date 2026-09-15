@@ -15,6 +15,7 @@ import com.example.stockflow.data.repository.ProductRepository
 import com.example.stockflow.data.repository.PurchaseOrderRepository
 import com.example.stockflow.data.repository.SupplierRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 data class PoDraftLine(
     val productId: Int,
@@ -70,7 +71,7 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             } else {
                 _listState.postValue(
                     ListUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Unable to load purchase orders"
+                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_purchase_orders)
                     )
                 )
             }
@@ -86,7 +87,7 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             } else {
                 _detailState.postValue(
                     DetailUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Unable to load purchase order"
+                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_purchase_order)
                     )
                 )
             }
@@ -99,10 +100,10 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             if (result.isSuccess) {
                 val order = result.getOrNull()!!
                 _detailState.postValue(DetailUiState.Success(order))
-                _receiveMessage.postValue("Order #${order.id} received — stock updated")
+                _receiveMessage.postValue(getApplication<Application>().getString(R.string.msg_order_received, order.id))
             } else {
                 _receiveMessage.postValue(
-                    result.exceptionOrNull()?.message ?: "Failed to receive purchase order"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_receive_po)
                 )
             }
         }
@@ -123,7 +124,7 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             if (suppliersResult.isFailure) {
                 _createState.postValue(
                     CreateUiState.Error(
-                        suppliersResult.exceptionOrNull()?.message ?: "Unable to load suppliers"
+                        suppliersResult.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_suppliers)
                     )
                 )
                 return@launch
@@ -131,7 +132,7 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             if (productsResult.isFailure) {
                 _createState.postValue(
                     CreateUiState.Error(
-                        productsResult.exceptionOrNull()?.message ?: "Unable to load products"
+                        productsResult.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_products)
                     )
                 )
                 return@launch
@@ -151,11 +152,11 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
 
     fun addOrUpdateLine(product: ProductDto, quantity: Int, unitCost: Double) {
         if (quantity <= 0) {
-            _createState.value = CreateUiState.Error("Quantity must be greater than zero")
+            _createState.value = CreateUiState.Error(getApplication<Application>().getString(R.string.po_invalid_quantity))
             return
         }
         if (unitCost < 0) {
-            _createState.value = CreateUiState.Error("Unit cost cannot be negative")
+            _createState.value = CreateUiState.Error(getApplication<Application>().getString(R.string.po_invalid_cost))
             return
         }
 
@@ -198,12 +199,12 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
     fun submitPurchaseOrder() {
         val supplierId = selectedSupplierId
         if (supplierId == null || supplierId <= 0) {
-            _createState.value = CreateUiState.Error("Please select a supplier")
+            _createState.value = CreateUiState.Error(getApplication<Application>().getString(R.string.error_select_supplier))
             return
         }
         val lines = _draftLines.value.orEmpty()
         if (lines.isEmpty()) {
-            _createState.value = CreateUiState.Error("Add at least one product")
+            _createState.value = CreateUiState.Error(getApplication<Application>().getString(R.string.error_add_at_least_one_product))
             return
         }
 
@@ -225,7 +226,7 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             } else {
                 _createState.postValue(
                     CreateUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Failed to create purchase order"
+                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_create_po)
                     )
                 )
             }

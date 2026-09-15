@@ -14,6 +14,7 @@ import com.example.stockflow.ui.common.ProductImages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.stockflow.R
 
 class BusinessInfoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -54,7 +55,7 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
                 }
                 .onFailure { error ->
                     _uiState.value = UiState.Error(
-                        error.message ?: "Unable to load business information"
+                        error.message ?: getApplication<Application>().getString(R.string.error_unable_load_business)
                     )
                 }
         }
@@ -88,13 +89,13 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
     ) {
         val trimmedStore = storeName.trim()
         if (trimmedStore.isBlank()) {
-            _uiState.value = UiState.Error("Store name cannot be blank")
+            _uiState.value = UiState.Error(getApplication<Application>().getString(R.string.error_store_name_blank))
             return
         }
 
         val trimmedEmail = email.trim()
         if (trimmedEmail.isNotEmpty() && (!trimmedEmail.contains("@") || !trimmedEmail.contains("."))) {
-            _uiState.value = UiState.Error("Invalid email format")
+            _uiState.value = UiState.Error(getApplication<Application>().getString(R.string.error_invalid_email))
             return
         }
 
@@ -103,7 +104,7 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
             val imageResult = resolveImageUrlForSave()
             if (imageResult.isFailure) {
                 _uiState.value = UiState.Error(
-                    imageResult.exceptionOrNull()?.message ?: "Image upload failed"
+                    imageResult.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_image_upload_failed)
                 )
                 return@launch
             }
@@ -134,7 +135,7 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
                 }
                 .onFailure { error ->
                     _uiState.value = UiState.Error(
-                        error.message ?: "Failed to save business information"
+                        error.message ?: getApplication<Application>().getString(R.string.error_failed_save_business)
                     )
                 }
         }
@@ -156,7 +157,7 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
             val bytes = ProductImages.readCompressedImageBytes(getApplication(), uri)
             repository.uploadBusinessImage(bytes, "business.jpg", "image/jpeg")
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Could not upload the store image"))
+            Result.failure(Exception(e.message ?: getApplication<Application>().getString(R.string.error_upload_store_image)))
         }
     }
 

@@ -190,7 +190,7 @@ class DashboardFragment : Fragment() {
         binding.purchaseOrderList.removeAllViews()
         binding.tvPurchaseOrdersEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
         for (po in items) {
-            val supplier = po.supplierName ?: "Supplier #${po.supplierId}"
+            val supplier = po.supplierName ?: getString(R.string.supplier_fallback, po.supplierId)
             binding.purchaseOrderList.addView(
                 rowView(
                     title = getString(R.string.po_row_title, po.id, supplier),

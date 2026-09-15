@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.example.stockflow.R
 
 class ReportsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -62,14 +63,14 @@ class ReportsViewModel(application: Application) : AndroidViewModel(application)
             if (result.isFailure) {
                 _exportState.postValue(
                     ExportState.Error(
-                        result.exceptionOrNull()?.message ?: "Unable to export report"
+                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_export_report)
                     )
                 )
                 return@launch
             }
             val reports = result.getOrNull()
             if (reports == null) {
-                _exportState.postValue(ExportState.Error("Unable to export report"))
+                _exportState.postValue(ExportState.Error(getApplication<Application>().getString(R.string.error_unable_export_report)))
                 return@launch
             }
             try {
@@ -85,7 +86,7 @@ class ReportsViewModel(application: Application) : AndroidViewModel(application)
                 _exportState.postValue(ExportState.Success(file, label))
             } catch (e: Exception) {
                 _exportState.postValue(
-                    ExportState.Error(e.message ?: "Unable to create PDF")
+                    ExportState.Error(e.message ?: getApplication<Application>().getString(R.string.error_unable_create_pdf))
                 )
             }
         }
@@ -109,12 +110,12 @@ class ReportsViewModel(application: Application) : AndroidViewModel(application)
                 latestRangeLabel = label
                 _uiState.postValue(ReportsUiState.Success(reports, label))
             } else {
-                _uiState.postValue(ReportsUiState.Error("Unable to load reports"))
+                _uiState.postValue(ReportsUiState.Error(getApplication<Application>().getString(R.string.error_unable_load_reports)))
             }
         } else {
             _uiState.postValue(
                 ReportsUiState.Error(
-                    result.exceptionOrNull()?.message ?: "Unable to load reports"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_reports)
                 )
             )
         }

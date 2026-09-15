@@ -78,7 +78,7 @@ class PurchaseOrderDetailActivity : AppCompatActivity() {
             val row = TextView(this).apply {
                 text = getString(
                     R.string.po_item_line_format,
-                    item.productName ?: "Product #${item.productId}",
+                    item.productName ?: getString(R.string.product_fallback, item.productId),
                     item.quantity,
                     item.unitCost,
                     item.subtotal

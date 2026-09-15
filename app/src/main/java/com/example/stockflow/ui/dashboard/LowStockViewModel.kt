@@ -9,6 +9,7 @@ import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.repository.ProductRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 class LowStockViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -30,7 +31,7 @@ class LowStockViewModel(application: Application) : AndroidViewModel(application
                 }
             } else {
                 LowStockUiState.Error(
-                    result.exceptionOrNull()?.message ?: "Unable to load low-stock products"
+                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_low_stock)
                 )
             }
         }

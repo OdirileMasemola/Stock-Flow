@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.stockflow.data.remote.SupplierDto
 import com.example.stockflow.databinding.ItemSupplierBinding
+import com.example.stockflow.R
 
 class SupplierAdapter(
     private val onEdit: (SupplierDto) -> Unit,
@@ -32,9 +33,10 @@ class SupplierAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(supplier: SupplierDto) {
+            val context = binding.root.context
             binding.tvSupplierName.text = supplier.name
             binding.tvContactName.text = supplier.contactName?.takeIf { it.isNotBlank() }
-                ?: "No contact person"
+                ?: context.getString(R.string.no_contact_person)
             binding.tvPhone.text = supplier.phone?.takeIf { it.isNotBlank() } ?: "—"
             binding.tvEmail.text = supplier.email?.takeIf { it.isNotBlank() } ?: "—"
             binding.tvAvatarLetter.text = supplier.name

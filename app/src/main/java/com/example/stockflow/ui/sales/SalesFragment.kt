@@ -213,7 +213,7 @@ class SalesFragment : Fragment() {
             getString(R.string.pos_history_empty)
         } else {
             sale.items.joinToString("\n") { item ->
-                val name = item.productName ?: "Product #${item.productId}"
+                val name = item.productName ?: getString(R.string.product_fallback, item.productId)
                 val unit = getString(R.string.price_format, item.unitPrice)
                 val sub = getString(R.string.price_format, item.subtotal)
                 "$name × ${item.quantity} @ $unit = $sub"

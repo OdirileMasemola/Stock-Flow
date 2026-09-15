@@ -9,6 +9,7 @@ import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.DashboardSummaryDto
 import com.example.stockflow.data.repository.DashboardRepository
 import kotlinx.coroutines.launch
+import com.example.stockflow.R
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,7 +35,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             } else {
                 _uiState.postValue(
                     DashboardUiState.Error(
-                        result.exceptionOrNull()?.message ?: "Unable to load dashboard"
+                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_dashboard)
                     )
                 )
             }

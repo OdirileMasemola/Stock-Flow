@@ -1,5 +1,8 @@
 package com.example.stockflow.data.repository
 
+import com.example.stockflow.R
+import com.example.stockflow.ui.common.AppStrings
+
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.BusinessApi
@@ -27,15 +30,15 @@ class UserRepository(
             val response = api.getProfile(authHeader())
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Unable to load profile"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_profile)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load profile")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_profile))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load profile"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_profile)))
         }
     }
 
@@ -50,16 +53,16 @@ class UserRepository(
             )
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to update profile"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_profile)))
                 sessionStore.saveUserFullName(body.fullName)
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to update profile")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_profile))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to update profile"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_update_profile)))
         }
     }
 
@@ -76,24 +79,24 @@ class UserRepository(
             if (response.isSuccessful) {
                 val uploaded = response.body()?.imageUrl?.trim().orEmpty()
                 if (uploaded.isEmpty()) {
-                    Result.failure(Exception("Image upload failed"))
+                    Result.failure(Exception(AppStrings.get(R.string.error_image_upload_failed)))
                 } else {
                     Result.success(uploaded)
                 }
             } else {
-                Result.failure(Exception(errorMessage(response, "Image upload failed")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_image_upload_failed))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to upload image. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_upload_image_connection)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Image upload failed"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_image_upload_failed)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }
@@ -120,15 +123,15 @@ class BusinessRepository(
             val response = api.getBusiness(authHeader())
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Unable to load business information"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_business)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Unable to load business information")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_business))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Unable to load business information"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_business)))
         }
     }
 
@@ -137,15 +140,15 @@ class BusinessRepository(
             val response = api.updateBusiness(authHeader(), request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception("Failed to save business information"))
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_save_business)))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, "Failed to save business information")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_save_business))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to reach the server. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Failed to save business information"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_save_business)))
         }
     }
 
@@ -162,24 +165,24 @@ class BusinessRepository(
             if (response.isSuccessful) {
                 val uploaded = response.body()?.imageUrl?.trim().orEmpty()
                 if (uploaded.isEmpty()) {
-                    Result.failure(Exception("Image upload failed"))
+                    Result.failure(Exception(AppStrings.get(R.string.error_image_upload_failed)))
                 } else {
                     Result.success(uploaded)
                 }
             } else {
-                Result.failure(Exception(errorMessage(response, "Image upload failed")))
+                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_image_upload_failed))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception("Unable to upload image. Check your connection."))
+            Result.failure(Exception(AppStrings.get(R.string.error_unable_upload_image_connection)))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Image upload failed"))
+            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_image_upload_failed)))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception("You are not signed in. Please log in again.")
+            throw Exception(AppStrings.get(R.string.error_not_signed_in))
         }
         return "Bearer $token"
     }
