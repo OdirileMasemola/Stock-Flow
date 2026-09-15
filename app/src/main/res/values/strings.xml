@@ -132,9 +132,10 @@
     <string name="settings_language_isizulu">isiZulu</string>
     <string name="settings_language_sesotho">Sesotho</string>
     <string name="settings_language_setswana">Setswana</string>
-    <string name="settings_language_message">Additional languages are planned for a future update. English remains the active language.</string>
+    <string name="settings_language_message">Choose English, isiZulu, or Sesotho. Setswana is planned for a future update.</string>
     <string name="settings_language_english_active">English is the active language.</string>
-    <string name="settings_language_future">This language will be available in a future update. English remains active.</string>
+    <string name="settings_language_changed">Language set to %1$s</string>
+    <string name="settings_language_future">Setswana will be available in a future update. Your current language stays active.</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_placeholder">Notification controls will be available in a future update.</string>
     <string name="settings_sync">Sync</string>

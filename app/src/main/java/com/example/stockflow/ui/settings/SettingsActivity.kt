@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.stockflow.BuildConfig
 import com.example.stockflow.R
+import com.example.stockflow.data.local.LanguagePreferences
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.local.ThemePreferences
 import com.example.stockflow.databinding.ActivitySettingsBinding
@@ -21,6 +22,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var themePreferences: ThemePreferences
+    private lateinit var languagePreferences: LanguagePreferences
     private lateinit var sessionStore: SessionStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +31,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         themePreferences = ThemePreferences(this)
+        languagePreferences = LanguagePreferences(this)
         sessionStore = SessionStore(this)
 
         SystemBars.applyThemeAware(this, binding.settingsRoot)
@@ -42,6 +45,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.rowTheme.tvSubtitle.text = themeLabel(themePreferences.getMode())
+        binding.rowLanguage.tvSubtitle.text = languageLabel(languagePreferences.getLanguageTag())
     }
 
     private fun bindRows() {
@@ -75,7 +79,7 @@ class SettingsActivity : AppCompatActivity() {
             iconColor = R.color.icon_language,
             iconBg = R.color.icon_bg_language,
             title = getString(R.string.settings_app_language),
-            subtitle = getString(R.string.settings_language_english)
+            subtitle = languageLabel(languagePreferences.getLanguageTag())
         )
         bindRow(
             row = binding.rowNotifications,
@@ -186,19 +190,32 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showLanguageDialog() {
+        // Indices 0–2 are switchable; Setswana (3) remains a future option.
+        val languageTags = arrayOf(
+            LanguagePreferences.TAG_ENGLISH,
+            LanguagePreferences.TAG_ISIZULU,
+            LanguagePreferences.TAG_SESOTHO,
+            null // Setswana — not implemented yet
+        )
         val languages = arrayOf(
             getString(R.string.settings_language_english),
             getString(R.string.settings_language_isizulu),
             getString(R.string.settings_language_sesotho),
             getString(R.string.settings_language_setswana)
         )
+        val currentTag = languagePreferences.getLanguageTag()
+        val checked = languageTags.indexOf(currentTag).coerceAtLeast(0)
+
         AlertDialog.Builder(this)
             .setTitle(R.string.settings_app_language)
-            .setSingleChoiceItems(languages, 0) { dialog, which ->
-                if (which == 0) {
+            .setSingleChoiceItems(languages, checked) { dialog, which ->
+                val tag = languageTags[which]
+                if (tag != null) {
+                    languagePreferences.setLanguageTag(tag)
+                    binding.rowLanguage.tvSubtitle.text = languageLabel(tag)
                     Toast.makeText(
                         this,
-                        R.string.settings_language_english_active,
+                        getString(R.string.settings_language_changed, languageLabel(tag)),
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
@@ -259,5 +276,11 @@ class SettingsActivity : AppCompatActivity() {
         ThemePreferences.Mode.SYSTEM -> getString(R.string.settings_theme_system)
         ThemePreferences.Mode.LIGHT -> getString(R.string.settings_theme_light)
         ThemePreferences.Mode.DARK -> getString(R.string.settings_theme_dark)
+    }
+
+    private fun languageLabel(tag: String): String = when (LanguagePreferences.normalizeTag(tag)) {
+        LanguagePreferences.TAG_ISIZULU -> getString(R.string.settings_language_isizulu)
+        LanguagePreferences.TAG_SESOTHO -> getString(R.string.settings_language_sesotho)
+        else -> getString(R.string.settings_language_english)
     }
 }
