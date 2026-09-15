@@ -43,14 +43,21 @@ class LanguagePreferences(context: Context) {
         /** Languages that can be selected and switched to in Stage 1. */
         val SUPPORTED_TAGS: Set<String> = setOf(TAG_ENGLISH, TAG_ISIZULU, TAG_SESOTHO)
 
-        fun isSupported(tag: String): Boolean = normalizeTag(tag) in SUPPORTED_TAGS
+        fun isSupported(tag: String): Boolean {
+            val language = languageSubtag(tag) ?: return false
+            return language in SUPPORTED_TAGS
+        }
 
         fun normalizeTag(tag: String): String {
+            val language = languageSubtag(tag)
+            return if (language != null && language in SUPPORTED_TAGS) language else DEFAULT_LANGUAGE_TAG
+        }
+
+        /** Language subtag only (e.g. "zu" from "zu-ZA"), or null if empty. */
+        private fun languageSubtag(tag: String): String? {
             val trimmed = tag.trim().lowercase()
-            if (trimmed.isEmpty()) return DEFAULT_LANGUAGE_TAG
-            // Accept BCP-47 forms like "zu-ZA" by taking the language subtag.
-            val language = trimmed.substringBefore('-').substringBefore('_')
-            return if (language in SUPPORTED_TAGS) language else DEFAULT_LANGUAGE_TAG
+            if (trimmed.isEmpty()) return null
+            return trimmed.substringBefore('-').substringBefore('_')
         }
 
         fun applyLanguageTag(tag: String) {
