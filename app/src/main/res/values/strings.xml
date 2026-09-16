@@ -192,9 +192,6 @@
     <string name="label_category">Category</string>
     <string name="hint_category">e.g. Electronics</string>
     <string name="category_help">Pick an existing category or type a new name to create one.</string>
-    <string name="label_category">Category</string>
-    <string name="hint_category">e.g. Electronics</string>
-    <string name="category_help">Pick an existing category or type a new name to create one.</string>
     <string name="label_supplier_id">Supplier ID (optional)</string>
     <string name="hint_supplier_id">Leave blank if none</string>
     <string name="save_product">Save Product</string>
@@ -353,7 +350,6 @@
     <string name="error_failed_save_product">Failed to save product</string>
     <string name="error_choose_valid_image">Please choose a valid image file</string>
     <string name="error_unable_read_image">Unable to read the selected image</string>
-    <string name="image_upload_failed">Could not upload the product image. Product was not saved.</string>
     <string name="error_product_name_required">Product name is required</string>
     <string name="error_valid_cost_price">Enter a valid cost price</string>
     <string name="error_valid_selling_price">Enter a valid selling price</string>

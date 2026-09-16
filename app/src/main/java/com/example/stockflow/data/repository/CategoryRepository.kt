@@ -1,13 +1,11 @@
 package com.example.stockflow.data.repository
 
-import com.example.stockflow.R
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CategoryApi
 import com.example.stockflow.data.remote.CategoryDto
 import com.example.stockflow.data.remote.CreateCategoryRequest
 import com.example.stockflow.data.remote.RetrofitClient
-import com.example.stockflow.ui.common.AppStrings
 import com.google.gson.Gson
 import retrofit2.Response
 import java.io.IOException
@@ -27,12 +25,12 @@ class CategoryRepository(
             if (response.isSuccessful) {
                 Result.success(response.body().orEmpty())
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_categories))))
+                Result.failure(Exception(errorMessage(response, "Unable to load categories")))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            Result.failure(Exception("Unable to reach the server. Check your connection."))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_categories)))
+            Result.failure(Exception(e.message ?: "Unable to load categories"))
         }
     }
 
@@ -48,22 +46,22 @@ class CategoryRepository(
             )
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_resolve_category)))
+                    ?: return Result.failure(Exception("Unable to set category"))
                 Result.success(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_resolve_category))))
+                Result.failure(Exception(errorMessage(response, "Unable to set category")))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            Result.failure(Exception("Unable to reach the server. Check your connection."))
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_resolve_category)))
+            Result.failure(Exception(e.message ?: "Unable to set category"))
         }
     }
 
     private fun authHeader(): String {
         val token = sessionStore.getToken()
         if (token.isNullOrBlank()) {
-            throw Exception(AppStrings.get(R.string.error_not_signed_in))
+            throw Exception("You are not signed in. Please log in again.")
         }
         return "Bearer $token"
     }
