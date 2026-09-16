@@ -8,12 +8,15 @@ import com.example.stockflow.models.NotFoundException
 import com.example.stockflow.models.ProductImageUploadResponse
 import com.example.stockflow.models.ProductResponse
 import com.example.stockflow.models.UpdateProductRequest
+import com.example.stockflow.models.LowStockCrossing
 import com.example.stockflow.repositories.ProductRepository
+import com.example.stockflow.services.notifications.LowStockAlertService
 import com.example.stockflow.repositories.ProductRepositoryImpl
 
 class ProductService(
     private val repository: ProductRepository = ProductRepositoryImpl(),
-    private val imageStorage: ProductImageStorage = ProductImageStorage()
+    private val imageStorage: ProductImageStorage = ProductImageStorage(),
+    private val lowStockAlerts: LowStockAlertService = LowStockAlertService()
 ) {
     suspend fun getProducts(): List<ProductResponse> = repository.getAllProducts()
 
@@ -47,7 +50,7 @@ class ProductService(
 
     fun uploadsRoot() = imageStorage.uploadsRoot()
 
-    suspend fun createProduct(request: CreateProductRequest): ProductResponse {
+    suspend fun createProduct(request: CreateProductRequest, actingUserId: Int = 0): ProductResponse {
         validateProductFields(
             name = request.name,
             sku = request.sku,
@@ -65,10 +68,30 @@ class ProductService(
             throw ConflictException("A product with this SKU already exists")
         }
 
-        return repository.createProduct(request)
+        val created = repository.createProduct(request)
+        // Treat create-as-low as a crossing (previous stock conceptually above min).
+        if (created.stockLevel <= created.minStockLevel) {
+            lowStockAlerts.notifyCrossingsAsync(
+                actingUserId = actingUserId,
+                crossings = listOf(
+                    LowStockCrossing(
+                        productId = created.id,
+                        productName = created.name,
+                        previousStock = created.minStockLevel + 1,
+                        currentStock = created.stockLevel,
+                        minStockLevel = created.minStockLevel
+                    )
+                )
+            )
+        }
+        return created
     }
 
-    suspend fun updateProduct(id: Int, request: UpdateProductRequest): ProductResponse {
+    suspend fun updateProduct(
+        id: Int,
+        request: UpdateProductRequest,
+        actingUserId: Int = 0
+    ): ProductResponse {
         // Ensure the product exists before validating other fields
         val existing = repository.getProductById(id)
             ?: throw NotFoundException("Product not found")
@@ -102,6 +125,19 @@ class ProductService(
         if (oldUrl != null && oldUrl != newUrl) {
             imageStorage.deleteIfManaged(oldUrl)
         }
+
+        lowStockAlerts.notifyCrossingsAsync(
+            actingUserId = actingUserId,
+            crossings = listOf(
+                LowStockCrossing(
+                    productId = updated.id,
+                    productName = updated.name,
+                    previousStock = existing.stockLevel,
+                    currentStock = updated.stockLevel,
+                    minStockLevel = updated.minStockLevel
+                )
+            )
+        )
 
         return updated
     }

@@ -125,6 +125,15 @@
     <string name="settings_language_future">ISetswana izotholakala ekubuyekezeni okuzayo. Ulimi lwakho lwamanje luhlala lusebenza.</string>
     <string name="settings_notifications">Izaziso</string>
     <string name="settings_notifications_placeholder">Izilawuli zezaziso zizotholakala ekubuyekezeni okuzayo.</string>
+    <string name="settings_notifications_enabled">Izaziso zokuphusha zivuliwe</string>
+    <string name="settings_notifications_disabled">Izaziso zivaliwe — thepha ukuze uvule</string>
+    <string name="settings_notifications_info">I-StockFlow ingathumela izaziso zokuphusha uma umkhiqizo wehla uze ube noma ngaphansi kwezinga eliphansi lesitoko. Nikeza imvume yezaziso uma ucelwa.</string>
+    <string name="fcm_channel_low_stock_name">Izaziso zesitoko esiphansi</string>
+    <string name="fcm_channel_low_stock_description">Izaziso lapho isitoko sifinyelela ezingeni eliphansi.</string>
+    <string name="fcm_low_stock_title">Isaziso sesitoko esiphansi</string>
+    <string name="fcm_low_stock_body">%1$s: kusele %2$s (okuncane %3$s)</string>
+    <string name="fcm_low_stock_body_name_only">%1$s unesitoko esiphansi</string>
+    <string name="fcm_low_stock_body_fallback">Umkhiqizo ufinyelele ezingeni eliphansi lesitoko.</string>
     <string name="settings_sync">Ukuvumelanisa</string>
     <string name="settings_sync_placeholder">Ukuvumelanisa nokusekela ngaphandle kwe-inthanethi kuzotholakala ekubuyekezeni okuzayo.</string>
     <string name="settings_coming_soon">Kuyeza maduze</string>

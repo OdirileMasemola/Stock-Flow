@@ -10,6 +10,9 @@ import com.example.stockflow.BuildConfig
 import com.example.stockflow.R
 import com.example.stockflow.data.local.LanguagePreferences
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.notifications.FcmRegistrationHelper
+import com.example.stockflow.data.notifications.FcmTokenStore
+import com.example.stockflow.data.notifications.NotificationRepository
 import com.example.stockflow.data.local.ThemePreferences
 import com.example.stockflow.databinding.ActivitySettingsBinding
 import com.example.stockflow.databinding.ItemSettingsRowBinding
@@ -55,6 +58,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onResume()
         binding.rowTheme.tvSubtitle.text = themeLabel(themePreferences.getMode())
         binding.rowLanguage.tvSubtitle.text = languageLabel(languagePreferences.getLanguageTag())
+        binding.rowNotifications.tvSubtitle.text = notificationStatusSubtitle()
         refreshSyncStatus()
     }
 
@@ -116,7 +120,7 @@ class SettingsActivity : AppCompatActivity() {
             iconColor = R.color.icon_notifications,
             iconBg = R.color.icon_bg_notifications,
             title = getString(R.string.settings_notifications),
-            subtitle = getString(R.string.settings_coming_soon)
+            subtitle = notificationStatusSubtitle()
         )
         bindRow(
             row = binding.rowSync,
@@ -184,7 +188,14 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowTheme.root.setOnClickListener { showThemeDialog() }
         binding.rowLanguage.root.setOnClickListener { showLanguageDialog() }
         binding.rowNotifications.root.setOnClickListener {
-            showPlaceholder(getString(R.string.settings_notifications_placeholder))
+            FcmRegistrationHelper.requestNotificationPermissionIfNeeded(this)
+            FcmRegistrationHelper.registerIfLoggedIn(this)
+            binding.rowNotifications.tvSubtitle.text = notificationStatusSubtitle()
+            AlertDialog.Builder(this)
+                .setTitle(R.string.settings_notifications)
+                .setMessage(R.string.settings_notifications_info)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
         }
         binding.rowSync.root.setOnClickListener {
             showSyncDialog()
@@ -332,16 +343,36 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun performLogout() {
-        sessionStore.clearSession()
-        if (FirebaseApp.getApps(this).isNotEmpty()) {
-            FirebaseAuth.getInstance().signOut()
-        }
-        startActivity(
-            Intent(this, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    NotificationRepository(
+                        sessionStore = sessionStore,
+                        tokenStore = FcmTokenStore(this@SettingsActivity)
+                    ).unregisterCurrentToken()
+                } catch (_: Exception) {
+                    // Best-effort unregister
+                }
             }
-        )
-        finish()
+            sessionStore.clearSession()
+            if (FirebaseApp.getApps(this@SettingsActivity).isNotEmpty()) {
+                FirebaseAuth.getInstance().signOut()
+            }
+            startActivity(
+                Intent(this@SettingsActivity, LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
+            finish()
+        }
+    }
+
+    private fun notificationStatusSubtitle(): String {
+        return if (FcmRegistrationHelper.areNotificationsLikelyEnabled(this)) {
+            getString(R.string.settings_notifications_enabled)
+        } else {
+            getString(R.string.settings_notifications_disabled)
+        }
     }
 
     private fun themeLabel(mode: ThemePreferences.Mode): String = when (mode) {

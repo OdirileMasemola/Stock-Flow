@@ -35,10 +35,13 @@ object DatabaseFactory {
                     SaleItems, 
                     PurchaseOrders, 
                     PurchaseOrderItems,
-                    Businesses
+                    Businesses,
+                    DeviceTokens
                 )
-                // Users/Products/Businesses/Roles: add or widen columns on existing DBs.
-                SchemaUtils.createMissingTablesAndColumns(Users, Products, Businesses, Roles)
+                // Users/Products/Businesses/Roles/DeviceTokens: add or widen columns on existing DBs.
+                SchemaUtils.createMissingTablesAndColumns(
+                    Users, Products, Businesses, Roles, DeviceTokens
+                )
                 widenImageUrlColumns()
                 // Required for signup/role picker — not test data.
                 seedDefaultRolesIfEmpty()

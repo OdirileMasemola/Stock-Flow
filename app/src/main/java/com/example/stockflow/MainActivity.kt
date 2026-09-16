@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.notifications.FcmRegistrationHelper
 import com.example.stockflow.databinding.ActivityMainBinding
 import com.example.stockflow.databinding.ItemBottomNavBinding
 import com.example.stockflow.ui.dashboard.DashboardFragment
@@ -57,6 +58,9 @@ class MainActivity : AppCompatActivity() {
         setupSystemBars()
         setupToolbar()
         setupBottomNavigation()
+
+        FcmRegistrationHelper.requestNotificationPermissionIfNeeded(this)
+        FcmRegistrationHelper.registerIfLoggedIn(this)
 
         if (savedInstanceState == null) {
             selectNavItem(R.id.nav_dashboard, animate = false)

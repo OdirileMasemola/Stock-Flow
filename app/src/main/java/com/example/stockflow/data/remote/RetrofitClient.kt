@@ -70,4 +70,9 @@ object RetrofitClient {
     val businessApi: BusinessApi by lazy {
         retrofit.create(BusinessApi::class.java)
     }
+
+    /** Authenticated FCM device-token registration. */
+    val notificationApi: NotificationApi by lazy {
+        retrofit.create(NotificationApi::class.java)
+    }
 }

@@ -18,6 +18,9 @@ import com.example.stockflow.services.CategoryService
 import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.services.DashboardService
 import com.example.stockflow.services.BusinessService
+import com.example.stockflow.services.notifications.DeviceTokenService
+import com.example.stockflow.models.RegisterDeviceTokenRequest
+import com.example.stockflow.models.UnregisterDeviceTokenRequest
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
@@ -46,6 +49,7 @@ fun Application.configureRouting() {
     val purchaseOrderService = PurchaseOrderService()
     val dashboardService = DashboardService()
     val businessService = BusinessService()
+    val deviceTokenService = DeviceTokenService()
 
     routing {
         get("/") {
@@ -222,15 +226,17 @@ fun Application.configureRouting() {
                     call.respond(productService.getProduct(id))
                 }
                 post {
+                    val userId = currentUserId(call)
                     val request = call.receive<CreateProductRequest>()
-                    val created = productService.createProduct(request)
+                    val created = productService.createProduct(request, actingUserId = userId)
                     call.respond(HttpStatusCode.Created, created)
                 }
                 put("/{id}") {
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid product ID")
+                    val userId = currentUserId(call)
                     val request = call.receive<UpdateProductRequest>()
-                    call.respond(productService.updateProduct(id, request))
+                    call.respond(productService.updateProduct(id, request, actingUserId = userId))
                 }
                 delete("/{id}") {
                     val id = call.parameters["id"]?.toIntOrNull()
@@ -323,6 +329,21 @@ fun Application.configureRouting() {
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid purchase order ID")
                     call.respond(purchaseOrderService.receivePurchaseOrder(id))
+                }
+            }
+
+            route("/api/notifications") {
+                post("/device-token") {
+                    val userId = currentUserId(call)
+                    val request = call.receive<RegisterDeviceTokenRequest>()
+                    val response = deviceTokenService.register(userId, request)
+                    call.respond(HttpStatusCode.OK, response)
+                }
+                delete("/device-token") {
+                    val userId = currentUserId(call)
+                    val request = call.receive<UnregisterDeviceTokenRequest>()
+                    deviceTokenService.unregister(userId, request)
+                    call.respond(HttpStatusCode.NoContent)
                 }
             }
 

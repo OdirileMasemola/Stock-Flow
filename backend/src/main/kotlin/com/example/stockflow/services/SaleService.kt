@@ -7,9 +7,11 @@ import com.example.stockflow.models.SaleResponse
 import com.example.stockflow.repositories.SaleLineInput
 import com.example.stockflow.repositories.SaleRepository
 import com.example.stockflow.repositories.SaleRepositoryImpl
+import com.example.stockflow.services.notifications.LowStockAlertService
 
 class SaleService(
-    private val repository: SaleRepository = SaleRepositoryImpl()
+    private val repository: SaleRepository = SaleRepositoryImpl(),
+    private val lowStockAlerts: LowStockAlertService = LowStockAlertService()
 ) {
     companion object {
         /** Allowed payment methods for StockFlow POS (no gateway — record only). */
@@ -49,11 +51,16 @@ class SaleService(
             SaleLineInput(productId = productId, quantity = quantity)
         }
 
-        return repository.createSale(
+        val result = repository.createSale(
             userId = userId,
             paymentMethod = paymentMethod,
             lines = lines
         )
+
+        // Non-blocking FCM; never fails the sale.
+        lowStockAlerts.notifyCrossingsAsync(userId, result.lowStockCrossings)
+
+        return result.sale
     }
 
     private fun normalizePaymentMethod(raw: String): String {

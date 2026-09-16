@@ -60,7 +60,7 @@ Small retail businesses often struggle with manual stock tracking and disjointed
 StockFlow is in an advanced implementation phase, with an MVVM architecture and production backend in place.
 
 - **Implemented**: Core inventory, POS, auth (JWT + Google), dashboard, reports, scanning, and production deployment.
-- **Planned (Part 3)**: Offline synchronization, cloud storage, and push notifications.
+- **Part 3 progress**: Offline read cache + write queue, Supabase Storage, and FCM low-stock push (Stage 4).
 
 ---
 
@@ -240,6 +240,7 @@ StockFlow is deployed using a containerized approach.
 - **Health check**: `https://stock-flow-trbq.onrender.com/api/health`
 - **Platform**: Render (web service) and Supabase (managed database).
 - **Image storage env (Render)**: `STORAGE_PROVIDER=supabase`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, optional `SUPABASE_STORAGE_BUCKET=stockflow-images`, `UPLOAD_MAX_BYTES`.
+- **FCM push env (Render)**: `FIREBASE_CREDENTIALS_JSON` (preferred) or `FIREBASE_CREDENTIALS_PATH` / `GOOGLE_APPLICATION_CREDENTIALS`, optional `FIREBASE_PROJECT_ID=stockflow-be90c`. See `docs/fcm-low-stock.md`.
 
 ---
 
