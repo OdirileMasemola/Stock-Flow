@@ -1,5 +1,6 @@
 package com.example.stockflow.data.repository
 
+import android.content.Context
 import com.example.stockflow.R
 import com.example.stockflow.ui.common.AppStrings
 
@@ -7,6 +8,11 @@ import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.local.cache.CacheDatabaseProvider
 import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.data.local.cache.PendingEntityType
+import com.example.stockflow.data.local.cache.PendingOpStatus
+import com.example.stockflow.data.local.cache.PendingOpType
+import com.example.stockflow.data.local.cache.PendingOperationDao
+import com.example.stockflow.data.local.cache.PendingOperationEntity
 import com.example.stockflow.data.local.cache.ProductCacheDao
 import com.example.stockflow.data.local.cache.StockFlowCacheDatabase
 import com.example.stockflow.data.local.cache.toCachedEntity
@@ -17,25 +23,36 @@ import com.example.stockflow.data.remote.ProductApi
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.RetrofitClient
 import com.example.stockflow.data.remote.UpdateProductRequest
+import com.example.stockflow.data.sync.LocalTempIds
+import com.example.stockflow.data.sync.PendingOverlayApplier
+import com.example.stockflow.data.sync.ProductWritePayload
+import com.example.stockflow.data.sync.SyncScheduler
+import com.example.stockflow.data.sync.WriteResult
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.io.IOException
+import java.util.UUID
 
 /**
  * Talks to the Ktor product endpoints using the JWT from [SessionStore].
  * Successful READs populate the Room READ cache; offline IO falls back to cache.
+ * Offline WRITEs (create/update/delete) update Room then enqueue a pending op —
+ * online writes still go direct to the API and never through the queue.
  */
 class ProductRepository(
     private val api: ProductApi = RetrofitClient.productApi,
     private val sessionStore: SessionStore,
     private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
-    private val clock: () -> Long = { System.currentTimeMillis() }
+    private val clock: () -> Long = { System.currentTimeMillis() },
+    private val appContext: Context? = null,
+    private val onEnqueueSync: (() -> Unit)? = null
 ) {
     private val gson = Gson()
     private val productDao: ProductCacheDao? get() = database?.productDao()
+    private val pendingDao: PendingOperationDao? get() = database?.pendingOperationDao()
 
     suspend fun getProducts(): CacheResult<List<ProductDto>> {
         val userId = sessionStore.getUserId()
@@ -46,8 +63,19 @@ class ProductRepository(
                 if (userId != null) {
                     val cachedAt = clock()
                     productDao?.replaceAll(userId, data.map { it.toCachedEntity(userId, cachedAt) })
+                    val pDao = productDao
+                    val qDao = pendingDao
+                    if (pDao != null && qDao != null) {
+                        PendingOverlayApplier.applyProductOverlays(userId, pDao, qDao, clock)
+                    }
                 }
-                CacheResult.Fresh(data)
+                // Return merged view (server + pending overlays) when possible.
+                val merged = if (userId != null) {
+                    productDao?.getAll(userId)?.map { it.toDto() } ?: data
+                } else {
+                    data
+                }
+                CacheResult.Fresh(merged)
             } else {
                 CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_products)))
             }
@@ -127,73 +155,98 @@ class ProductRepository(
             }
             Result.failure(lastError ?: Exception(AppStrings.get(R.string.product_not_found)))
         } catch (_: IOException) {
+            // Offline SKU lookup against Room cache (read-only).
+            val userId = sessionStore.getUserId()
+            if (userId != null) {
+                val candidates = ProductSkuCodes.lookupCandidates(sku).map { it.lowercase() }.toSet()
+                val match = productDao?.getAll(userId)?.firstOrNull { product ->
+                    val s = product.sku?.lowercase().orEmpty()
+                    s.isNotEmpty() && (s in candidates || candidates.any { s.contains(it) || it.contains(s) })
+                }
+                if (match != null) return Result.success(match.toDto())
+            }
             Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_find_product)))
         }
     }
 
-    suspend fun createProduct(request: CreateProductRequest): Result<ProductDto> {
+    suspend fun createProduct(
+        request: CreateProductRequest,
+        categoryName: String? = null
+    ): WriteResult<ProductDto> {
         return try {
             val response = api.createProduct(authHeader(), request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_create_product)))
+                    ?: return WriteResult.Failed(AppStrings.get(R.string.error_failed_create_product))
                 sessionStore.getUserId()?.let { userId ->
                     productDao?.upsert(body.toCachedEntity(userId, clock()))
                 }
-                Result.success(body)
+                WriteResult.Synced(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_create_product))))
+                WriteResult.Failed(errorMessage(response, AppStrings.get(R.string.error_failed_create_product)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            enqueueOfflineCreate(request, categoryName)
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_create_product)))
+            WriteResult.Failed(e.message ?: AppStrings.get(R.string.error_failed_create_product))
         }
     }
 
-    suspend fun updateProduct(id: Int, request: UpdateProductRequest): Result<ProductDto> {
+    suspend fun updateProduct(
+        id: Int,
+        request: UpdateProductRequest,
+        categoryName: String? = null
+    ): WriteResult<ProductDto> {
+        // Temp local products: coalesce into the pending CREATE payload (no remote PUT yet).
+        if (LocalTempIds.isTemporary(id)) {
+            return coalesceOfflineUpdate(id, request, categoryName)
+        }
         return try {
             val response = api.updateProduct(authHeader(), id, request)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_product)))
+                    ?: return WriteResult.Failed(AppStrings.get(R.string.error_failed_update_product))
                 sessionStore.getUserId()?.let { userId ->
                     productDao?.upsert(body.toCachedEntity(userId, clock()))
                 }
-                Result.success(body)
+                WriteResult.Synced(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_product))))
+                WriteResult.Failed(errorMessage(response, AppStrings.get(R.string.error_failed_update_product)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            enqueueOfflineUpdate(id, request, categoryName)
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_update_product)))
+            WriteResult.Failed(e.message ?: AppStrings.get(R.string.error_failed_update_product))
         }
     }
 
-    suspend fun deleteProduct(id: Int): Result<Unit> {
+    suspend fun deleteProduct(id: Int): WriteResult<Unit> {
+        if (LocalTempIds.isTemporary(id)) {
+            return cancelOfflineCreate(id)
+        }
         return try {
             val response = api.deleteProduct(authHeader(), id)
             if (response.isSuccessful || response.code() == 204) {
                 sessionStore.getUserId()?.let { userId ->
                     productDao?.deleteById(userId, id)
                 }
-                Result.success(Unit)
+                WriteResult.Synced(Unit)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_delete_product))))
+                WriteResult.Failed(errorMessage(response, AppStrings.get(R.string.error_failed_delete_product)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            enqueueOfflineDelete(id)
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_delete_product)))
+            WriteResult.Failed(e.message ?: AppStrings.get(R.string.error_failed_delete_product))
         }
     }
 
     /**
      * Uploads a product image before create/update. Returns the stored image URL path.
      * Callers must not save a product with a local-only image if this fails.
+     * Image upload is never queued offline.
      */
     suspend fun uploadProductImage(
         imageBytes: ByteArray,
@@ -221,6 +274,185 @@ class ProductRepository(
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_image_upload_failed)))
         }
+    }
+
+    private suspend fun enqueueOfflineCreate(
+        request: CreateProductRequest,
+        categoryName: String?
+    ): WriteResult<ProductDto> {
+        val userId = sessionStore.getUserId()
+            ?: return WriteResult.Failed(AppStrings.get(R.string.error_not_signed_in))
+        val dao = productDao
+        val qDao = pendingDao
+        if (dao == null || qDao == null) {
+            return WriteResult.Failed(AppStrings.get(R.string.error_unable_reach_server))
+        }
+        val localId = LocalTempIds.nextProductId()
+        val payload = ProductWritePayload.fromCreate(request, categoryName)
+        val now = clock()
+        val dto = payload.toProductDto(localId)
+        dao.upsert(dto.toCachedEntity(userId, now))
+        qDao.upsert(
+            PendingOperationEntity(
+                id = UUID.randomUUID().toString(),
+                userId = userId,
+                operationType = PendingOpType.CREATE,
+                entityType = PendingEntityType.PRODUCT,
+                localEntityId = localId.toString(),
+                remoteEntityId = null,
+                payloadJson = ProductWritePayload.toJson(payload),
+                status = PendingOpStatus.PENDING,
+                retryCount = 0,
+                lastError = null,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        triggerSync()
+        return WriteResult.Queued(dto)
+    }
+
+    private suspend fun enqueueOfflineUpdate(
+        id: Int,
+        request: UpdateProductRequest,
+        categoryName: String?
+    ): WriteResult<ProductDto> {
+        val userId = sessionStore.getUserId()
+            ?: return WriteResult.Failed(AppStrings.get(R.string.error_not_signed_in))
+        val dao = productDao
+        val qDao = pendingDao
+        if (dao == null || qDao == null) {
+            return WriteResult.Failed(AppStrings.get(R.string.error_unable_reach_server))
+        }
+        val payload = ProductWritePayload.fromUpdate(request, categoryName)
+        val now = clock()
+        val dto = payload.toProductDto(id)
+        dao.upsert(dto.toCachedEntity(userId, now))
+
+        // Coalesce with an existing PENDING UPDATE for the same entity.
+        val existing = qDao.getActiveForEntity(userId, PendingEntityType.PRODUCT, id.toString())
+            .firstOrNull { it.operationType == PendingOpType.UPDATE && it.status == PendingOpStatus.PENDING }
+        if (existing != null) {
+            qDao.upsert(
+                existing.copy(
+                    payloadJson = ProductWritePayload.toJson(payload),
+                    updatedAt = now,
+                    lastError = null
+                )
+            )
+        } else {
+            qDao.upsert(
+                PendingOperationEntity(
+                    id = UUID.randomUUID().toString(),
+                    userId = userId,
+                    operationType = PendingOpType.UPDATE,
+                    entityType = PendingEntityType.PRODUCT,
+                    localEntityId = id.toString(),
+                    remoteEntityId = id,
+                    payloadJson = ProductWritePayload.toJson(payload),
+                    status = PendingOpStatus.PENDING,
+                    retryCount = 0,
+                    lastError = null,
+                    createdAt = now,
+                    updatedAt = now
+                )
+            )
+        }
+        triggerSync()
+        return WriteResult.Queued(dto)
+    }
+
+    private suspend fun coalesceOfflineUpdate(
+        localId: Int,
+        request: UpdateProductRequest,
+        categoryName: String?
+    ): WriteResult<ProductDto> {
+        val userId = sessionStore.getUserId()
+            ?: return WriteResult.Failed(AppStrings.get(R.string.error_not_signed_in))
+        val dao = productDao
+        val qDao = pendingDao
+        if (dao == null || qDao == null) {
+            return WriteResult.Failed(AppStrings.get(R.string.error_unable_reach_server))
+        }
+        val payload = ProductWritePayload.fromUpdate(request, categoryName)
+        val now = clock()
+        val dto = payload.toProductDto(localId)
+        dao.upsert(dto.toCachedEntity(userId, now))
+
+        val createOp = qDao.getActiveForEntity(userId, PendingEntityType.PRODUCT, localId.toString())
+            .firstOrNull { it.operationType == PendingOpType.CREATE }
+        if (createOp != null) {
+            qDao.upsert(
+                createOp.copy(
+                    payloadJson = ProductWritePayload.toJson(payload),
+                    updatedAt = now,
+                    status = PendingOpStatus.PENDING,
+                    lastError = null
+                )
+            )
+        } else {
+            // No CREATE left — treat as normal offline update (unlikely for temp ids).
+            return enqueueOfflineUpdate(localId, request, categoryName)
+        }
+        triggerSync()
+        return WriteResult.Queued(dto)
+    }
+
+    private suspend fun enqueueOfflineDelete(id: Int): WriteResult<Unit> {
+        val userId = sessionStore.getUserId()
+            ?: return WriteResult.Failed(AppStrings.get(R.string.error_not_signed_in))
+        val dao = productDao
+        val qDao = pendingDao
+        if (dao == null || qDao == null) {
+            return WriteResult.Failed(AppStrings.get(R.string.error_unable_reach_server))
+        }
+        val now = clock()
+        dao.deleteById(userId, id)
+
+        // Drop pending CREATE/UPDATE for this id; replace with DELETE.
+        val related = qDao.getActiveForEntity(userId, PendingEntityType.PRODUCT, id.toString())
+        for (op in related) {
+            when (op.operationType) {
+                PendingOpType.CREATE -> {
+                    qDao.deleteById(op.id)
+                    triggerSync()
+                    return WriteResult.Queued(Unit)
+                }
+                PendingOpType.UPDATE -> qDao.deleteById(op.id)
+            }
+        }
+        qDao.upsert(
+            PendingOperationEntity(
+                id = UUID.randomUUID().toString(),
+                userId = userId,
+                operationType = PendingOpType.DELETE,
+                entityType = PendingEntityType.PRODUCT,
+                localEntityId = id.toString(),
+                remoteEntityId = id,
+                payloadJson = "{}",
+                status = PendingOpStatus.PENDING,
+                retryCount = 0,
+                lastError = null,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        triggerSync()
+        return WriteResult.Queued(Unit)
+    }
+
+    private suspend fun cancelOfflineCreate(localId: Int): WriteResult<Unit> {
+        val userId = sessionStore.getUserId()
+            ?: return WriteResult.Failed(AppStrings.get(R.string.error_not_signed_in))
+        productDao?.deleteById(userId, localId)
+        pendingDao?.getActiveForEntity(userId, PendingEntityType.PRODUCT, localId.toString())
+            ?.forEach { pendingDao?.deleteById(it.id) }
+        return WriteResult.Queued(Unit)
+    }
+
+    private fun triggerSync() {
+        onEnqueueSync?.invoke()
+        appContext?.let { SyncScheduler.enqueueSync(it, expedited = true) }
     }
 
     private suspend fun fallbackProducts(userId: Int?): CacheResult<List<ProductDto>> {

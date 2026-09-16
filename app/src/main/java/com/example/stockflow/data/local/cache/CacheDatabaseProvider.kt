@@ -7,7 +7,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /**
- * Application-scoped singleton for the offline READ cache database.
+ * Application-scoped singleton for the offline READ cache + WRITE queue database
+ * ([StockFlowCacheDatabase.DB_NAME]).
  */
 object CacheDatabaseProvider {
     @Volatile
@@ -22,7 +23,7 @@ object CacheDatabaseProvider {
                     StockFlowCacheDatabase::class.java,
                     StockFlowCacheDatabase.DB_NAME
                 )
-                    .fallbackToDestructiveMigration(dropAllTables = true)
+                    .addMigrations(StockFlowCacheDatabase.MIGRATION_1_2)
                     .build()
             }
         }
@@ -43,6 +44,8 @@ object CacheDatabaseProvider {
         db.purchaseOrderDao().clearUser(userId)
         db.profileDao().clearUser(userId)
         db.businessDao().clearUser(userId)
+        // Clear this user's write queue so logout never lets another session upload them.
+        db.pendingOperationDao().clearUser(userId)
     }
 
     /** Blocking clear for logout paths that are not suspend. */

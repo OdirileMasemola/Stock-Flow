@@ -80,7 +80,17 @@ class CategoryRepository(
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_resolve_category))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            // Offline: reuse an existing cached category by name; never create new categories offline.
+            val userId = sessionStore.getUserId()
+            if (userId != null) {
+                val cached = categoryDao?.getAll(userId).orEmpty().firstOrNull {
+                    it.name.equals(name.trim(), ignoreCase = true)
+                }
+                if (cached != null) {
+                    return Result.success(cached.toDto())
+                }
+            }
+            Result.failure(Exception(AppStrings.get(R.string.error_offline_category_requires_existing)))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_failed_resolve_category)))
         }

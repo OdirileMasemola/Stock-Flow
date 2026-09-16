@@ -138,10 +138,10 @@ class AddProductActivity : AppCompatActivity() {
                 is AddProductViewModel.FormState.Loading -> setLoading(true)
                 is AddProductViewModel.FormState.Success -> {
                     setLoading(false)
-                    val message = if (state.isUpdate) {
-                        getString(R.string.product_updated)
-                    } else {
-                        getString(R.string.product_created)
+                    val message = when {
+                        state.savedOffline -> getString(R.string.saved_offline)
+                        state.isUpdate -> getString(R.string.product_updated)
+                        else -> getString(R.string.product_created)
                     }
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                     setResult(RESULT_OK)

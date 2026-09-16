@@ -18,6 +18,13 @@ import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.FragmentInventoryBinding
 import com.example.stockflow.ui.common.OfflineBanner
+import com.example.stockflow.ui.common.SyncStatusBanner
+import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.sync.SyncStatusRepository
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.stockflow.ui.scanner.BarcodeScannerActivity
 
 class InventoryFragment : Fragment() {
@@ -120,6 +127,16 @@ class InventoryFragment : Fragment() {
         super.onResume()
         viewModel.loadProducts(force = refreshOnResume)
         refreshOnResume = false
+        refreshSyncBanner()
+    }
+
+    private fun refreshSyncBanner() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val status = withContext(Dispatchers.IO) {
+                SyncStatusRepository(SessionStore(requireContext())).currentStatus()
+            }
+            SyncStatusBanner.show(binding.tvSyncBanner, status)
+        }
     }
 
     private fun renderState(state: ProductViewModel.ProductsUiState) {
