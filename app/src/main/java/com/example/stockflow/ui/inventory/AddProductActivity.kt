@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -100,9 +101,31 @@ class AddProductActivity : AppCompatActivity() {
                 sellingPriceText = binding.etSellingPrice.text.toString(),
                 stockLevelText = binding.etStockLevel.text.toString(),
                 minStockLevelText = binding.etMinStock.text.toString(),
-                categoryIdText = binding.etCategoryId.text.toString(),
+                categoryNameText = binding.actvCategory.text.toString(),
                 supplierIdText = binding.etSupplierId.text.toString()
             )
+        }
+
+        viewModel.categories.observe(this) { categories ->
+            val names = categories.map { it.name }
+            val adapter = ArrayAdapter(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                names
+            )
+            binding.actvCategory.setAdapter(adapter)
+
+            // If editing and the text field is still empty, resolve name from id.
+            if (binding.actvCategory.text.isNullOrBlank()) {
+                val product = viewModel.loadedProduct.value
+                val match = product?.let { p ->
+                    categories.firstOrNull { it.id == p.categoryId }?.name
+                        ?: p.categoryName?.takeIf { it.isNotBlank() }
+                }
+                if (!match.isNullOrBlank()) {
+                    binding.actvCategory.setText(match, false)
+                }
+            }
         }
 
         viewModel.loadedProduct.observe(this) { product ->
@@ -141,7 +164,13 @@ class AddProductActivity : AppCompatActivity() {
         binding.etSellingPrice.setText(product.sellingPrice.toString())
         binding.etStockLevel.setText(product.stockLevel.toString())
         binding.etMinStock.setText(product.minStockLevel.toString())
-        binding.etCategoryId.setText(product.categoryId.toString())
+        val categoryLabel = product.categoryName?.takeIf { it.isNotBlank() }
+            ?: viewModel.categories.value.orEmpty()
+                .firstOrNull { it.id == product.categoryId }
+                ?.name
+            .orEmpty()
+        binding.actvCategory.setText(categoryLabel, false)
+
         binding.etSupplierId.setText(product.supplierId?.toString().orEmpty())
 
         if (previewUri != null) {
@@ -192,6 +221,7 @@ class AddProductActivity : AppCompatActivity() {
         binding.imagePickerArea.isEnabled = !loading
         binding.btnRemoveImage.isEnabled = !loading
         binding.btnScanSku.isEnabled = !loading
+        binding.actvCategory.isEnabled = !loading
         if (loading) {
             binding.tvFormError.visibility = View.GONE
         }
