@@ -2,17 +2,12 @@ package com.example.stockflow.services
 
 import com.example.stockflow.config.AppConfig
 import com.example.stockflow.models.UnauthorizedException
-import com.google.auth.oauth2.GoogleCredentials
-import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.io.FileInputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
@@ -34,9 +29,6 @@ class FirebaseTokenVerifier {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val json = Json { ignoreUnknownKeys = true }
 
-    @Volatile
-    private var firebaseReady: Boolean? = null
-
     fun verifyIdToken(idToken: String): VerifiedFirebaseUser {
         if (idToken.isBlank()) {
             throw UnauthorizedException("Invalid Google token")
@@ -46,7 +38,7 @@ class FirebaseTokenVerifier {
         try {
             return verifyGoogleIdToken(idToken)
         } catch (googleError: UnauthorizedException) {
-            if (ensureFirebaseInitialized()) {
+            if (FirebaseAdminApp.ensureInitialized()) {
                 logger.info("Google tokeninfo rejected token; trying Firebase Admin verification")
                 return verifyFirebaseIdToken(idToken)
             }
@@ -148,49 +140,5 @@ class FirebaseTokenVerifier {
             email = email,
             displayName = displayName
         )
-    }
-
-    @Synchronized
-    private fun ensureFirebaseInitialized(): Boolean {
-        firebaseReady?.let { return it }
-
-        if (FirebaseApp.getApps().isNotEmpty()) {
-            firebaseReady = true
-            return true
-        }
-
-        val credentialsPath = resolveFirebaseCredentialsPath()
-        if (credentialsPath == null) {
-            logger.info("Firebase Admin credentials not found; using Google tokeninfo only")
-            firebaseReady = false
-            return false
-        }
-
-        return try {
-            FileInputStream(credentialsPath).use { stream ->
-                val options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(stream))
-                    .build()
-                FirebaseApp.initializeApp(options)
-            }
-            logger.info("Firebase Admin SDK initialized")
-            firebaseReady = true
-            true
-        } catch (e: Exception) {
-            logger.error("Failed to initialize Firebase Admin SDK", e)
-            firebaseReady = false
-            false
-        }
-    }
-
-    private fun resolveFirebaseCredentialsPath(): String? {
-        val configured = AppConfig.firebaseCredentialsPath?.trim()?.takeIf { it.isNotEmpty() }
-        val candidates = listOfNotNull(
-            configured,
-            "backend/firebase-service-account.json",
-            "./firebase-service-account.json",
-            "../firebase-service-account.json"
-        )
-        return candidates.firstOrNull { File(it).isFile }
     }
 }

@@ -42,6 +42,21 @@ object AppConfig {
     val firebaseCredentialsPath = getEnv("FIREBASE_CREDENTIALS_PATH")
 
     /**
+     * Inline Firebase service-account JSON (entire file contents as one env var).
+     * Preferred on Render where mounting a credentials file is awkward.
+     * Never commit this value; document the key name only in `.env.example`.
+     */
+    val firebaseCredentialsJson: String? =
+        getEnv("FIREBASE_CREDENTIALS_JSON")?.trim()?.takeIf { it.isNotEmpty() }
+
+    /**
+     * Optional Firebase / GCP project id (e.g. stockflow-be90c).
+     * Usually inferred from the service-account JSON; set explicitly if needed.
+     */
+    val firebaseProjectId: String? =
+        getEnv("FIREBASE_PROJECT_ID")?.trim()?.takeIf { it.isNotEmpty() }
+
+    /**
      * OAuth 2.0 Web client ID used to validate Google ID token `aud` claims.
      * Must match the Android app's requestIdToken / google_web_client_id.
      */

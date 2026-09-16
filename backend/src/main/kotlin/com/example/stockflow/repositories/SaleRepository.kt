@@ -2,6 +2,7 @@ package com.example.stockflow.repositories
 
 import com.example.stockflow.database.DatabaseFactory.dbQuery
 import com.example.stockflow.models.BadRequestException
+import com.example.stockflow.models.LowStockCrossing
 import com.example.stockflow.models.NotFoundException
 import com.example.stockflow.models.Products
 import com.example.stockflow.models.SaleItemResponse
@@ -30,12 +31,18 @@ data class SaleLineInput(
     val quantity: Int
 )
 
+data class CreateSaleResult(
+    val sale: SaleResponse,
+    /** Products that crossed into low stock during this sale (for FCM alerts). */
+    val lowStockCrossings: List<LowStockCrossing> = emptyList()
+)
+
 interface SaleRepository {
     suspend fun createSale(
         userId: Int,
         paymentMethod: String,
         lines: List<SaleLineInput>
-    ): SaleResponse
+    ): CreateSaleResult
 
     suspend fun getAllSales(): List<SaleResponse>
     suspend fun getSaleById(id: Int): SaleResponse?
@@ -47,7 +54,7 @@ class SaleRepositoryImpl : SaleRepository {
         userId: Int,
         paymentMethod: String,
         lines: List<SaleLineInput>
-    ): SaleResponse = dbQuery {
+    ): CreateSaleResult = dbQuery {
         // Entire sale + stock deduction runs in one suspended transaction.
         val pricedLines = mutableListOf<PricedLine>()
         var total = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
@@ -61,6 +68,7 @@ class SaleRepositoryImpl : SaleRepository {
 
             val name = product[Products.name]
             val stock = product[Products.stockLevel]
+            val minStock = product[Products.minStockLevel]
             val unitPrice = product[Products.sellingPrice].setScale(2, RoundingMode.HALF_UP)
 
             if (line.quantity > stock) {
@@ -75,6 +83,8 @@ class SaleRepositoryImpl : SaleRepository {
                 productId = line.productId,
                 productName = name,
                 quantity = line.quantity,
+                previousStock = stock,
+                minStockLevel = minStock,
                 unitPrice = unitPrice,
                 subtotal = subtotal
             )
@@ -129,13 +139,26 @@ class SaleRepositoryImpl : SaleRepository {
             )
         }
 
-        SaleResponse(
-            id = saleId,
-            userId = userId,
-            totalAmount = total.toDouble(),
-            paymentMethod = paymentMethod,
-            createdAt = formatDateTime(now),
-            items = itemResponses
+        val crossings = pricedLines.map { line ->
+            LowStockCrossing(
+                productId = line.productId,
+                productName = line.productName,
+                previousStock = line.previousStock,
+                currentStock = line.previousStock - line.quantity,
+                minStockLevel = line.minStockLevel
+            )
+        }
+
+        CreateSaleResult(
+            sale = SaleResponse(
+                id = saleId,
+                userId = userId,
+                totalAmount = total.toDouble(),
+                paymentMethod = paymentMethod,
+                createdAt = formatDateTime(now),
+                items = itemResponses
+            ),
+            lowStockCrossings = crossings
         )
     }
 
@@ -201,6 +224,8 @@ class SaleRepositoryImpl : SaleRepository {
         val productId: Int,
         val productName: String,
         val quantity: Int,
+        val previousStock: Int,
+        val minStockLevel: Int,
         val unitPrice: BigDecimal,
         val subtotal: BigDecimal
     )

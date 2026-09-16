@@ -4,6 +4,7 @@ import android.app.Application
 import com.example.stockflow.data.local.LanguagePreferences
 import com.example.stockflow.data.local.ThemePreferences
 import com.example.stockflow.data.local.cache.CacheDatabaseProvider
+import com.example.stockflow.data.notifications.FcmRegistrationHelper
 import com.example.stockflow.data.sync.SyncScheduler
 
 /**
@@ -23,6 +24,12 @@ class StockFlowApp : Application() {
             SyncScheduler.enqueueSync(this)
         } catch (_: Exception) {
             // WorkManager may be unavailable in unit-test environments.
+        }
+        try {
+            // Re-register FCM token after process start when a session exists.
+            FcmRegistrationHelper.registerIfLoggedIn(this)
+        } catch (_: Exception) {
+            // Firebase / Play Services may be unavailable in unit tests.
         }
     }
 
