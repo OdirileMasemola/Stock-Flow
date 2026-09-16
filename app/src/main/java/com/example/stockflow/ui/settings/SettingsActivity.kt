@@ -15,6 +15,13 @@ import com.example.stockflow.databinding.ActivitySettingsBinding
 import com.example.stockflow.databinding.ItemSettingsRowBinding
 import com.example.stockflow.ui.common.SystemBars
 import com.example.stockflow.ui.login.LoginActivity
+import com.example.stockflow.data.sync.SyncScheduler
+import com.example.stockflow.data.sync.SyncStatusRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
@@ -42,10 +49,32 @@ class SettingsActivity : AppCompatActivity() {
         setupClicks()
     }
 
+    private val uiScope = CoroutineScope(Dispatchers.Main + Job())
+
     override fun onResume() {
         super.onResume()
         binding.rowTheme.tvSubtitle.text = themeLabel(themePreferences.getMode())
         binding.rowLanguage.tvSubtitle.text = languageLabel(languagePreferences.getLanguageTag())
+        refreshSyncStatus()
+    }
+
+    override fun onDestroy() {
+        uiScope.coroutineContext[Job]?.cancel()
+        super.onDestroy()
+    }
+
+    private fun refreshSyncStatus() {
+        uiScope.launch {
+            val status = withContext(Dispatchers.IO) {
+                SyncStatusRepository(sessionStore).currentStatus()
+            }
+            binding.rowSync.tvSubtitle.text = when {
+                status.isSyncing -> getString(R.string.syncing)
+                status.hasFailed -> getString(R.string.sync_failed)
+                status.hasPending -> getString(R.string.pending_sync_count, status.pendingCount)
+                else -> getString(R.string.sync_up_to_date)
+            }
+        }
     }
 
     private fun bindRows() {
@@ -95,7 +124,7 @@ class SettingsActivity : AppCompatActivity() {
             iconColor = R.color.icon_sync,
             iconBg = R.color.icon_bg_sync,
             title = getString(R.string.settings_sync),
-            subtitle = getString(R.string.settings_coming_soon)
+            subtitle = getString(R.string.sync_status_checking)
         )
         bindRow(
             row = binding.rowAbout,
@@ -158,7 +187,7 @@ class SettingsActivity : AppCompatActivity() {
             showPlaceholder(getString(R.string.settings_notifications_placeholder))
         }
         binding.rowSync.root.setOnClickListener {
-            showPlaceholder(getString(R.string.settings_sync_placeholder))
+            showSyncDialog()
         }
         binding.rowAbout.root.setOnClickListener { showAboutDialog() }
         binding.rowVersion.root.setOnClickListener { showAboutDialog() }
@@ -241,6 +270,49 @@ class SettingsActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
             .show()
+    }
+
+    private fun showSyncDialog() {
+        uiScope.launch {
+            val status = withContext(Dispatchers.IO) {
+                SyncStatusRepository(sessionStore).currentStatus()
+            }
+            val body = buildString {
+                appendLine(getString(R.string.sync_status_online_offline_hint))
+                appendLine()
+                when {
+                    status.isSyncing -> appendLine(getString(R.string.syncing))
+                    status.hasFailed -> {
+                        appendLine(getString(R.string.sync_failed))
+                        if (!status.lastError.isNullOrBlank()) {
+                            appendLine(status.lastError)
+                        }
+                    }
+                    status.hasPending -> appendLine(
+                        getString(R.string.pending_sync_count, status.pendingCount)
+                    )
+                    else -> appendLine(getString(R.string.sync_complete))
+                }
+                if (status.hasPending || status.hasFailed) {
+                    appendLine()
+                    append(getString(R.string.changes_pending))
+                }
+            }
+            AlertDialog.Builder(this@SettingsActivity)
+                .setTitle(R.string.settings_sync)
+                .setMessage(body.trim())
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.retry_synchronization) { _, _ ->
+                    SyncScheduler.enqueueSyncReplace(this@SettingsActivity)
+                    Toast.makeText(
+                        this@SettingsActivity,
+                        R.string.syncing,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    refreshSyncStatus()
+                }
+                .show()
+        }
     }
 
     private fun showPlaceholder(message: String) {

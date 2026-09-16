@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 class ProductViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ProductRepository(
-        sessionStore = SessionStore(application.applicationContext)
+        sessionStore = SessionStore(application.applicationContext),
+        appContext = application.applicationContext
     )
 
     private var allProducts: List<ProductDto> = emptyList()
@@ -98,15 +99,25 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
 
     fun deleteProduct(product: ProductDto) {
         viewModelScope.launch {
-            val result = repository.deleteProduct(product.id)
-            if (result.isSuccess) {
-                allProducts = allProducts.filterNot { it.id == product.id }
-                _deleteMessage.postValue(getApplication<Application>().getString(R.string.item_deleted, product.name))
-                publishFiltered(lastQuery)
-            } else {
-                _deleteMessage.postValue(
-                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_failed_delete_product)
-                )
+            when (val result = repository.deleteProduct(product.id)) {
+                is com.example.stockflow.data.sync.WriteResult.Synced,
+                is com.example.stockflow.data.sync.WriteResult.Queued -> {
+                    allProducts = allProducts.filterNot { it.id == product.id }
+                    val msg = if (result.savedOffline) {
+                        getApplication<Application>().getString(R.string.saved_offline)
+                    } else {
+                        getApplication<Application>().getString(R.string.item_deleted, product.name)
+                    }
+                    _deleteMessage.postValue(msg)
+                    publishFiltered(lastQuery)
+                }
+                is com.example.stockflow.data.sync.WriteResult.Failed -> {
+                    _deleteMessage.postValue(
+                        result.message.ifBlank {
+                            getApplication<Application>().getString(R.string.error_failed_delete_product)
+                        }
+                    )
+                }
             }
         }
     }

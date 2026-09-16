@@ -441,4 +441,19 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
     <string name="offline_cached_banner">Ho bontšoa data e bolokiloeng — ha u online</string>
     <string name="offline_cached_at">Ho bontšoa data e bolokiloeng ho tloha ka %1$s</string>
     <string name="offline_no_cached_data">Ha u online mme ha ho na data e bolokiloeng e fumanehang.</string>
+
+    <string name="saved_offline">E bolokiloe ntle le inthanete</string>
+    <string name="pending_sync">Tumellano e emetseng</string>
+    <string name="pending_sync_count">Tumellano e emetseng (%1$d)</string>
+    <string name="syncing">E ntse e tsamaisana…</string>
+    <string name="sync_complete">Tumellano e phethiloe</string>
+    <string name="sync_failed">Tumellano e hlolehile</string>
+    <string name="changes_pending">Liphetoho li ntse li emetse</string>
+    <string name="no_internet">Ha ho na inthanete</string>
+    <string name="retry_synchronization">Leka tumellano hape</string>
+    <string name="sync_up_to_date">E ntlafatsoa</string>
+    <string name="sync_status_checking">E ntse e hlahloba…</string>
+    <string name="sync_status_online_offline_hint">Liphetoho tsa online li tsamaisana hang-hang. Liphetoho tsa sehlahisoa ntle le inthanete li ema mona ho fihlela khokahano e fumaneha.</string>
+    <string name="error_offline_category_requires_existing">Ha u online. Khetha sehlopha se seng se le teng, kapa khokahana hape ho theha se secha.</string>
+
 </resources>

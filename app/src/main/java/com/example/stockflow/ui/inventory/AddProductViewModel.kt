@@ -17,6 +17,7 @@ import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.UpdateProductRequest
 import com.example.stockflow.data.repository.CategoryRepository
 import com.example.stockflow.data.repository.ProductRepository
+import com.example.stockflow.data.sync.WriteResult
 import com.example.stockflow.ui.common.ProductImages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,12 +25,15 @@ import kotlinx.coroutines.withContext
 
 /**
  * Handles create and edit product form submissions, including optional image upload
- * and in-place category pick/create.
+ * and in-place category pick/create. Offline saves queue writes (no image upload offline).
  */
 class AddProductViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sessionStore = SessionStore(application.applicationContext)
-    private val repository = ProductRepository(sessionStore = sessionStore)
+    private val repository = ProductRepository(
+        sessionStore = sessionStore,
+        appContext = application.applicationContext
+    )
     private val categoryRepository = CategoryRepository(sessionStore = sessionStore)
 
     private val _formState = MutableLiveData<FormState>()
@@ -141,6 +145,23 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
 
         _formState.value = FormState.Loading
         viewModelScope.launch {
+            // New local image requires network upload — never queue offline.
+            if (pendingImageUri != null) {
+                val imageUrlResult = uploadLocalImage(pendingImageUri!!)
+                if (imageUrlResult.isFailure) {
+                    _formState.postValue(
+                        FormState.Error(
+                            imageUrlResult.exceptionOrNull()?.message
+                                ?: getApplication<Application>().getString(R.string.image_upload_failed)
+                        )
+                    )
+                    return@launch
+                }
+                existingImageUrl = imageUrlResult.getOrNull()
+                pendingImageUri = null
+                imageRemoved = false
+            }
+
             val categoryResult = resolveCategoryId(categoryName)
             if (categoryResult.isFailure) {
                 _formState.postValue(
@@ -153,17 +174,10 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
             }
             val categoryId = categoryResult.getOrNull()!!
 
-            val imageUrlResult = resolveImageUrlForSave()
-            if (imageUrlResult.isFailure) {
-                _formState.postValue(
-                    FormState.Error(
-                        imageUrlResult.exceptionOrNull()?.message
-                            ?: getApplication<Application>().getString(R.string.image_upload_failed)
-                    )
-                )
-                return@launch
+            val imageUrl = when {
+                imageRemoved -> null
+                else -> existingImageUrl
             }
-            val imageUrl = imageUrlResult.getOrNull()
 
             val result = if (productId == null) {
                 repository.createProduct(
@@ -177,7 +191,8 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                         categoryId = categoryId,
                         supplierId = supplierId,
                         imageUrl = imageUrl
-                    )
+                    ),
+                    categoryName = categoryName
                 )
             } else {
                 repository.updateProduct(
@@ -192,19 +207,31 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                         categoryId = categoryId,
                         supplierId = supplierId,
                         imageUrl = imageUrl
-                    )
+                    ),
+                    categoryName = categoryName
                 )
             }
 
-            if (result.isSuccess) {
-                _formState.postValue(FormState.Success(result.getOrNull()!!, isUpdate = productId != null))
-            } else {
-                _formState.postValue(
-                    FormState.Error(
-                        result.exceptionOrNull()?.message
-                            ?: getApplication<Application>().getString(R.string.error_failed_save_product)
+            when (result) {
+                is WriteResult.Synced -> {
+                    _formState.postValue(
+                        FormState.Success(result.data, isUpdate = productId != null, savedOffline = false)
                     )
-                )
+                }
+                is WriteResult.Queued -> {
+                    _formState.postValue(
+                        FormState.Success(result.data, isUpdate = productId != null, savedOffline = true)
+                    )
+                }
+                is WriteResult.Failed -> {
+                    _formState.postValue(
+                        FormState.Error(
+                            result.message.ifBlank {
+                                getApplication<Application>().getString(R.string.error_failed_save_product)
+                            }
+                        )
+                    )
+                }
             }
         }
     }
@@ -235,17 +262,6 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
             created.exceptionOrNull()
                 ?: Exception(getApplication<Application>().getString(R.string.error_failed_resolve_category))
         )
-    }
-
-    private suspend fun resolveImageUrlForSave(): Result<String?> {
-        val localUri = pendingImageUri
-        if (localUri != null) {
-            return uploadLocalImage(localUri)
-        }
-        if (imageRemoved) {
-            return Result.success(null)
-        }
-        return Result.success(existingImageUrl)
     }
 
     private suspend fun uploadLocalImage(uri: Uri): Result<String> = withContext(Dispatchers.IO) {
@@ -309,7 +325,11 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
     sealed class FormState {
         object Idle : FormState()
         object Loading : FormState()
-        data class Success(val product: ProductDto, val isUpdate: Boolean) : FormState()
+        data class Success(
+            val product: ProductDto,
+            val isUpdate: Boolean,
+            val savedOffline: Boolean = false
+        ) : FormState()
         data class Error(val message: String) : FormState()
     }
 

@@ -441,4 +441,19 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="offline_cached_banner">Kuboniswa idatha egciniwe — awukho ku-inthanethi</string>
     <string name="offline_cached_at">Kuboniswa idatha egciniwe kusukela ngo-%1$s</string>
     <string name="offline_no_cached_data">Awukho ku-inthanethi futhi ayikho idatha egciniwe etholakalayo.</string>
+
+    <string name="saved_offline">Kulondolozwe ngaphandle kwe-inthanethi</string>
+    <string name="pending_sync">Ukuvumelanisa okulindile</string>
+    <string name="pending_sync_count">Ukuvumelanisa okulindile (%1$d)</string>
+    <string name="syncing">Iyavumelanisa…</string>
+    <string name="sync_complete">Ukuvumelanisa kuqediwe</string>
+    <string name="sync_failed">Ukuvumelanisa kuhlulekile</string>
+    <string name="changes_pending">Izinguquko zisalindile</string>
+    <string name="no_internet">Ayikho i-inthanethi</string>
+    <string name="retry_synchronization">Zama ukuvumelanisa futhi</string>
+    <string name="sync_up_to_date">Kusabusha</string>
+    <string name="sync_status_checking">Iyacubungula…</string>
+    <string name="sync_status_online_offline_hint">Izinguquko eziku-inthanethi zivumelaniswa ngokushesha. Izinguquko zomkhiqizo ngaphandle kwe-inthanethi zilinda lapha kuze kube khona uxhumano.</string>
+    <string name="error_offline_category_requires_existing">Awukho ku-inthanethi. Khetha isigaba esikhona, noma uxhumeke kabusha ukuze udale esisha.</string>
+
 </resources>

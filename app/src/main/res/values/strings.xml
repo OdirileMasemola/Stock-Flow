@@ -465,4 +465,19 @@
     <string name="offline_cached_banner">Showing cached data — you are offline</string>
     <string name="offline_cached_at">Showing cached data from %1$s</string>
     <string name="offline_no_cached_data">You are offline and no cached data is available.</string>
+
+    <string name="saved_offline">Saved offline</string>
+    <string name="pending_sync">Pending sync</string>
+    <string name="pending_sync_count">Pending sync (%1$d)</string>
+    <string name="syncing">Syncing…</string>
+    <string name="sync_complete">Sync complete</string>
+    <string name="sync_failed">Sync failed</string>
+    <string name="changes_pending">Changes pending</string>
+    <string name="no_internet">No internet</string>
+    <string name="retry_synchronization">Retry synchronization</string>
+    <string name="sync_up_to_date">Up to date</string>
+    <string name="sync_status_checking">Checking…</string>
+    <string name="sync_status_online_offline_hint">Online writes sync immediately. Offline product changes wait here until a connection is available.</string>
+    <string name="error_offline_category_requires_existing">You are offline. Choose an existing category, or reconnect to create a new one.</string>
+
 </resources>
