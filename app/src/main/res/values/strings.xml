@@ -190,6 +190,9 @@
     <string name="label_category_id">Category ID</string>
     <string name="hint_category_id">e.g. 1</string>
     <string name="category_id_help">Must match an existing category. Default seeded category is usually ID 1 (General).</string>
+    <string name="label_category">Category</string>
+    <string name="hint_category">e.g. Electronics</string>
+    <string name="category_help">Pick an existing category or type a new name to create one.</string>
     <string name="label_supplier_id">Supplier ID (optional)</string>
     <string name="hint_supplier_id">Leave blank if none</string>
     <string name="save_product">Save Product</string>
@@ -363,6 +366,10 @@
     <string name="error_valid_stock_level">Enter a valid stock level</string>
     <string name="error_valid_min_stock">Enter a valid minimum stock level</string>
     <string name="error_valid_category_id">Enter a valid category ID</string>
+    <string name="error_category_required">Enter a category name</string>
+    <string name="error_category_name_too_long">Category name must be 50 characters or fewer</string>
+    <string name="error_unable_load_categories">Unable to load categories</string>
+    <string name="error_failed_resolve_category">Unable to set category</string>
     <string name="error_valid_supplier_id">Enter a valid supplier ID (or leave blank)</string>
     <string name="error_cost_price_negative">Cost price cannot be negative</string>
     <string name="error_selling_price_negative">Selling price cannot be negative</string>

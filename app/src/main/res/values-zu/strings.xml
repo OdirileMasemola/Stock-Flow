@@ -175,6 +175,9 @@
     <string name="label_category_id">I-ID Yesigaba</string>
     <string name="hint_category_id">isb. 1</string>
     <string name="category_id_help">Kufanele ihambisane nesigaba esikhona. Isigaba esihlwanyelwe ngokuvamile sivamise ukuba yi-ID 1 (Okujwayelekile).</string>
+    <string name="label_category">Isigaba</string>
+    <string name="hint_category">isb. Ama-elektroniki</string>
+    <string name="category_help">Khetha isigaba esikhona noma thayipha igama elisha ukuze usakhe.</string>
     <string name="label_supplier_id">I-ID Yomphakeli (okukhethayo)</string>
     <string name="hint_supplier_id">Shiya ingenalutho uma kungekho</string>
     <string name="save_product">Londoloza Umkhiqizo</string>
@@ -339,6 +342,10 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="error_valid_stock_level">Faka izinga lesitoreji elivumelekile</string>
     <string name="error_valid_min_stock">Faka izinga lesitoreji elincane elivumelekile</string>
     <string name="error_valid_category_id">Faka i-ID yesigaba evumelekile</string>
+    <string name="error_category_required">Faka igama lesigaba</string>
+    <string name="error_category_name_too_long">Igama lesigaba kufanele libe nezinhlamvu ezingama-50 noma ngaphansi</string>
+    <string name="error_unable_load_categories">Ayikwazi ukulayisha izigaba</string>
+    <string name="error_failed_resolve_category">Ayikwazi ukusetha isigaba</string>
     <string name="error_valid_supplier_id">Faka i-ID yomphakeli evumelekile (noma shiya ingenalutho)</string>
     <string name="error_cost_price_negative">Intengo yokubiza ayikwazi ukuba ngaphansi kuka-zero</string>
     <string name="error_selling_price_negative">Intengo yokuthengisa ayikwazi ukuba ngaphansi kuka-zero</string>

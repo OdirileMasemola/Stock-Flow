@@ -46,6 +46,11 @@ object RetrofitClient {
         retrofit.create(SupplierApi::class.java)
     }
 
+    /** Authenticated categories — callers pass the Bearer JWT header. */
+    val categoryApi: CategoryApi by lazy {
+        retrofit.create(CategoryApi::class.java)
+    }
+
     /** Authenticated purchase orders — callers pass the Bearer JWT header. */
     val purchaseOrderApi: PurchaseOrderApi by lazy {
         retrofit.create(PurchaseOrderApi::class.java)
