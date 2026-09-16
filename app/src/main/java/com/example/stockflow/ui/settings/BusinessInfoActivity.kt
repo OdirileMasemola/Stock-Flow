@@ -16,6 +16,7 @@ import com.example.stockflow.R
 import com.example.stockflow.data.remote.BusinessDto
 import com.example.stockflow.databinding.ActivityBusinessInfoBinding
 import com.example.stockflow.ui.common.FullscreenImageActivity
+import com.example.stockflow.ui.common.OfflineBanner
 import com.example.stockflow.ui.common.ProductImages
 import com.example.stockflow.ui.common.SystemBars
 import com.google.android.gms.common.api.ResolvableApiException
@@ -66,6 +67,12 @@ class BusinessInfoActivity : AppCompatActivity() {
         SystemBars.applyThemeAware(this, binding.businessRoot)
 
         binding.toolbar.setNavigationOnClickListener { finish() }
+        viewModel.fromCache.observe(this) { fromCache ->
+            OfflineBanner.show(binding.tvOfflineBanner, fromCache == true, viewModel.cachedAt.value)
+        }
+        viewModel.cachedAt.observe(this) { cachedAt ->
+            OfflineBanner.show(binding.tvOfflineBanner, viewModel.fromCache.value == true, cachedAt)
+        }
         binding.btnChangeStoreImage.setOnClickListener {
             imagePicker.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)

@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.CreateSupplierRequest
 import com.example.stockflow.data.remote.SupplierDto
 import com.example.stockflow.data.remote.UpdateSupplierRequest
@@ -31,14 +33,17 @@ class AddSupplierViewModel(application: Application) : AndroidViewModel(applicat
     fun loadSupplier(id: Int) {
         _formState.value = FormState.Loading
         viewModelScope.launch {
-            val result = repository.getSupplier(id)
-            if (result.isSuccess) {
-                _loadedSupplier.postValue(result.getOrNull())
-                _formState.postValue(FormState.Idle)
-            } else {
-                _formState.postValue(
-                    FormState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_supplier))
-                )
+            when (val result = repository.getSupplier(id)) {
+                is CacheResult.Fresh, is CacheResult.Cached -> {
+                    _loadedSupplier.postValue(result.getOrNull())
+                    _formState.postValue(FormState.Idle)
+                }
+                CacheResult.Empty -> {
+                    _formState.postValue(FormState.Error(AppStrings.get(R.string.offline_no_cached_data)))
+                }
+                is CacheResult.Error -> {
+                    _formState.postValue(FormState.Error(result.message))
+                }
             }
         }
     }

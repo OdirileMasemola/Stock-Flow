@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.CreatePurchaseOrderItemRequest
 import com.example.stockflow.data.remote.CreatePurchaseOrderRequest
 import com.example.stockflow.data.remote.ProductDto
@@ -62,18 +64,27 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
     fun loadPurchaseOrders() {
         _listState.value = ListUiState.Loading
         viewModelScope.launch {
-            val result = poRepository.getPurchaseOrders()
-            if (result.isSuccess) {
-                val orders = result.getOrDefault(emptyList())
-                _listState.postValue(
-                    if (orders.isEmpty()) ListUiState.Empty else ListUiState.Success(orders)
-                )
-            } else {
-                _listState.postValue(
-                    ListUiState.Error(
-                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_purchase_orders)
+            when (val result = poRepository.getPurchaseOrders()) {
+                is CacheResult.Fresh -> {
+                    val orders = result.data
+                    _listState.postValue(
+                        if (orders.isEmpty()) ListUiState.Empty()
+                        else ListUiState.Success(orders, fromCache = false, cachedAt = null)
                     )
-                )
+                }
+                is CacheResult.Cached -> {
+                    val orders = result.data
+                    _listState.postValue(
+                        if (orders.isEmpty()) ListUiState.Empty(fromCache = true, cachedAt = result.cachedAt)
+                        else ListUiState.Success(orders, fromCache = true, cachedAt = result.cachedAt)
+                    )
+                }
+                CacheResult.Empty -> {
+                    _listState.postValue(ListUiState.Error(AppStrings.get(R.string.offline_no_cached_data)))
+                }
+                is CacheResult.Error -> {
+                    _listState.postValue(ListUiState.Error(result.message))
+                }
             }
         }
     }
@@ -81,15 +92,19 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
     fun loadPurchaseOrder(id: Int) {
         _detailState.value = DetailUiState.Loading
         viewModelScope.launch {
-            val result = poRepository.getPurchaseOrder(id)
-            if (result.isSuccess) {
-                _detailState.postValue(DetailUiState.Success(result.getOrNull()!!))
-            } else {
-                _detailState.postValue(
-                    DetailUiState.Error(
-                        result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_purchase_order)
-                    )
-                )
+            when (val result = poRepository.getPurchaseOrder(id)) {
+                is CacheResult.Fresh -> {
+                    _detailState.postValue(DetailUiState.Success(result.data, fromCache = false, cachedAt = null))
+                }
+                is CacheResult.Cached -> {
+                    _detailState.postValue(DetailUiState.Success(result.data, fromCache = true, cachedAt = result.cachedAt))
+                }
+                CacheResult.Empty -> {
+                    _detailState.postValue(DetailUiState.Error(AppStrings.get(R.string.offline_no_cached_data)))
+                }
+                is CacheResult.Error -> {
+                    _detailState.postValue(DetailUiState.Error(result.message))
+                }
             }
         }
     }
@@ -121,25 +136,35 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
             val suppliersResult = supplierRepository.getSuppliers()
             val productsResult = productRepository.getProducts()
 
-            if (suppliersResult.isFailure) {
+            val suppliers = suppliersResult.getOrNull()
+            val products = productsResult.getOrNull()
+            if (suppliers == null) {
                 _createState.postValue(
                     CreateUiState.Error(
-                        suppliersResult.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_suppliers)
+                        when (suppliersResult) {
+                            CacheResult.Empty -> AppStrings.get(R.string.offline_no_cached_data)
+                            is CacheResult.Error -> suppliersResult.message
+                            else -> getApplication<Application>().getString(R.string.error_unable_load_suppliers)
+                        }
                     )
                 )
                 return@launch
             }
-            if (productsResult.isFailure) {
+            if (products == null) {
                 _createState.postValue(
                     CreateUiState.Error(
-                        productsResult.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_products)
+                        when (productsResult) {
+                            CacheResult.Empty -> AppStrings.get(R.string.offline_no_cached_data)
+                            is CacheResult.Error -> productsResult.message
+                            else -> getApplication<Application>().getString(R.string.error_unable_load_products)
+                        }
                     )
                 )
                 return@launch
             }
 
-            _suppliers.postValue(suppliersResult.getOrDefault(emptyList()))
-            _products.postValue(productsResult.getOrDefault(emptyList()))
+            _suppliers.postValue(suppliers)
+            _products.postValue(products)
             _createState.postValue(CreateUiState.Ready)
         }
     }
@@ -235,14 +260,22 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
 
     sealed class ListUiState {
         object Loading : ListUiState()
-        object Empty : ListUiState()
-        data class Success(val orders: List<PurchaseOrderDto>) : ListUiState()
+        data class Empty(val fromCache: Boolean = false, val cachedAt: Long? = null) : ListUiState()
+        data class Success(
+            val orders: List<PurchaseOrderDto>,
+            val fromCache: Boolean = false,
+            val cachedAt: Long? = null
+        ) : ListUiState()
         data class Error(val message: String) : ListUiState()
     }
 
     sealed class DetailUiState {
         object Loading : DetailUiState()
-        data class Success(val order: PurchaseOrderDto) : DetailUiState()
+        data class Success(
+            val order: PurchaseOrderDto,
+            val fromCache: Boolean = false,
+            val cachedAt: Long? = null
+        ) : DetailUiState()
         data class Error(val message: String) : DetailUiState()
     }
 

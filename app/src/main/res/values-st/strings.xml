@@ -438,4 +438,7 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
     <string name="pdf_section_purchases">Theko</string>
     <string name="pdf_payment_breakdown">Karohanyo ea tefo:</string>
     <string name="default_user_name">Mosebelisi</string>
+    <string name="offline_cached_banner">Ho bontšoa data e bolokiloeng — ha u online</string>
+    <string name="offline_cached_at">Ho bontšoa data e bolokiloeng ho tloha ka %1$s</string>
+    <string name="offline_no_cached_data">Ha u online mme ha ho na data e bolokiloeng e fumanehang.</string>
 </resources>

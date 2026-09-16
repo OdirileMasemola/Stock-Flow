@@ -4,6 +4,13 @@ import com.example.stockflow.R
 import com.example.stockflow.ui.common.AppStrings
 
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.BusinessCacheDao
+import com.example.stockflow.data.local.cache.CacheDatabaseProvider
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.data.local.cache.ProfileCacheDao
+import com.example.stockflow.data.local.cache.StockFlowCacheDatabase
+import com.example.stockflow.data.local.cache.toCachedEntity
+import com.example.stockflow.data.local.cache.toDto
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.BusinessApi
 import com.example.stockflow.data.remote.BusinessDto
@@ -21,24 +28,39 @@ import java.io.IOException
 
 class UserRepository(
     private val api: UserApi = RetrofitClient.userApi,
-    private val sessionStore: SessionStore
+    private val sessionStore: SessionStore,
+    private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
+    private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val gson = Gson()
+    private val profileDao: ProfileCacheDao? get() = database?.profileDao()
 
-    suspend fun getProfile(): Result<ProfileDto> {
+    suspend fun getProfile(): CacheResult<ProfileDto> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getProfile(authHeader())
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_profile)))
-                Result.success(body)
+                    ?: return CacheResult.Error(AppStrings.get(R.string.error_unable_load_profile))
+                if (userId != null) {
+                    profileDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
+                CacheResult.Fresh(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_profile))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_profile)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            if (userId == null) {
+                return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+            }
+            val cached = profileDao?.get(userId)
+            if (cached != null) {
+                CacheResult.Cached(cached.toDto(), cached.cachedAt)
+            } else {
+                CacheResult.Empty
+            }
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_profile)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_profile))
         }
     }
 
@@ -55,6 +77,9 @@ class UserRepository(
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_profile)))
                 sessionStore.saveUserFullName(body.fullName)
+                sessionStore.getUserId()?.let { userId ->
+                    profileDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_profile))))
@@ -114,24 +139,39 @@ class UserRepository(
 
 class BusinessRepository(
     private val api: BusinessApi = RetrofitClient.businessApi,
-    private val sessionStore: SessionStore
+    private val sessionStore: SessionStore,
+    private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
+    private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val gson = Gson()
+    private val businessDao: BusinessCacheDao? get() = database?.businessDao()
 
-    suspend fun getBusiness(): Result<BusinessDto> {
+    suspend fun getBusiness(): CacheResult<BusinessDto> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getBusiness(authHeader())
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_business)))
-                Result.success(body)
+                    ?: return CacheResult.Error(AppStrings.get(R.string.error_unable_load_business))
+                if (userId != null) {
+                    businessDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
+                CacheResult.Fresh(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_business))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_business)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            if (userId == null) {
+                return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+            }
+            val cached = businessDao?.get(userId)
+            if (cached != null) {
+                CacheResult.Cached(cached.toDto(), cached.cachedAt)
+            } else {
+                CacheResult.Empty
+            }
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_business)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_business))
         }
     }
 
@@ -141,6 +181,9 @@ class BusinessRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_save_business)))
+                sessionStore.getUserId()?.let { userId ->
+                    businessDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_save_business))))

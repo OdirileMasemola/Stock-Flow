@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.SaleDto
 import com.example.stockflow.data.repository.ProductRepository
@@ -49,15 +51,20 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
         _productsState.value = ProductsUiState.Loading
         viewModelScope.launch {
             try {
-                val result = productRepository.getProducts()
-                if (result.isSuccess) {
-                    allProducts = result.getOrDefault(emptyList())
-                    CartSession.syncWithProducts(allProducts)
-                    publishFiltered(lastQuery)
-                } else {
-                    _productsState.postValue(
-                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_products))
-                    )
+                when (val result = productRepository.getProducts()) {
+                    is CacheResult.Fresh, is CacheResult.Cached -> {
+                        allProducts = result.getOrNull().orEmpty()
+                        CartSession.syncWithProducts(allProducts)
+                        publishFiltered(lastQuery)
+                    }
+                    CacheResult.Empty -> {
+                        _productsState.postValue(
+                            ProductsUiState.Error(AppStrings.get(R.string.offline_no_cached_data))
+                        )
+                    }
+                    is CacheResult.Error -> {
+                        _productsState.postValue(ProductsUiState.Error(result.message))
+                    }
                 }
             } finally {
                 productsLoadInFlight = false
