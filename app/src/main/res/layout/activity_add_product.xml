@@ -311,18 +311,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="@string/label_category_id"
+                    android:text="@string/label_category"
                     android:textColor="@color/brand_text_light"
                     android:textSize="12sp" />
 
-                <EditText
-                    android:id="@+id/etCategoryId"
+                <AutoCompleteTextView
+                    android:id="@+id/actvCategory"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/bg_input_box"
-                    android:hint="@string/hint_category_id"
-                    android:inputType="number"
+                    android:completionThreshold="1"
+                    android:hint="@string/hint_category"
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapWords"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/brand_text_dark"
                     android:textColorHint="@color/brand_text_light"
@@ -332,7 +334,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="@string/category_id_help"
+                    android:text="@string/category_help"
                     android:textColor="@color/brand_text_light"
                     android:textSize="11sp" />
 

@@ -175,6 +175,9 @@
     <string name="label_category_id">ID ea Sehlopha</string>
     <string name="hint_category_id">mohl. 1</string>
     <string name="category_id_help">E tlameha ho tšoana le sehlopha se teng. Sehlopha se jalo hangata ke ID 1 (Kakaretso).</string>
+    <string name="label_category">Sehlopha</string>
+    <string name="hint_category">mohl. Lielektroneke</string>
+    <string name="category_help">Khetha sehlopha se teng kapa ngola lebitso le lecha ho se theha.</string>
     <string name="label_supplier_id">ID ea Mofani (boikhethelo)</string>
     <string name="hint_supplier_id">Siea e se na letho haeba ho se letho</string>
     <string name="save_product">Boloka Sehlahisoa</string>
@@ -339,6 +342,10 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
     <string name="error_valid_stock_level">Kenya boemo ba pokello bo nepahalang</string>
     <string name="error_valid_min_stock">Kenya boemo ba pokello e nyane bo nepahalang</string>
     <string name="error_valid_category_id">Kenya ID ea sehlopha e nepahalang</string>
+    <string name="error_category_required">Kenya lebitso la sehlopha</string>
+    <string name="error_category_name_too_long">Lebitso la sehlopha le tlameha ho ba le litlhaku tse 50 kapa ka tlase</string>
+    <string name="error_unable_load_categories">Ha e khone ho kenya lihlopha</string>
+    <string name="error_failed_resolve_category">Ha e khone ho behela sehlopha</string>
     <string name="error_valid_supplier_id">Kenya ID ea mofani e nepahalang (kapa siea e se na letho)</string>
     <string name="error_cost_price_negative">Theko ea litšenyehelo e ke ke ea ba ka tlase ho zero</string>
     <string name="error_selling_price_negative">Theko ea thekiso e ke ke ea ba ka tlase ho zero</string>

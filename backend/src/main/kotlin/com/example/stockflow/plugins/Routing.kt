@@ -14,6 +14,7 @@ import com.example.stockflow.services.RoleService
 import com.example.stockflow.services.ProductService
 import com.example.stockflow.services.SaleService
 import com.example.stockflow.services.SupplierService
+import com.example.stockflow.services.CategoryService
 import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.services.DashboardService
 import com.example.stockflow.services.BusinessService
@@ -25,6 +26,7 @@ import com.example.stockflow.models.UpdateProductRequest
 import com.example.stockflow.models.CreateSaleRequest
 import com.example.stockflow.models.CreateSupplierRequest
 import com.example.stockflow.models.UpdateSupplierRequest
+import com.example.stockflow.models.CreateCategoryRequest
 import com.example.stockflow.models.CreatePurchaseOrderRequest
 import com.example.stockflow.models.UpdatePurchaseOrderRequest
 import com.example.stockflow.models.UpdateProfileRequest
@@ -40,6 +42,7 @@ fun Application.configureRouting() {
     val productService = ProductService()
     val saleService = SaleService()
     val supplierService = SupplierService()
+    val categoryService = CategoryService()
     val purchaseOrderService = PurchaseOrderService()
     val dashboardService = DashboardService()
     val businessService = BusinessService()
@@ -281,6 +284,18 @@ fun Application.configureRouting() {
                         ?: throw BadRequestException("Invalid supplier ID")
                     supplierService.deleteSupplier(id)
                     call.respond(HttpStatusCode.NoContent)
+                }
+            }
+
+            route("/api/categories") {
+                get {
+                    call.respond(categoryService.getCategories())
+                }
+                post {
+                    val request = call.receive<CreateCategoryRequest>()
+                    val result = categoryService.findOrCreate(request)
+                    val status = if (result.created) HttpStatusCode.Created else HttpStatusCode.OK
+                    call.respond(status, result.category)
                 }
             }
 
