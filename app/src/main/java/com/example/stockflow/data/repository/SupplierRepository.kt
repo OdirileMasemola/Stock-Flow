@@ -4,6 +4,12 @@ import com.example.stockflow.R
 import com.example.stockflow.ui.common.AppStrings
 
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheDatabaseProvider
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.data.local.cache.StockFlowCacheDatabase
+import com.example.stockflow.data.local.cache.SupplierCacheDao
+import com.example.stockflow.data.local.cache.toCachedEntity
+import com.example.stockflow.data.local.cache.toDto
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CreateSupplierRequest
 import com.example.stockflow.data.remote.RetrofitClient
@@ -19,39 +25,68 @@ import java.io.IOException
  */
 class SupplierRepository(
     private val api: SupplierApi = RetrofitClient.supplierApi,
-    private val sessionStore: SessionStore
+    private val sessionStore: SessionStore,
+    private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
+    private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val gson = Gson()
+    private val supplierDao: SupplierCacheDao? get() = database?.supplierDao()
 
-    suspend fun getSuppliers(): Result<List<SupplierDto>> {
+    suspend fun getSuppliers(): CacheResult<List<SupplierDto>> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getSuppliers(authHeader())
             if (response.isSuccessful) {
-                Result.success(response.body().orEmpty())
+                val data = response.body().orEmpty()
+                if (userId != null) {
+                    val cachedAt = clock()
+                    supplierDao?.replaceAll(userId, data.map { it.toCachedEntity(userId, cachedAt) })
+                }
+                CacheResult.Fresh(data)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_suppliers))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_suppliers)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            if (userId == null) {
+                return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+            }
+            val cached = supplierDao?.getAll(userId).orEmpty()
+            if (cached.isNotEmpty()) {
+                CacheResult.Cached(cached.map { it.toDto() }, cached.maxOf { it.cachedAt })
+            } else {
+                CacheResult.Empty
+            }
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_suppliers)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_suppliers))
         }
     }
 
-    suspend fun getSupplier(id: Int): Result<SupplierDto> {
+    suspend fun getSupplier(id: Int): CacheResult<SupplierDto> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getSupplier(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_supplier_not_found)))
-                Result.success(body)
+                    ?: return CacheResult.Error(AppStrings.get(R.string.error_supplier_not_found))
+                if (userId != null) {
+                    supplierDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
+                CacheResult.Fresh(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_supplier))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_supplier)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            if (userId == null) {
+                return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+            }
+            val cached = supplierDao?.getById(userId, id)
+            if (cached != null) {
+                CacheResult.Cached(cached.toDto(), cached.cachedAt)
+            } else {
+                CacheResult.Empty
+            }
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_supplier)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_supplier))
         }
     }
 
@@ -61,6 +96,9 @@ class SupplierRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_create_supplier)))
+                sessionStore.getUserId()?.let { userId ->
+                    supplierDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_create_supplier))))
@@ -78,6 +116,9 @@ class SupplierRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_supplier)))
+                sessionStore.getUserId()?.let { userId ->
+                    supplierDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_supplier))))
@@ -93,6 +134,9 @@ class SupplierRepository(
         return try {
             val response = api.deleteSupplier(authHeader(), id)
             if (response.isSuccessful || response.code() == 204) {
+                sessionStore.getUserId()?.let { userId ->
+                    supplierDao?.deleteById(userId, id)
+                }
                 Result.success(Unit)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_delete_supplier))))

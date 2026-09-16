@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.example.stockflow.data.local.cache.CacheDatabaseProvider
 import org.json.JSONObject
 
 class SessionStore(context: Context) {
@@ -28,12 +29,28 @@ class SessionStore(context: Context) {
     fun getUserFullName(): String? =
         prefs.getString(KEY_USER_FULL_NAME, null)?.takeIf { it.isNotBlank() }
 
+    /**
+     * Parses the StockFlow JWT `userId` claim. Does not store the token or claim in Room.
+     */
+    fun getUserId(): Int? {
+        val token = getToken()?.takeIf { it.isNotBlank() } ?: return null
+        return parseUserIdFromJwt(token)
+    }
+
     /** Clears the JWT and profile display fields (keeps first-launch / Get Started flag). */
     fun clearSession() {
+        val userId = getUserId()
         prefs.edit()
             .remove(KEY_TOKEN)
             .remove(KEY_USER_FULL_NAME)
             .apply()
+        if (userId != null && CacheDatabaseProvider.getOrNull() != null) {
+            try {
+                CacheDatabaseProvider.clearUserBlocking(userId)
+            } catch (_: Exception) {
+                // Best-effort cache wipe on logout
+            }
+        }
     }
 
     /**
@@ -115,6 +132,25 @@ class SessionStore(context: Context) {
                 expSeconds * 1000L <= System.currentTimeMillis()
             } catch (_: Exception) {
                 false
+            }
+        }
+
+        /** Reads the `userId` claim from a StockFlow JWT. Returns null if missing/unparseable. */
+        fun parseUserIdFromJwt(token: String): Int? {
+            return try {
+                val parts = token.split('.')
+                if (parts.size < 2) return null
+                val payloadJson = String(
+                    Base64.decode(parts[1], Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+                )
+                val payload = JSONObject(payloadJson)
+                when {
+                    payload.has("userId") && !payload.isNull("userId") -> payload.getInt("userId")
+                    payload.has("sub") -> payload.optString("sub").toIntOrNull()
+                    else -> null
+                }
+            } catch (_: Exception) {
+                null
             }
         }
     }

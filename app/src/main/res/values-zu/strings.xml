@@ -438,4 +438,7 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="pdf_section_purchases">Ukuthenga</string>
     <string name="pdf_payment_breakdown">Ukuhlukaniswa kwenkokhelo:</string>
     <string name="default_user_name">Umsebenzisi</string>
+    <string name="offline_cached_banner">Kuboniswa idatha egciniwe — awukho ku-inthanethi</string>
+    <string name="offline_cached_at">Kuboniswa idatha egciniwe kusukela ngo-%1$s</string>
+    <string name="offline_no_cached_data">Awukho ku-inthanethi futhi ayikho idatha egciniwe etholakalayo.</string>
 </resources>

@@ -7,6 +7,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.BusinessDto
 import com.example.stockflow.data.remote.UpdateBusinessRequest
 import com.example.stockflow.data.repository.BusinessRepository
@@ -35,6 +37,12 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
     private val _uiState = MutableLiveData<UiState>(UiState.Idle)
     val uiState: LiveData<UiState> = _uiState
 
+    private val _fromCache = MutableLiveData(false)
+    val fromCache: LiveData<Boolean> = _fromCache
+
+    private val _cachedAt = MutableLiveData<Long?>()
+    val cachedAt: LiveData<Long?> = _cachedAt
+
     private var existingImageUrl: String? = null
     private var imageRemoved = false
     private var locationCleared = false
@@ -42,8 +50,9 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
     fun loadBusiness() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
-            repository.getBusiness()
-                .onSuccess { data ->
+            when (val result = repository.getBusiness()) {
+                is CacheResult.Fresh -> {
+                    val data = result.data
                     existingImageUrl = data.imageUrl
                     imageRemoved = false
                     locationCleared = false
@@ -51,13 +60,34 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
                     _pendingLatitude.value = data.latitude
                     _pendingLongitude.value = data.longitude
                     _business.value = data
+                    _fromCache.value = false
+                    _cachedAt.value = null
                     _uiState.value = UiState.Idle
                 }
-                .onFailure { error ->
-                    _uiState.value = UiState.Error(
-                        error.message ?: getApplication<Application>().getString(R.string.error_unable_load_business)
-                    )
+                is CacheResult.Cached -> {
+                    val data = result.data
+                    existingImageUrl = data.imageUrl
+                    imageRemoved = false
+                    locationCleared = false
+                    _pendingImageUri.value = null
+                    _pendingLatitude.value = data.latitude
+                    _pendingLongitude.value = data.longitude
+                    _business.value = data
+                    _fromCache.value = true
+                    _cachedAt.value = result.cachedAt
+                    _uiState.value = UiState.Idle
                 }
+                CacheResult.Empty -> {
+                    _fromCache.value = false
+                    _cachedAt.value = null
+                    _uiState.value = UiState.Error(AppStrings.get(R.string.offline_no_cached_data))
+                }
+                is CacheResult.Error -> {
+                    _fromCache.value = false
+                    _cachedAt.value = null
+                    _uiState.value = UiState.Error(result.message)
+                }
+            }
         }
     }
 

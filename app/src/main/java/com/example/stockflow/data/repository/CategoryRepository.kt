@@ -2,6 +2,12 @@ package com.example.stockflow.data.repository
 
 import com.example.stockflow.R
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheDatabaseProvider
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.data.local.cache.CategoryCacheDao
+import com.example.stockflow.data.local.cache.StockFlowCacheDatabase
+import com.example.stockflow.data.local.cache.toCachedEntity
+import com.example.stockflow.data.local.cache.toDto
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CategoryApi
 import com.example.stockflow.data.remote.CategoryDto
@@ -17,22 +23,39 @@ import java.io.IOException
  */
 class CategoryRepository(
     private val api: CategoryApi = RetrofitClient.categoryApi,
-    private val sessionStore: SessionStore
+    private val sessionStore: SessionStore,
+    private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
+    private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val gson = Gson()
+    private val categoryDao: CategoryCacheDao? get() = database?.categoryDao()
 
-    suspend fun getCategories(): Result<List<CategoryDto>> {
+    suspend fun getCategories(): CacheResult<List<CategoryDto>> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getCategories(authHeader())
             if (response.isSuccessful) {
-                Result.success(response.body().orEmpty())
+                val data = response.body().orEmpty()
+                if (userId != null) {
+                    val cachedAt = clock()
+                    categoryDao?.replaceAll(userId, data.map { it.toCachedEntity(userId, cachedAt) })
+                }
+                CacheResult.Fresh(data)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_categories))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_categories)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            if (userId == null) {
+                return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+            }
+            val cached = categoryDao?.getAll(userId).orEmpty()
+            if (cached.isNotEmpty()) {
+                CacheResult.Cached(cached.map { it.toDto() }, cached.maxOf { it.cachedAt })
+            } else {
+                CacheResult.Empty
+            }
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_categories)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_categories))
         }
     }
 
@@ -49,6 +72,9 @@ class CategoryRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_resolve_category)))
+                sessionStore.getUserId()?.let { userId ->
+                    categoryDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_resolve_category))))

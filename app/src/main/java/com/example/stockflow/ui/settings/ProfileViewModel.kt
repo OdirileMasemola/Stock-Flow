@@ -7,6 +7,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.ProfileDto
 import com.example.stockflow.data.repository.UserRepository
 import com.example.stockflow.ui.common.ProductImages
@@ -28,23 +30,48 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _uiState = MutableLiveData<UiState>(UiState.Idle)
     val uiState: LiveData<UiState> = _uiState
 
+    private val _fromCache = MutableLiveData(false)
+    val fromCache: LiveData<Boolean> = _fromCache
+
+    private val _cachedAt = MutableLiveData<Long?>()
+    val cachedAt: LiveData<Long?> = _cachedAt
+
     private var existingImageUrl: String? = null
     private var imageRemoved = false
 
     fun loadProfile() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
-            repository.getProfile()
-                .onSuccess { data ->
-                    existingImageUrl = data.profileImageUrl
+            when (val result = repository.getProfile()) {
+                is CacheResult.Fresh -> {
+                    existingImageUrl = result.data.profileImageUrl
                     imageRemoved = false
                     _pendingImageUri.value = null
-                    _profile.value = data
+                    _profile.value = result.data
+                    _fromCache.value = false
+                    _cachedAt.value = null
                     _uiState.value = UiState.Idle
                 }
-                .onFailure { error ->
-                    _uiState.value = UiState.Error(error.message ?: getApplication<Application>().getString(R.string.error_unable_load_profile))
+                is CacheResult.Cached -> {
+                    existingImageUrl = result.data.profileImageUrl
+                    imageRemoved = false
+                    _pendingImageUri.value = null
+                    _profile.value = result.data
+                    _fromCache.value = true
+                    _cachedAt.value = result.cachedAt
+                    _uiState.value = UiState.Idle
                 }
+                CacheResult.Empty -> {
+                    _fromCache.value = false
+                    _cachedAt.value = null
+                    _uiState.value = UiState.Error(AppStrings.get(R.string.offline_no_cached_data))
+                }
+                is CacheResult.Error -> {
+                    _fromCache.value = false
+                    _cachedAt.value = null
+                    _uiState.value = UiState.Error(result.message)
+                }
+            }
         }
     }
 

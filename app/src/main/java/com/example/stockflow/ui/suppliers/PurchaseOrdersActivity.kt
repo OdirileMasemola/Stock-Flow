@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stockflow.R
 import com.example.stockflow.databinding.ActivityPurchaseOrdersBinding
+import com.example.stockflow.ui.common.OfflineBanner
 import com.example.stockflow.ui.common.SystemBars
 
 class PurchaseOrdersActivity : AppCompatActivity() {
@@ -42,11 +43,13 @@ class PurchaseOrdersActivity : AppCompatActivity() {
         viewModel.listState.observe(this) { state ->
             when (state) {
                 is PurchaseOrderViewModel.ListUiState.Loading -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
                     binding.progressLoading.visibility = View.VISIBLE
                     binding.rvOrders.visibility = View.GONE
                     binding.emptyState.visibility = View.GONE
                 }
                 is PurchaseOrderViewModel.ListUiState.Empty -> {
+                    OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                     binding.progressLoading.visibility = View.GONE
                     binding.rvOrders.visibility = View.GONE
                     binding.emptyState.visibility = View.VISIBLE
@@ -55,12 +58,14 @@ class PurchaseOrdersActivity : AppCompatActivity() {
                     adapter.submitList(emptyList())
                 }
                 is PurchaseOrderViewModel.ListUiState.Success -> {
+                    OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                     binding.progressLoading.visibility = View.GONE
                     binding.emptyState.visibility = View.GONE
                     binding.rvOrders.visibility = View.VISIBLE
                     adapter.submitList(state.orders)
                 }
                 is PurchaseOrderViewModel.ListUiState.Error -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
                     binding.progressLoading.visibility = View.GONE
                     binding.rvOrders.visibility = View.GONE
                     binding.emptyState.visibility = View.VISIBLE

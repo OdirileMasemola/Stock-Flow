@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.FragmentInventoryBinding
+import com.example.stockflow.ui.common.OfflineBanner
 import com.example.stockflow.ui.scanner.BarcodeScannerActivity
 
 class InventoryFragment : Fragment() {
@@ -124,11 +125,13 @@ class InventoryFragment : Fragment() {
     private fun renderState(state: ProductViewModel.ProductsUiState) {
         when (state) {
             is ProductViewModel.ProductsUiState.Loading -> {
+                OfflineBanner.hide(binding.tvOfflineBanner)
                 binding.progressLoading.visibility = View.VISIBLE
                 binding.rvProducts.visibility = View.GONE
                 binding.emptyState.visibility = View.GONE
             }
             is ProductViewModel.ProductsUiState.Empty -> {
+                OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                 binding.progressLoading.visibility = View.GONE
                 binding.rvProducts.visibility = View.GONE
                 binding.emptyState.visibility = View.VISIBLE
@@ -137,6 +140,7 @@ class InventoryFragment : Fragment() {
                 adapter.submitList(emptyList())
             }
             is ProductViewModel.ProductsUiState.EmptySearch -> {
+                OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                 binding.progressLoading.visibility = View.GONE
                 binding.rvProducts.visibility = View.GONE
                 binding.emptyState.visibility = View.VISIBLE
@@ -145,12 +149,14 @@ class InventoryFragment : Fragment() {
                 adapter.submitList(emptyList())
             }
             is ProductViewModel.ProductsUiState.Success -> {
+                OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                 binding.progressLoading.visibility = View.GONE
                 binding.emptyState.visibility = View.GONE
                 binding.rvProducts.visibility = View.VISIBLE
                 adapter.submitList(state.products)
             }
             is ProductViewModel.ProductsUiState.Error -> {
+                OfflineBanner.hide(binding.tvOfflineBanner)
                 binding.progressLoading.visibility = View.GONE
                 binding.rvProducts.visibility = View.GONE
                 binding.emptyState.visibility = View.VISIBLE

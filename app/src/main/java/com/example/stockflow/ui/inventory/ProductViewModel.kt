@@ -5,11 +5,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.stockflow.R
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.repository.ProductRepository
+import com.example.stockflow.ui.common.AppStrings
 import kotlinx.coroutines.launch
-import com.example.stockflow.R
 
 /**
  * Loads products for the Inventory screen and supports local search + delete.
@@ -21,6 +23,8 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
     )
 
     private var allProducts: List<ProductDto> = emptyList()
+    private var fromCache: Boolean = false
+    private var cachedAt: Long? = null
 
     private val _uiState = MutableLiveData<ProductsUiState>(ProductsUiState.Loading)
     val uiState: LiveData<ProductsUiState> = _uiState
@@ -52,14 +56,31 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
         _uiState.value = ProductsUiState.Loading
         viewModelScope.launch {
             try {
-                val result = repository.getProducts()
-                if (result.isSuccess) {
-                    allProducts = result.getOrDefault(emptyList())
-                    publishFiltered(lastQuery)
-                } else {
-                    _uiState.postValue(
-                        ProductsUiState.Error(result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_products))
-                    )
+                when (val result = repository.getProducts()) {
+                    is CacheResult.Fresh -> {
+                        fromCache = false
+                        cachedAt = null
+                        allProducts = result.data
+                        publishFiltered(lastQuery)
+                    }
+                    is CacheResult.Cached -> {
+                        fromCache = true
+                        cachedAt = result.cachedAt
+                        allProducts = result.data
+                        publishFiltered(lastQuery)
+                    }
+                    CacheResult.Empty -> {
+                        fromCache = false
+                        cachedAt = null
+                        _uiState.postValue(
+                            ProductsUiState.Error(AppStrings.get(R.string.offline_no_cached_data))
+                        )
+                    }
+                    is CacheResult.Error -> {
+                        fromCache = false
+                        cachedAt = null
+                        _uiState.postValue(ProductsUiState.Error(result.message))
+                    }
                 }
             } finally {
                 loadInFlight = false
@@ -137,18 +158,26 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
 
         _uiState.postValue(
             when {
-                allProducts.isEmpty() -> ProductsUiState.Empty
-                filtered.isEmpty() -> ProductsUiState.EmptySearch(query)
-                else -> ProductsUiState.Success(filtered)
+                allProducts.isEmpty() -> ProductsUiState.Empty(fromCache, cachedAt)
+                filtered.isEmpty() -> ProductsUiState.EmptySearch(query, fromCache, cachedAt)
+                else -> ProductsUiState.Success(filtered, fromCache, cachedAt)
             }
         )
     }
 
     sealed class ProductsUiState {
         object Loading : ProductsUiState()
-        object Empty : ProductsUiState()
-        data class EmptySearch(val query: String) : ProductsUiState()
-        data class Success(val products: List<ProductDto>) : ProductsUiState()
+        data class Empty(val fromCache: Boolean = false, val cachedAt: Long? = null) : ProductsUiState()
+        data class EmptySearch(
+            val query: String,
+            val fromCache: Boolean = false,
+            val cachedAt: Long? = null
+        ) : ProductsUiState()
+        data class Success(
+            val products: List<ProductDto>,
+            val fromCache: Boolean = false,
+            val cachedAt: Long? = null
+        ) : ProductsUiState()
         data class Error(val message: String) : ProductsUiState()
     }
 }

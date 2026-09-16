@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.stockflow.R
 import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.CategoryDto
 import com.example.stockflow.data.remote.CreateProductRequest
 import com.example.stockflow.data.remote.ProductDto
@@ -54,9 +56,11 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
 
     fun loadCategories() {
         viewModelScope.launch {
-            val result = categoryRepository.getCategories()
-            if (result.isSuccess) {
-                _categories.postValue(result.getOrNull().orEmpty())
+            when (val result = categoryRepository.getCategories()) {
+                is CacheResult.Fresh, is CacheResult.Cached -> {
+                    _categories.postValue(result.getOrNull().orEmpty())
+                }
+                else -> Unit
             }
             // Soft-fail: user can still type a new category name without the list.
         }
@@ -65,21 +69,21 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
     fun loadProduct(id: Int) {
         _formState.value = FormState.Loading
         viewModelScope.launch {
-            val result = repository.getProduct(id)
-            if (result.isSuccess) {
-                val product = result.getOrNull()
-                existingImageUrl = product?.imageUrl
-                pendingImageUri = null
-                imageRemoved = false
-                _loadedProduct.postValue(product)
-                _formState.postValue(FormState.Idle)
-            } else {
-                _formState.postValue(
-                    FormState.Error(
-                        result.exceptionOrNull()?.message
-                            ?: getApplication<Application>().getString(R.string.error_unable_load_product)
-                    )
-                )
+            when (val result = repository.getProduct(id)) {
+                is CacheResult.Fresh, is CacheResult.Cached -> {
+                    val product = result.getOrNull()
+                    existingImageUrl = product?.imageUrl
+                    pendingImageUri = null
+                    imageRemoved = false
+                    _loadedProduct.postValue(product)
+                    _formState.postValue(FormState.Idle)
+                }
+                CacheResult.Empty -> {
+                    _formState.postValue(FormState.Error(AppStrings.get(R.string.offline_no_cached_data)))
+                }
+                is CacheResult.Error -> {
+                    _formState.postValue(FormState.Error(result.message))
+                }
             }
         }
     }

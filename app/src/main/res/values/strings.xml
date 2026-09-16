@@ -462,4 +462,7 @@
     <string name="pdf_section_purchases">Purchases</string>
     <string name="pdf_payment_breakdown">Payment breakdown:</string>
     <string name="default_user_name">User</string>
+    <string name="offline_cached_banner">Showing cached data — you are offline</string>
+    <string name="offline_cached_at">Showing cached data from %1$s</string>
+    <string name="offline_no_cached_data">You are offline and no cached data is available.</string>
 </resources>

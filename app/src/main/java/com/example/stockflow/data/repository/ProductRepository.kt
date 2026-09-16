@@ -5,6 +5,12 @@ import com.example.stockflow.ui.common.AppStrings
 
 import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.local.cache.CacheDatabaseProvider
+import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.data.local.cache.ProductCacheDao
+import com.example.stockflow.data.local.cache.StockFlowCacheDatabase
+import com.example.stockflow.data.local.cache.toCachedEntity
+import com.example.stockflow.data.local.cache.toDto
 import com.example.stockflow.data.remote.ApiErrorResponse
 import com.example.stockflow.data.remote.CreateProductRequest
 import com.example.stockflow.data.remote.ProductApi
@@ -20,25 +26,35 @@ import java.io.IOException
 
 /**
  * Talks to the Ktor product endpoints using the JWT from [SessionStore].
+ * Successful READs populate the Room READ cache; offline IO falls back to cache.
  */
 class ProductRepository(
     private val api: ProductApi = RetrofitClient.productApi,
-    private val sessionStore: SessionStore
+    private val sessionStore: SessionStore,
+    private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
+    private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val gson = Gson()
+    private val productDao: ProductCacheDao? get() = database?.productDao()
 
-    suspend fun getProducts(): Result<List<ProductDto>> {
+    suspend fun getProducts(): CacheResult<List<ProductDto>> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getProducts(authHeader())
             if (response.isSuccessful) {
-                Result.success(response.body().orEmpty())
+                val data = response.body().orEmpty()
+                if (userId != null) {
+                    val cachedAt = clock()
+                    productDao?.replaceAll(userId, data.map { it.toCachedEntity(userId, cachedAt) })
+                }
+                CacheResult.Fresh(data)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_products))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_products)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            fallbackProducts(userId)
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_products)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_products))
         }
     }
 
@@ -57,20 +73,32 @@ class ProductRepository(
         }
     }
 
-    suspend fun getProduct(id: Int): Result<ProductDto> {
+    suspend fun getProduct(id: Int): CacheResult<ProductDto> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getProduct(authHeader(), id)
             if (response.isSuccessful) {
                 val body = response.body()
-                    ?: return Result.failure(Exception(AppStrings.get(R.string.product_not_found)))
-                Result.success(body)
+                    ?: return CacheResult.Error(AppStrings.get(R.string.product_not_found))
+                if (userId != null) {
+                    productDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
+                CacheResult.Fresh(body)
             } else {
-                Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_product))))
+                CacheResult.Error(errorMessage(response, AppStrings.get(R.string.error_unable_load_product)))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            if (userId == null) {
+                return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+            }
+            val cached = productDao?.getById(userId, id)
+            if (cached != null) {
+                CacheResult.Cached(cached.toDto(), cached.cachedAt)
+            } else {
+                CacheResult.Empty
+            }
         } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_product)))
+            CacheResult.Error(e.message ?: AppStrings.get(R.string.error_unable_load_product))
         }
     }
 
@@ -86,6 +114,9 @@ class ProductRepository(
                 if (response.isSuccessful) {
                     val body = response.body()
                         ?: return Result.failure(Exception(AppStrings.get(R.string.product_not_found)))
+                    sessionStore.getUserId()?.let { userId ->
+                        productDao?.upsert(body.toCachedEntity(userId, clock()))
+                    }
                     return Result.success(body)
                 }
                 if (response.code() == 404) {
@@ -108,6 +139,9 @@ class ProductRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_create_product)))
+                sessionStore.getUserId()?.let { userId ->
+                    productDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_create_product))))
@@ -125,6 +159,9 @@ class ProductRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_failed_update_product)))
+                sessionStore.getUserId()?.let { userId ->
+                    productDao?.upsert(body.toCachedEntity(userId, clock()))
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_update_product))))
@@ -139,8 +176,10 @@ class ProductRepository(
     suspend fun deleteProduct(id: Int): Result<Unit> {
         return try {
             val response = api.deleteProduct(authHeader(), id)
-            // 204 No Content has an empty body — still treat as success
             if (response.isSuccessful || response.code() == 204) {
+                sessionStore.getUserId()?.let { userId ->
+                    productDao?.deleteById(userId, id)
+                }
                 Result.success(Unit)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_failed_delete_product))))
@@ -181,6 +220,18 @@ class ProductRepository(
             Result.failure(Exception(AppStrings.get(R.string.error_unable_upload_image_connection)))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_image_upload_failed)))
+        }
+    }
+
+    private suspend fun fallbackProducts(userId: Int?): CacheResult<List<ProductDto>> {
+        if (userId == null) {
+            return CacheResult.Error(AppStrings.get(R.string.error_unable_reach_server))
+        }
+        val cached = productDao?.getAll(userId).orEmpty()
+        return if (cached.isNotEmpty()) {
+            CacheResult.Cached(cached.map { it.toDto() }, cached.maxOf { it.cachedAt })
+        } else {
+            CacheResult.Empty
         }
     }
 

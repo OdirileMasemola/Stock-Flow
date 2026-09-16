@@ -12,6 +12,7 @@ import com.example.stockflow.R
 import com.example.stockflow.data.remote.ProfileDto
 import com.example.stockflow.databinding.ActivityProfileBinding
 import com.example.stockflow.ui.common.FullscreenImageActivity
+import com.example.stockflow.ui.common.OfflineBanner
 import com.example.stockflow.ui.common.ProductImages
 import com.example.stockflow.ui.common.SystemBars
 
@@ -60,6 +61,12 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
         viewModel.pendingImageUri.observe(this) { refreshPhoto() }
+        viewModel.fromCache.observe(this) { fromCache ->
+            OfflineBanner.show(binding.tvOfflineBanner, fromCache == true, viewModel.cachedAt.value)
+        }
+        viewModel.cachedAt.observe(this) { cachedAt ->
+            OfflineBanner.show(binding.tvOfflineBanner, viewModel.fromCache.value == true, cachedAt)
+        }
 
         viewModel.uiState.observe(this) { state ->
             when (state) {

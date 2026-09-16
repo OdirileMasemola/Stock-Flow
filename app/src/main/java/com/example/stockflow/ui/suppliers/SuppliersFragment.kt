@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stockflow.R
 import com.example.stockflow.data.remote.SupplierDto
 import com.example.stockflow.databinding.FragmentSuppliersBinding
+import com.example.stockflow.ui.common.OfflineBanner
 
 class SuppliersFragment : Fragment() {
 
@@ -89,11 +90,13 @@ class SuppliersFragment : Fragment() {
     private fun renderState(state: SupplierViewModel.SuppliersUiState) {
         when (state) {
             is SupplierViewModel.SuppliersUiState.Loading -> {
+                OfflineBanner.hide(binding.tvOfflineBanner)
                 binding.progressLoading.visibility = View.VISIBLE
                 binding.rvSuppliers.visibility = View.GONE
                 binding.emptyState.visibility = View.GONE
             }
             is SupplierViewModel.SuppliersUiState.Empty -> {
+                OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                 binding.progressLoading.visibility = View.GONE
                 binding.rvSuppliers.visibility = View.GONE
                 binding.emptyState.visibility = View.VISIBLE
@@ -102,6 +105,7 @@ class SuppliersFragment : Fragment() {
                 adapter.submitList(emptyList())
             }
             is SupplierViewModel.SuppliersUiState.EmptySearch -> {
+                OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                 binding.progressLoading.visibility = View.GONE
                 binding.rvSuppliers.visibility = View.GONE
                 binding.emptyState.visibility = View.VISIBLE
@@ -110,12 +114,14 @@ class SuppliersFragment : Fragment() {
                 adapter.submitList(emptyList())
             }
             is SupplierViewModel.SuppliersUiState.Success -> {
+                OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                 binding.progressLoading.visibility = View.GONE
                 binding.emptyState.visibility = View.GONE
                 binding.rvSuppliers.visibility = View.VISIBLE
                 adapter.submitList(state.suppliers)
             }
             is SupplierViewModel.SuppliersUiState.Error -> {
+                OfflineBanner.hide(binding.tvOfflineBanner)
                 binding.progressLoading.visibility = View.GONE
                 binding.rvSuppliers.visibility = View.GONE
                 binding.emptyState.visibility = View.VISIBLE
