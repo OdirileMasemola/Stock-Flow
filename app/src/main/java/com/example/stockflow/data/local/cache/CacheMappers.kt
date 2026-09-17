@@ -1,6 +1,13 @@
 package com.example.stockflow.data.local.cache
 
 import com.example.stockflow.data.remote.BusinessDto
+import com.example.stockflow.data.remote.DashboardLowStockItemDto
+import com.example.stockflow.data.remote.DashboardPurchaseOrderItemDto
+import com.example.stockflow.data.remote.DashboardSaleItemDto
+import com.example.stockflow.data.remote.DashboardSummaryDto
+import com.example.stockflow.data.remote.WeeklySalesDayDto
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.example.stockflow.data.remote.CategoryDto
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.ProfileDto
@@ -167,3 +174,40 @@ fun CachedBusiness.toDto() = BusinessDto(
     createdAt = createdAt,
     updatedAt = updatedAt
 )
+
+
+private val dashboardGson = Gson()
+
+fun DashboardSummaryDto.toCachedEntity(userId: Int, cachedAt: Long) = CachedDashboardSnapshot(
+    userId = userId,
+    totalProducts = totalProducts,
+    totalStockQuantity = totalStockQuantity,
+    inventoryValue = inventoryValue,
+    todaySalesTotal = todaySalesTotal,
+    todaySalesCount = todaySalesCount,
+    lowStockCount = lowStockCount,
+    weeklySalesJson = dashboardGson.toJson(weeklySales.orEmpty()),
+    recentSalesJson = dashboardGson.toJson(recentSales.orEmpty()),
+    recentPurchaseOrdersJson = dashboardGson.toJson(recentPurchaseOrders.orEmpty()),
+    lowStockPreviewJson = dashboardGson.toJson(lowStockPreview.orEmpty()),
+    cachedAt = cachedAt
+)
+
+fun CachedDashboardSnapshot.toDto(): DashboardSummaryDto {
+    val weeklyType = object : TypeToken<List<WeeklySalesDayDto>>() {}.type
+    val salesType = object : TypeToken<List<DashboardSaleItemDto>>() {}.type
+    val poType = object : TypeToken<List<DashboardPurchaseOrderItemDto>>() {}.type
+    val lowType = object : TypeToken<List<DashboardLowStockItemDto>>() {}.type
+    return DashboardSummaryDto(
+        totalProducts = totalProducts,
+        totalStockQuantity = totalStockQuantity,
+        inventoryValue = inventoryValue,
+        todaySalesTotal = todaySalesTotal,
+        todaySalesCount = todaySalesCount,
+        lowStockCount = lowStockCount,
+        weeklySales = dashboardGson.fromJson(weeklySalesJson, weeklyType) ?: emptyList(),
+        recentSales = dashboardGson.fromJson(recentSalesJson, salesType) ?: emptyList(),
+        recentPurchaseOrders = dashboardGson.fromJson(recentPurchaseOrdersJson, poType) ?: emptyList(),
+        lowStockPreview = dashboardGson.fromJson(lowStockPreviewJson, lowType) ?: emptyList()
+    )
+}

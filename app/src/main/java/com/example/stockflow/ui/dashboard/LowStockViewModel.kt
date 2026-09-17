@@ -3,36 +3,62 @@ package com.example.stockflow.ui.dashboard
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.repository.ProductRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import com.example.stockflow.R
 
+/**
+ * Low-stock list observes Room products (stockLevel <= minStockLevel).
+ * Network refresh is best-effort; FCM Stage 4 push path is unchanged.
+ */
 class LowStockViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = ProductRepository(sessionStore = SessionStore(application))
+    private val repository = ProductRepository(
+        sessionStore = SessionStore(application),
+        appContext = application.applicationContext
+    )
 
-    private val _uiState = MutableLiveData<LowStockUiState>(LowStockUiState.Loading)
-    val uiState: LiveData<LowStockUiState> = _uiState
+    private val loadingFlow = MutableStateFlow(false)
+    private val errorFlow = MutableStateFlow<String?>(null)
+    private val loadedOnce = MutableStateFlow(false)
+
+    val uiState: LiveData<LowStockUiState> = combine(
+        repository.observeLowStockProducts(),
+        loadingFlow,
+        errorFlow,
+        loadedOnce
+    ) { products, loading, error, loaded ->
+        when {
+            loading && !loaded && products.isEmpty() -> LowStockUiState.Loading
+            products.isNotEmpty() -> LowStockUiState.Success(products)
+            products.isEmpty() && error != null && loaded -> LowStockUiState.Error(error)
+            products.isEmpty() && loaded -> LowStockUiState.Empty
+            else -> LowStockUiState.Loading
+        }
+    }.asLiveData(viewModelScope.coroutineContext)
+
+    init {
+        loadLowStock()
+    }
 
     fun loadLowStock() {
-        _uiState.value = LowStockUiState.Loading
+        loadingFlow.value = true
         viewModelScope.launch {
-            val result = repository.getLowStockProducts()
-            _uiState.value = if (result.isSuccess) {
-                val products = result.getOrDefault(emptyList())
-                if (products.isEmpty()) {
-                    LowStockUiState.Empty
+            try {
+                val result = repository.getLowStockProducts()
+                loadedOnce.value = true
+                errorFlow.value = if (result.isFailure) {
+                    result.exceptionOrNull()?.message
                 } else {
-                    LowStockUiState.Success(products)
+                    null
                 }
-            } else {
-                LowStockUiState.Error(
-                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.error_unable_load_low_stock)
-                )
+            } finally {
+                loadingFlow.value = false
             }
         }
     }

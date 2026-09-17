@@ -23,7 +23,10 @@ object CacheDatabaseProvider {
                     StockFlowCacheDatabase::class.java,
                     StockFlowCacheDatabase.DB_NAME
                 )
-                    .addMigrations(StockFlowCacheDatabase.MIGRATION_1_2)
+                    .addMigrations(
+                        StockFlowCacheDatabase.MIGRATION_1_2,
+                        StockFlowCacheDatabase.MIGRATION_2_3
+                    )
                     .build()
             }
         }
@@ -44,11 +47,10 @@ object CacheDatabaseProvider {
         db.purchaseOrderDao().clearUser(userId)
         db.profileDao().clearUser(userId)
         db.businessDao().clearUser(userId)
-        // Clear this user's write queue so logout never lets another session upload them.
+        db.dashboardDao().clearUser(userId)
         db.pendingOperationDao().clearUser(userId)
     }
 
-    /** Blocking clear for logout paths that are not suspend. */
     fun clearUserBlocking(userId: Int) {
         runBlocking { clearUser(userId) }
     }

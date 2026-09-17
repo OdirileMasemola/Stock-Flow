@@ -315,20 +315,13 @@
                     android:textColor="@color/brand_text_light"
                     android:textSize="12sp" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/actvCategory"
+                <Spinner
+                    android:id="@+id/spinnerCategory"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="6dp"
                     android:background="@drawable/bg_input_box"
-                    android:completionThreshold="1"
-                    android:hint="@string/hint_category"
-                    android:imeOptions="actionNext"
-                    android:inputType="textCapWords"
-                    android:paddingHorizontal="12dp"
-                    android:textColor="@color/brand_text_dark"
-                    android:textColorHint="@color/brand_text_light"
-                    android:textSize="14sp" />
+                    android:paddingHorizontal="8dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -337,6 +330,31 @@
                     android:text="@string/category_help"
                     android:textColor="@color/brand_text_light"
                     android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tvNewCategoryLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/label_new_category_name"
+                    android:textColor="@color/brand_text_light"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <EditText
+                    android:id="@+id/etNewCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_input_box"
+                    android:hint="@string/hint_new_category_name"
+                    android:imeOptions="actionNext"
+                    android:inputType="textCapWords"
+                    android:paddingHorizontal="12dp"
+                    android:textColor="@color/brand_text_dark"
+                    android:textColorHint="@color/brand_text_light"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 <TextView
                     android:layout_width="wrap_content"

@@ -18,6 +18,7 @@ import com.example.stockflow.data.remote.DashboardSaleItemDto
 import com.example.stockflow.data.remote.DashboardSummaryDto
 import com.example.stockflow.data.remote.WeeklySalesDayDto
 import com.example.stockflow.databinding.FragmentDashboardBinding
+import com.example.stockflow.ui.common.OfflineBanner
 import com.example.stockflow.ui.inventory.AddProductActivity
 import com.example.stockflow.ui.suppliers.PurchaseOrdersActivity
 import java.util.Calendar
@@ -73,21 +74,33 @@ class DashboardFragment : Fragment() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is DashboardViewModel.DashboardUiState.Loading -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
                     binding.progressLoading.visibility = View.VISIBLE
                     binding.contentScroll.visibility = View.GONE
                     binding.errorState.visibility = View.GONE
                 }
                 is DashboardViewModel.DashboardUiState.Success -> {
+                    OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
                     binding.progressLoading.visibility = View.GONE
                     binding.errorState.visibility = View.GONE
                     binding.contentScroll.visibility = View.VISIBLE
                     bindSummary(state.summary)
                 }
+                is DashboardViewModel.DashboardUiState.Empty -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
+                    binding.progressLoading.visibility = View.GONE
+                    binding.contentScroll.visibility = View.GONE
+                    binding.errorState.visibility = View.VISIBLE
+                    binding.tvErrorMessage.text = getString(R.string.dashboard_offline_empty)
+                    binding.btnRetry.visibility = View.VISIBLE
+                }
                 is DashboardViewModel.DashboardUiState.Error -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
                     binding.progressLoading.visibility = View.GONE
                     binding.contentScroll.visibility = View.GONE
                     binding.errorState.visibility = View.VISIBLE
                     binding.tvErrorMessage.text = state.message
+                    binding.btnRetry.visibility = View.VISIBLE
                 }
             }
         }
@@ -97,7 +110,8 @@ class DashboardFragment : Fragment() {
         super.onResume()
         bindGreeting()
         // Refresh when returning from other activities; skip if already loaded (tab hide/show).
-        viewModel.loadDashboard(force = viewModel.uiState.value !is DashboardViewModel.DashboardUiState.Success)
+        val force = viewModel.uiState.value !is DashboardViewModel.DashboardUiState.Success
+        viewModel.loadDashboard(force = force)
     }
 
     private fun bindSummary(summary: DashboardSummaryDto) {

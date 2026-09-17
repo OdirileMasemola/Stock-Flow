@@ -20,7 +20,7 @@ data class PendingOperationEntity(
     val userId: Int,
     /** CREATE | UPDATE | DELETE */
     val operationType: String,
-    /** PRODUCT (Stage 3B); reserved for future entity types */
+    /** PRODUCT | CATEGORY */
     val entityType: String,
     /** Local cache key (temp negative id or remote id as string). */
     val localEntityId: String,
@@ -48,4 +48,5 @@ object PendingOpType {
 
 object PendingEntityType {
     const val PRODUCT = "PRODUCT"
+    const val CATEGORY = "CATEGORY"
 }

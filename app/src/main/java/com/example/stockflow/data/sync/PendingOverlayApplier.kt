@@ -1,5 +1,6 @@
 package com.example.stockflow.data.sync
 
+import com.example.stockflow.data.local.cache.CategoryCacheDao
 import com.example.stockflow.data.local.cache.PendingEntityType
 import com.example.stockflow.data.local.cache.PendingOpStatus
 import com.example.stockflow.data.local.cache.PendingOpType
@@ -8,8 +9,8 @@ import com.example.stockflow.data.local.cache.ProductCacheDao
 import com.example.stockflow.data.local.cache.toCachedEntity
 
 /**
- * After a successful network product list refresh, re-apply unsynced local writes
- * so offline-created / edited / deleted products remain visible until sync completes.
+ * After a successful network list refresh, re-apply unsynced local writes
+ * so offline-created / edited / deleted rows remain visible until sync completes.
  */
 object PendingOverlayApplier {
     suspend fun applyProductOverlays(
@@ -39,6 +40,28 @@ object PendingOverlayApplier {
                     op.remoteEntityId?.let { productDao.deleteById(userId, it) }
                 }
             }
+        }
+    }
+
+    suspend fun applyCategoryOverlays(
+        userId: Int,
+        categoryDao: CategoryCacheDao,
+        pendingDao: PendingOperationDao,
+        clock: () -> Long
+    ) {
+        val ops = pendingDao.getAllForUser(userId)
+            .filter {
+                it.entityType == PendingEntityType.CATEGORY &&
+                    (it.status == PendingOpStatus.PENDING ||
+                        it.status == PendingOpStatus.SYNCING)
+            }
+            .sortedBy { it.createdAt }
+
+        for (op in ops) {
+            if (op.operationType != PendingOpType.CREATE) continue
+            val payload = CategoryWritePayload.fromJson(op.payloadJson)
+            val id = op.localEntityId.toIntOrNull() ?: continue
+            categoryDao.upsert(payload.toCategoryDto(id).toCachedEntity(userId, clock()))
         }
     }
 }

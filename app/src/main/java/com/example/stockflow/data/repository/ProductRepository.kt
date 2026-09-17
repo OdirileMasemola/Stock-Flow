@@ -28,6 +28,7 @@ import com.example.stockflow.data.sync.PendingOverlayApplier
 import com.example.stockflow.data.sync.ProductWritePayload
 import com.example.stockflow.data.sync.SyncScheduler
 import com.example.stockflow.data.sync.WriteResult
+import com.example.stockflow.data.sync.LocalCacheReconciler
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -35,6 +36,9 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.io.IOException
 import java.util.UUID
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 /**
  * Talks to the Ktor product endpoints using the JWT from [SessionStore].
@@ -53,6 +57,18 @@ class ProductRepository(
     private val gson = Gson()
     private val productDao: ProductCacheDao? get() = database?.productDao()
     private val pendingDao: PendingOperationDao? get() = database?.pendingOperationDao()
+
+    fun observeProducts(): Flow<List<ProductDto>> {
+        val userId = sessionStore.getUserId() ?: return flowOf(emptyList())
+        val dao = productDao ?: return flowOf(emptyList())
+        return dao.observeAll(userId).map { list -> list.map { it.toDto() } }
+    }
+
+    fun observeLowStockProducts(): Flow<List<ProductDto>> {
+        val userId = sessionStore.getUserId() ?: return flowOf(emptyList())
+        val dao = productDao ?: return flowOf(emptyList())
+        return dao.observeLowStock(userId).map { list -> list.map { it.toDto() } }
+    }
 
     suspend fun getProducts(): CacheResult<List<ProductDto>> {
         val userId = sessionStore.getUserId()
@@ -87,6 +103,7 @@ class ProductRepository(
     }
 
     suspend fun getLowStockProducts(): Result<List<ProductDto>> {
+        val userId = sessionStore.getUserId()
         return try {
             val response = api.getLowStockProducts(authHeader())
             if (response.isSuccessful) {
@@ -95,6 +112,14 @@ class ProductRepository(
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_low_stock))))
             }
         } catch (_: IOException) {
+            if (userId != null) {
+                val cached = productDao?.getAll(userId).orEmpty()
+                    .filter { it.stockLevel <= it.minStockLevel }
+                    .sortedBy { it.stockLevel }
+                if (cached.isNotEmpty()) {
+                    return Result.success(cached.map { it.toDto() })
+                }
+            }
             Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_low_stock)))
@@ -182,6 +207,7 @@ class ProductRepository(
                     ?: return WriteResult.Failed(AppStrings.get(R.string.error_failed_create_product))
                 sessionStore.getUserId()?.let { userId ->
                     productDao?.upsert(body.toCachedEntity(userId, clock()))
+                    touchDashboard(userId)
                 }
                 WriteResult.Synced(body)
             } else {
@@ -210,6 +236,7 @@ class ProductRepository(
                     ?: return WriteResult.Failed(AppStrings.get(R.string.error_failed_update_product))
                 sessionStore.getUserId()?.let { userId ->
                     productDao?.upsert(body.toCachedEntity(userId, clock()))
+                    touchDashboard(userId)
                 }
                 WriteResult.Synced(body)
             } else {
@@ -231,6 +258,7 @@ class ProductRepository(
             if (response.isSuccessful || response.code() == 204) {
                 sessionStore.getUserId()?.let { userId ->
                     productDao?.deleteById(userId, id)
+                    touchDashboard(userId)
                 }
                 WriteResult.Synced(Unit)
             } else {
@@ -292,6 +320,7 @@ class ProductRepository(
         val now = clock()
         val dto = payload.toProductDto(localId)
         dao.upsert(dto.toCachedEntity(userId, now))
+        touchDashboard(userId)
         qDao.upsert(
             PendingOperationEntity(
                 id = UUID.randomUUID().toString(),
@@ -328,6 +357,7 @@ class ProductRepository(
         val now = clock()
         val dto = payload.toProductDto(id)
         dao.upsert(dto.toCachedEntity(userId, now))
+        touchDashboard(userId)
 
         // Coalesce with an existing PENDING UPDATE for the same entity.
         val existing = qDao.getActiveForEntity(userId, PendingEntityType.PRODUCT, id.toString())
@@ -378,6 +408,7 @@ class ProductRepository(
         val now = clock()
         val dto = payload.toProductDto(localId)
         dao.upsert(dto.toCachedEntity(userId, now))
+        touchDashboard(userId)
 
         val createOp = qDao.getActiveForEntity(userId, PendingEntityType.PRODUCT, localId.toString())
             .firstOrNull { it.operationType == PendingOpType.CREATE }
@@ -408,6 +439,7 @@ class ProductRepository(
         }
         val now = clock()
         dao.deleteById(userId, id)
+        touchDashboard(userId)
 
         // Drop pending CREATE/UPDATE for this id; replace with DELETE.
         val related = qDao.getActiveForEntity(userId, PendingEntityType.PRODUCT, id.toString())
@@ -447,7 +479,14 @@ class ProductRepository(
         productDao?.deleteById(userId, localId)
         pendingDao?.getActiveForEntity(userId, PendingEntityType.PRODUCT, localId.toString())
             ?.forEach { pendingDao?.deleteById(it.id) }
+        touchDashboard(userId)
         return WriteResult.Queued(Unit)
+    }
+
+
+    private suspend fun touchDashboard(userId: Int) {
+        val db = database ?: return
+        LocalCacheReconciler.recalculateDashboardFromProducts(db, userId, clock)
     }
 
     private fun triggerSync() {

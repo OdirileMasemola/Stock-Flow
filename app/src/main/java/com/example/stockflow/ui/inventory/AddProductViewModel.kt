@@ -5,12 +5,12 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.R
 import com.example.stockflow.data.ProductSkuCodes
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.local.cache.CacheResult
-import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.CategoryDto
 import com.example.stockflow.data.remote.CreateProductRequest
 import com.example.stockflow.data.remote.ProductDto
@@ -18,14 +18,15 @@ import com.example.stockflow.data.remote.UpdateProductRequest
 import com.example.stockflow.data.repository.CategoryRepository
 import com.example.stockflow.data.repository.ProductRepository
 import com.example.stockflow.data.sync.WriteResult
+import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.ui.common.ProductImages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Handles create and edit product form submissions, including optional image upload
- * and in-place category pick/create. Offline saves queue writes (no image upload offline).
+ * Create/edit product with category dropdown + inline "Add new category".
+ * Offline: new categories are cached + queued (CATEGORY before PRODUCT).
  */
 class AddProductViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -34,7 +35,10 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         sessionStore = sessionStore,
         appContext = application.applicationContext
     )
-    private val categoryRepository = CategoryRepository(sessionStore = sessionStore)
+    private val categoryRepository = CategoryRepository(
+        sessionStore = sessionStore,
+        appContext = application.applicationContext
+    )
 
     private val _formState = MutableLiveData<FormState>()
     val formState: LiveData<FormState> = _formState
@@ -42,32 +46,29 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
     private val _loadedProduct = MutableLiveData<ProductDto?>()
     val loadedProduct: LiveData<ProductDto?> = _loadedProduct
 
-    private val _categories = MutableLiveData<List<CategoryDto>>(emptyList())
-    val categories: LiveData<List<CategoryDto>> = _categories
+    /** Room-backed category list for the selector. */
+    val categories: LiveData<List<CategoryDto>> =
+        categoryRepository.observeCategories().asLiveData(viewModelScope.coroutineContext)
 
-    /** Existing remote image URL for the product being edited (if any). */
+    private val _addingNewCategory = MutableLiveData(false)
+    val addingNewCategory: LiveData<Boolean> = _addingNewCategory
+
     private var existingImageUrl: String? = null
-
-    /** Newly picked local image waiting to be uploaded on save. */
     private var pendingImageUri: Uri? = null
-
-    /** True when the user explicitly cleared the product image. */
     private var imageRemoved: Boolean = false
 
     init {
-        loadCategories()
+        refreshCategories()
     }
 
-    fun loadCategories() {
+    fun refreshCategories() {
         viewModelScope.launch {
-            when (val result = categoryRepository.getCategories()) {
-                is CacheResult.Fresh, is CacheResult.Cached -> {
-                    _categories.postValue(result.getOrNull().orEmpty())
-                }
-                else -> Unit
-            }
-            // Soft-fail: user can still type a new category name without the list.
+            categoryRepository.getCategories()
         }
+    }
+
+    fun setAddingNewCategory(enabled: Boolean) {
+        _addingNewCategory.value = enabled
     }
 
     fun loadProduct(id: Int) {
@@ -103,9 +104,6 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         existingImageUrl = null
     }
 
-    fun currentRemoteImageUrl(): String? =
-        if (imageRemoved) null else existingImageUrl
-
     fun saveProduct(
         productId: Int?,
         name: String,
@@ -114,25 +112,34 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         sellingPriceText: String,
         stockLevelText: String,
         minStockLevelText: String,
-        categoryNameText: String,
+        selectedCategory: CategoryDto?,
+        newCategoryName: String?,
+        isAddingNewCategory: Boolean,
         supplierIdText: String
     ) {
-        if (_formState.value is FormState.Loading) {
-            return
-        }
+        if (_formState.value is FormState.Loading) return
 
+        val categoryNameForSave: String
         val validationError = validateLocal(
             name,
             costPriceText,
             sellingPriceText,
             stockLevelText,
             minStockLevelText,
-            categoryNameText,
+            selectedCategory,
+            newCategoryName,
+            isAddingNewCategory,
             supplierIdText
         )
         if (validationError != null) {
             _formState.value = FormState.Error(validationError)
             return
+        }
+
+        categoryNameForSave = if (isAddingNewCategory) {
+            newCategoryName!!.trim()
+        } else {
+            selectedCategory!!.name
         }
 
         val costPrice = costPriceText.toDouble()
@@ -141,11 +148,9 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         val minStockLevel = minStockLevelText.toInt()
         val supplierId = supplierIdText.trim().takeIf { it.isNotEmpty() }?.toInt()
         val normalizedSku = ProductSkuCodes.toStockFlowSku(sku) ?: sku.trim().takeIf { it.isNotEmpty() }
-        val categoryName = categoryNameText.trim()
 
         _formState.value = FormState.Loading
         viewModelScope.launch {
-            // New local image requires network upload — never queue offline.
             if (pendingImageUri != null) {
                 val imageUrlResult = uploadLocalImage(pendingImageUri!!)
                 if (imageUrlResult.isFailure) {
@@ -162,7 +167,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                 imageRemoved = false
             }
 
-            val categoryResult = resolveCategoryId(categoryName)
+            val categoryResult = resolveCategory(categoryNameForSave, selectedCategory, isAddingNewCategory)
             if (categoryResult.isFailure) {
                 _formState.postValue(
                     FormState.Error(
@@ -172,7 +177,8 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                 )
                 return@launch
             }
-            val categoryId = categoryResult.getOrNull()!!
+            val category = categoryResult.getOrNull()!!
+            val categoryId = category.id
 
             val imageUrl = when {
                 imageRemoved -> null
@@ -192,7 +198,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                         supplierId = supplierId,
                         imageUrl = imageUrl
                     ),
-                    categoryName = categoryName
+                    categoryName = category.name
                 )
             } else {
                 repository.updateProduct(
@@ -208,7 +214,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                         supplierId = supplierId,
                         imageUrl = imageUrl
                     ),
-                    categoryName = categoryName
+                    categoryName = category.name
                 )
             }
 
@@ -236,32 +242,31 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    /**
-     * Prefer a cached match (case-insensitive), otherwise ask the backend to find-or-create.
-     */
-    private suspend fun resolveCategoryId(categoryName: String): Result<Int> {
-        val cached = _categories.value.orEmpty().firstOrNull {
+    private suspend fun resolveCategory(
+        categoryName: String,
+        selected: CategoryDto?,
+        isAddingNew: Boolean
+    ): Result<CategoryDto> {
+        if (!isAddingNew && selected != null) {
+            return Result.success(selected)
+        }
+        // Match existing cache first (case-insensitive) even when "add new" was chosen.
+        val cached = categories.value.orEmpty().firstOrNull {
             it.name.equals(categoryName, ignoreCase = true)
         }
-        if (cached != null) {
-            return Result.success(cached.id)
+        if (cached != null && !isAddingNew) {
+            return Result.success(cached)
+        }
+        if (isAddingNew && cached != null) {
+            return Result.failure(
+                Exception(getApplication<Application>().getString(R.string.error_category_duplicate))
+            )
         }
 
-        val created = categoryRepository.findOrCreateCategory(categoryName)
-        if (created.isSuccess) {
-            val category = created.getOrNull()!!
-            val updated = _categories.value.orEmpty().toMutableList()
-            if (updated.none { it.id == category.id }) {
-                updated.add(category)
-                updated.sortBy { it.name.lowercase() }
-                _categories.postValue(updated)
-            }
-            return Result.success(category.id)
+        return when (val created = categoryRepository.findOrCreateCategory(categoryName)) {
+            is WriteResult.Synced, is WriteResult.Queued -> Result.success(created.getOrNull()!!)
+            is WriteResult.Failed -> Result.failure(Exception(created.message))
         }
-        return Result.failure(
-            created.exceptionOrNull()
-                ?: Exception(getApplication<Application>().getString(R.string.error_failed_resolve_category))
-        )
     }
 
     private suspend fun uploadLocalImage(uri: Uri): Result<String> = withContext(Dispatchers.IO) {
@@ -283,8 +288,7 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
                     )
                 )
             }
-            val fileName = "product.jpg"
-            repository.uploadProductImage(bytes, fileName, "image/jpeg")
+            repository.uploadProductImage(bytes, "product.jpg", "image/jpeg")
         } catch (e: Exception) {
             Result.failure(
                 Exception(
@@ -300,7 +304,9 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         sellingPriceText: String,
         stockLevelText: String,
         minStockLevelText: String,
-        categoryNameText: String,
+        selectedCategory: CategoryDto?,
+        newCategoryName: String?,
+        isAddingNewCategory: Boolean,
         supplierIdText: String
     ): String? {
         if (name.isBlank()) return getApplication<Application>().getString(R.string.error_product_name_required)
@@ -308,10 +314,25 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
         if (sellingPriceText.toDoubleOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_selling_price)
         if (stockLevelText.toIntOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_stock_level)
         if (minStockLevelText.toIntOrNull() == null) return getApplication<Application>().getString(R.string.error_valid_min_stock)
-        if (categoryNameText.isBlank()) return getApplication<Application>().getString(R.string.error_category_required)
-        if (categoryNameText.trim().length > 50) {
-            return getApplication<Application>().getString(R.string.error_category_name_too_long)
+
+        if (isAddingNewCategory) {
+            val trimmed = newCategoryName?.trim().orEmpty()
+            if (trimmed.isEmpty()) {
+                return getApplication<Application>().getString(R.string.error_category_required)
+            }
+            if (trimmed.length > 50) {
+                return getApplication<Application>().getString(R.string.error_category_name_too_long)
+            }
+            val duplicate = categories.value.orEmpty().any {
+                it.name.equals(trimmed, ignoreCase = true)
+            }
+            if (duplicate) {
+                return getApplication<Application>().getString(R.string.error_category_duplicate)
+            }
+        } else if (selectedCategory == null) {
+            return getApplication<Application>().getString(R.string.error_category_required)
         }
+
         if (supplierIdText.isNotBlank() && supplierIdText.toIntOrNull() == null) {
             return getApplication<Application>().getString(R.string.error_valid_supplier_id)
         }
@@ -335,5 +356,6 @@ class AddProductViewModel(application: Application) : AndroidViewModel(applicati
 
     companion object {
         private const val MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+        const val ADD_NEW_CATEGORY_SENTINEL = "__ADD_NEW_CATEGORY__"
     }
 }
