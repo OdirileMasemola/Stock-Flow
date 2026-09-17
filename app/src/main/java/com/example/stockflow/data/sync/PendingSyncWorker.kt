@@ -7,7 +7,7 @@ import androidx.work.WorkerParameters
 import com.example.stockflow.data.local.SessionStore
 
 /**
- * WorkManager worker: syncs PENDING product writes when network is available.
+ * WorkManager worker: syncs PENDING category+product writes when network is available.
  */
 class PendingSyncWorker(
     appContext: Context,

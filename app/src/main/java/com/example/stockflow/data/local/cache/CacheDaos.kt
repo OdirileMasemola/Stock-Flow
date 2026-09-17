@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductCacheDao {
@@ -16,6 +17,18 @@ interface ProductCacheDao {
 
     @Query("SELECT * FROM cached_products WHERE userId = :userId ORDER BY name COLLATE NOCASE ASC")
     suspend fun getAll(userId: Int): List<CachedProduct>
+
+    @Query("SELECT * FROM cached_products WHERE userId = :userId ORDER BY name COLLATE NOCASE ASC")
+    fun observeAll(userId: Int): Flow<List<CachedProduct>>
+
+    @Query(
+        """
+        SELECT * FROM cached_products
+        WHERE userId = :userId AND stockLevel <= minStockLevel
+        ORDER BY stockLevel ASC, name COLLATE NOCASE ASC
+        """
+    )
+    fun observeLowStock(userId: Int): Flow<List<CachedProduct>>
 
     @Query("SELECT * FROM cached_products WHERE userId = :userId AND id = :id LIMIT 1")
     suspend fun getById(userId: Int, id: Int): CachedProduct?
@@ -44,11 +57,17 @@ interface CategoryCacheDao {
     @Query("SELECT * FROM cached_categories WHERE userId = :userId ORDER BY name COLLATE NOCASE ASC")
     suspend fun getAll(userId: Int): List<CachedCategory>
 
+    @Query("SELECT * FROM cached_categories WHERE userId = :userId ORDER BY name COLLATE NOCASE ASC")
+    fun observeAll(userId: Int): Flow<List<CachedCategory>>
+
     @Query("SELECT * FROM cached_categories WHERE userId = :userId AND id = :id LIMIT 1")
     suspend fun getById(userId: Int, id: Int): CachedCategory?
 
     @Query("DELETE FROM cached_categories WHERE userId = :userId")
     suspend fun clearUser(userId: Int)
+
+    @Query("DELETE FROM cached_categories WHERE userId = :userId AND id = :id")
+    suspend fun deleteById(userId: Int, id: Int)
 
     @Transaction
     suspend fun replaceAll(userId: Int, items: List<CachedCategory>) {
@@ -155,5 +174,20 @@ interface BusinessCacheDao {
     suspend fun get(userId: Int): CachedBusiness?
 
     @Query("DELETE FROM cached_businesses WHERE userId = :userId")
+    suspend fun clearUser(userId: Int)
+}
+
+@Dao
+interface DashboardCacheDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(item: CachedDashboardSnapshot)
+
+    @Query("SELECT * FROM cached_dashboard_snapshots WHERE userId = :userId LIMIT 1")
+    suspend fun get(userId: Int): CachedDashboardSnapshot?
+
+    @Query("SELECT * FROM cached_dashboard_snapshots WHERE userId = :userId LIMIT 1")
+    fun observe(userId: Int): Flow<CachedDashboardSnapshot?>
+
+    @Query("DELETE FROM cached_dashboard_snapshots WHERE userId = :userId")
     suspend fun clearUser(userId: Int)
 }

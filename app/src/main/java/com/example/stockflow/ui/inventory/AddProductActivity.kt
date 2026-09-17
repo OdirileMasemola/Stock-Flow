@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -12,6 +13,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import coil.load
 import com.example.stockflow.R
+import com.example.stockflow.data.remote.CategoryDto
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.databinding.ActivityAddProductBinding
 import com.example.stockflow.ui.common.ProductImages
@@ -20,17 +22,18 @@ import com.example.stockflow.ui.scanner.BarcodeScannerActivity
 
 /**
  * Create a new product or edit an existing one.
- * Pass [EXTRA_PRODUCT_ID] to open in edit mode.
+ * Category selector: cached categories + "Add new category" with inline name field.
  */
 class AddProductActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddProductBinding
     private val viewModel: AddProductViewModel by viewModels()
 
-    /** Null when creating; non-null when editing. */
     private var productId: Int? = null
-
     private var previewUri: Uri? = null
+    private var categoryOptions: List<CategoryDto> = emptyList()
+    private var selectedCategory: CategoryDto? = null
+    private var suppressSpinnerCallback = false
 
     private val pickImage = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
@@ -62,7 +65,9 @@ class AddProductActivity : AppCompatActivity() {
         setContentView(binding.root)
         SystemBars.applyLight(this, binding.root)
 
-        productId = intent.getIntExtra(EXTRA_PRODUCT_ID, -1).takeIf { it > 0 }
+        // Allow editing temp local products (negative ids) as well as remote (>0).
+        val rawId = intent.getIntExtra(EXTRA_PRODUCT_ID, 0)
+        productId = rawId.takeIf { it != 0 }
 
         if (productId != null) {
             binding.toolbar.title = getString(R.string.edit_product_title)
@@ -72,9 +77,7 @@ class AddProductActivity : AppCompatActivity() {
             showEmptyImageState()
         }
 
-        binding.toolbar.setNavigationOnClickListener {
-            finish()
-        }
+        binding.toolbar.setNavigationOnClickListener { finish() }
 
         binding.imagePickerArea.setOnClickListener {
             pickImage.launch(
@@ -92,7 +95,27 @@ class AddProductActivity : AppCompatActivity() {
             scanBarcode.launch(Intent(this, BarcodeScannerActivity::class.java))
         }
 
+        binding.spinnerCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (suppressSpinnerCallback) return
+                val labels = binding.spinnerCategory.adapter?.count ?: 0
+                if (labels == 0) return
+                // Last item is always "Add new category"
+                val isAddNew = position == labels - 1
+                viewModel.setAddingNewCategory(isAddNew)
+                setNewCategoryVisible(isAddNew)
+                selectedCategory = if (isAddNew || position >= categoryOptions.size) {
+                    null
+                } else {
+                    categoryOptions[position]
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+
         binding.btnSave.setOnClickListener {
+            val addingNew = viewModel.addingNewCategory.value == true
             viewModel.saveProduct(
                 productId = productId,
                 name = binding.etName.text.toString(),
@@ -101,35 +124,28 @@ class AddProductActivity : AppCompatActivity() {
                 sellingPriceText = binding.etSellingPrice.text.toString(),
                 stockLevelText = binding.etStockLevel.text.toString(),
                 minStockLevelText = binding.etMinStock.text.toString(),
-                categoryNameText = binding.actvCategory.text.toString(),
+                selectedCategory = selectedCategory,
+                newCategoryName = binding.etNewCategory.text?.toString(),
+                isAddingNewCategory = addingNew,
                 supplierIdText = binding.etSupplierId.text.toString()
             )
         }
 
         viewModel.categories.observe(this) { categories ->
-            val names = categories.map { it.name }
-            val adapter = ArrayAdapter(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                names
-            )
-            binding.actvCategory.setAdapter(adapter)
+            categoryOptions = categories
+            bindCategorySpinner(categories)
+            maybeSelectLoadedProductCategory()
+        }
 
-            // If editing and the text field is still empty, resolve name from id.
-            if (binding.actvCategory.text.isNullOrBlank()) {
-                val product = viewModel.loadedProduct.value
-                val match = product?.let { p ->
-                    categories.firstOrNull { it.id == p.categoryId }?.name
-                        ?: p.categoryName?.takeIf { it.isNotBlank() }
-                }
-                if (!match.isNullOrBlank()) {
-                    binding.actvCategory.setText(match, false)
-                }
-            }
+        viewModel.addingNewCategory.observe(this) { adding ->
+            setNewCategoryVisible(adding == true)
         }
 
         viewModel.loadedProduct.observe(this) { product ->
-            product?.let { fillForm(it) }
+            product?.let {
+                fillForm(it)
+                maybeSelectLoadedProductCategory()
+            }
         }
 
         viewModel.formState.observe(this) { state ->
@@ -157,6 +173,46 @@ class AddProductActivity : AppCompatActivity() {
         }
     }
 
+    private fun bindCategorySpinner(categories: List<CategoryDto>) {
+        val labels = categories.map { it.name } + getString(R.string.category_add_new)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
+        suppressSpinnerCallback = true
+        binding.spinnerCategory.adapter = adapter
+        // Keep current selection if possible
+        val currentId = selectedCategory?.id
+            ?: viewModel.loadedProduct.value?.categoryId
+        val index = categories.indexOfFirst { it.id == currentId }
+        if (index >= 0) {
+            binding.spinnerCategory.setSelection(index)
+            selectedCategory = categories[index]
+            viewModel.setAddingNewCategory(false)
+        } else if (categories.isNotEmpty() && selectedCategory == null && viewModel.addingNewCategory.value != true) {
+            binding.spinnerCategory.setSelection(0)
+            selectedCategory = categories[0]
+            viewModel.setAddingNewCategory(false)
+        }
+        suppressSpinnerCallback = false
+    }
+
+    private fun maybeSelectLoadedProductCategory() {
+        val product = viewModel.loadedProduct.value ?: return
+        val index = categoryOptions.indexOfFirst { it.id == product.categoryId }
+        if (index >= 0) {
+            suppressSpinnerCallback = true
+            binding.spinnerCategory.setSelection(index)
+            selectedCategory = categoryOptions[index]
+            viewModel.setAddingNewCategory(false)
+            setNewCategoryVisible(false)
+            suppressSpinnerCallback = false
+        }
+    }
+
+    private fun setNewCategoryVisible(visible: Boolean) {
+        val vis = if (visible) View.VISIBLE else View.GONE
+        binding.tvNewCategoryLabel.visibility = vis
+        binding.etNewCategory.visibility = vis
+    }
+
     private fun fillForm(product: ProductDto) {
         binding.etName.setText(product.name)
         binding.etSku.setText(product.sku.orEmpty())
@@ -164,13 +220,6 @@ class AddProductActivity : AppCompatActivity() {
         binding.etSellingPrice.setText(product.sellingPrice.toString())
         binding.etStockLevel.setText(product.stockLevel.toString())
         binding.etMinStock.setText(product.minStockLevel.toString())
-        val categoryLabel = product.categoryName?.takeIf { it.isNotBlank() }
-            ?: viewModel.categories.value.orEmpty()
-                .firstOrNull { it.id == product.categoryId }
-                ?.name
-            .orEmpty()
-        binding.actvCategory.setText(categoryLabel, false)
-
         binding.etSupplierId.setText(product.supplierId?.toString().orEmpty())
 
         if (previewUri != null) {
@@ -221,7 +270,8 @@ class AddProductActivity : AppCompatActivity() {
         binding.imagePickerArea.isEnabled = !loading
         binding.btnRemoveImage.isEnabled = !loading
         binding.btnScanSku.isEnabled = !loading
-        binding.actvCategory.isEnabled = !loading
+        binding.spinnerCategory.isEnabled = !loading
+        binding.etNewCategory.isEnabled = !loading
         if (loading) {
             binding.tvFormError.visibility = View.GONE
         }

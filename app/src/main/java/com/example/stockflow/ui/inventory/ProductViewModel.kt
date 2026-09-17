@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.stockflow.R
 import com.example.stockflow.data.local.SessionStore
@@ -11,10 +12,13 @@ import com.example.stockflow.data.local.cache.CacheResult
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.repository.ProductRepository
 import com.example.stockflow.ui.common.AppStrings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
- * Loads products for the Inventory screen and supports local search + delete.
+ * Inventory screen: Room Flow is the observable source of truth.
+ * Network refresh writes into Room; observers update without manual refresh.
  */
 class ProductViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -23,12 +27,41 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
         appContext = application.applicationContext
     )
 
-    private var allProducts: List<ProductDto> = emptyList()
-    private var fromCache: Boolean = false
-    private var cachedAt: Long? = null
+    private val queryFlow = MutableStateFlow("")
+    private val freshnessFlow = MutableStateFlow(Freshness(fromCache = false, cachedAt = null))
+    private val errorFlow = MutableStateFlow<String?>(null)
 
-    private val _uiState = MutableLiveData<ProductsUiState>(ProductsUiState.Loading)
-    val uiState: LiveData<ProductsUiState> = _uiState
+    val uiState: LiveData<ProductsUiState> = combine(
+        repository.observeProducts(),
+        queryFlow,
+        freshnessFlow,
+        errorFlow
+    ) { products, query, freshness, error ->
+        if (error != null && products.isEmpty()) {
+            ProductsUiState.Error(error)
+        } else {
+            val filtered = if (query.isBlank()) {
+                products
+            } else {
+                val q = query.trim().lowercase()
+                products.filter { product ->
+                    product.name.lowercase().contains(q) ||
+                        product.sku.orEmpty().lowercase().contains(q) ||
+                        product.categoryName.orEmpty().lowercase().contains(q)
+                }
+            }
+            when {
+                products.isEmpty() && error == null && !freshness.loadedOnce ->
+                    ProductsUiState.Loading
+                products.isEmpty() ->
+                    ProductsUiState.Empty(freshness.fromCache, freshness.cachedAt)
+                filtered.isEmpty() ->
+                    ProductsUiState.EmptySearch(query, freshness.fromCache, freshness.cachedAt)
+                else ->
+                    ProductsUiState.Success(filtered, freshness.fromCache, freshness.cachedAt)
+            }
+        }
+    }.asLiveData(viewModelScope.coroutineContext)
 
     private val _deleteMessage = MutableLiveData<String?>()
     val deleteMessage: LiveData<String?> = _deleteMessage
@@ -42,45 +75,35 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
     private val _lookupLoading = MutableLiveData(false)
     val lookupLoading: LiveData<Boolean> = _lookupLoading
 
-    private var lastQuery: String = ""
     private var loadInFlight = false
+
+    init {
+        loadProducts(force = true)
+    }
 
     fun loadProducts(force: Boolean = true) {
         if (loadInFlight) return
-        if (!force) {
-            val current = _uiState.value
-            if (current is ProductsUiState.Success || current is ProductsUiState.Empty) {
-                return
-            }
-        }
+        if (!force && freshnessFlow.value.loadedOnce) return
         loadInFlight = true
-        _uiState.value = ProductsUiState.Loading
         viewModelScope.launch {
             try {
                 when (val result = repository.getProducts()) {
                     is CacheResult.Fresh -> {
-                        fromCache = false
-                        cachedAt = null
-                        allProducts = result.data
-                        publishFiltered(lastQuery)
+                        errorFlow.value = null
+                        freshnessFlow.value = Freshness(false, null, loadedOnce = true)
                     }
                     is CacheResult.Cached -> {
-                        fromCache = true
-                        cachedAt = result.cachedAt
-                        allProducts = result.data
-                        publishFiltered(lastQuery)
+                        errorFlow.value = null
+                        freshnessFlow.value = Freshness(true, result.cachedAt, loadedOnce = true)
                     }
                     CacheResult.Empty -> {
-                        fromCache = false
-                        cachedAt = null
-                        _uiState.postValue(
-                            ProductsUiState.Error(AppStrings.get(R.string.offline_no_cached_data))
-                        )
+                        freshnessFlow.value = Freshness(false, null, loadedOnce = true)
+                        errorFlow.value = AppStrings.get(R.string.offline_no_cached_data)
                     }
                     is CacheResult.Error -> {
-                        fromCache = false
-                        cachedAt = null
-                        _uiState.postValue(ProductsUiState.Error(result.message))
+                        freshnessFlow.value = freshnessFlow.value.copy(loadedOnce = true)
+                        // Keep showing Room data if present; only surface error when empty.
+                        errorFlow.value = result.message
                     }
                 }
             } finally {
@@ -89,12 +112,8 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /** Filters the already-loaded list by name or SKU (no extra API call). */
     fun search(query: String) {
-        if (_uiState.value is ProductsUiState.Error) {
-            return
-        }
-        publishFiltered(query)
+        queryFlow.value = query
     }
 
     fun deleteProduct(product: ProductDto) {
@@ -102,14 +121,12 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
             when (val result = repository.deleteProduct(product.id)) {
                 is com.example.stockflow.data.sync.WriteResult.Synced,
                 is com.example.stockflow.data.sync.WriteResult.Queued -> {
-                    allProducts = allProducts.filterNot { it.id == product.id }
                     val msg = if (result.savedOffline) {
                         getApplication<Application>().getString(R.string.saved_offline)
                     } else {
                         getApplication<Application>().getString(R.string.item_deleted, product.name)
                     }
                     _deleteMessage.postValue(msg)
-                    publishFiltered(lastQuery)
                 }
                 is com.example.stockflow.data.sync.WriteResult.Failed -> {
                     _deleteMessage.postValue(
@@ -122,17 +139,9 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun clearDeleteMessage() {
-        _deleteMessage.value = null
-    }
-
-    fun clearLookupMessage() {
-        _lookupMessage.value = null
-    }
-
-    fun clearLookupProduct() {
-        _lookupProduct.value = null
-    }
+    fun clearDeleteMessage() { _deleteMessage.value = null }
+    fun clearLookupMessage() { _lookupMessage.value = null }
+    fun clearLookupProduct() { _lookupProduct.value = null }
 
     fun findBySku(sku: String) {
         val normalized = sku.trim()
@@ -148,33 +157,18 @@ class ProductViewModel(application: Application) : AndroidViewModel(application)
                 _lookupProduct.postValue(result.getOrNull())
             } else {
                 _lookupMessage.postValue(
-                    result.exceptionOrNull()?.message ?: getApplication<Application>().getString(R.string.product_not_found)
+                    result.exceptionOrNull()?.message
+                        ?: getApplication<Application>().getString(R.string.product_not_found)
                 )
             }
         }
     }
 
-    private fun publishFiltered(query: String) {
-        lastQuery = query
-        val filtered = if (query.isBlank()) {
-            allProducts
-        } else {
-            val q = query.trim().lowercase()
-            allProducts.filter { product ->
-                product.name.lowercase().contains(q) ||
-                    product.sku.orEmpty().lowercase().contains(q) ||
-                    product.categoryName.orEmpty().lowercase().contains(q)
-            }
-        }
-
-        _uiState.postValue(
-            when {
-                allProducts.isEmpty() -> ProductsUiState.Empty(fromCache, cachedAt)
-                filtered.isEmpty() -> ProductsUiState.EmptySearch(query, fromCache, cachedAt)
-                else -> ProductsUiState.Success(filtered, fromCache, cachedAt)
-            }
-        )
-    }
+    private data class Freshness(
+        val fromCache: Boolean,
+        val cachedAt: Long?,
+        val loadedOnce: Boolean = false
+    )
 
     sealed class ProductsUiState {
         object Loading : ProductsUiState()

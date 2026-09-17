@@ -462,7 +462,14 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="retry_synchronization">Zama ukuvumelanisa futhi</string>
     <string name="sync_up_to_date">Kusabusha</string>
     <string name="sync_status_checking">Iyacubungula…</string>
-    <string name="sync_status_online_offline_hint">Izinguquko eziku-inthanethi zivumelaniswa ngokushesha. Izinguquko zomkhiqizo ngaphandle kwe-inthanethi zilinda lapha kuze kube khona uxhumano.</string>
+    <string name="sync_status_online_offline_hint">Izinguquko eziku-inthanethi zivumelaniswa ngokushesha. Izinguquko zesigaba nomkhiqizo ngaphandle kwe-inthanethi zilinda lapha kuze kube khona uxhumano (izigaba zivumelaniswa ngaphambi kwemikhiqizo).</string>
     <string name="error_offline_category_requires_existing">Awukho ku-inthanethi. Khetha isigaba esikhona, noma uxhumeke kabusha ukuze udale esisha.</string>
+
+
+    <string name="category_add_new">Engeza isigaba esisha</string>
+    <string name="label_new_category_name">Igama lesigaba esisha</string>
+    <string name="hint_new_category_name">isb. Iziphuzo</string>
+    <string name="error_category_duplicate">Isigaba esinaleli gama sesivele sikhona</string>
+    <string name="dashboard_offline_empty">Ayikho idatha yedashboard egciniwe okwamanje. Xhuma ku-inthanethi ukuze ulayishe idashboard yakho.</string>
 
 </resources>

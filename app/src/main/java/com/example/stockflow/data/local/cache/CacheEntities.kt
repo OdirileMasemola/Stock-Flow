@@ -94,3 +94,20 @@ data class CachedBusiness(
     val updatedAt: String?,
     val cachedAt: Long
 )
+
+@Entity(tableName = "cached_dashboard_snapshots", primaryKeys = ["userId"])
+data class CachedDashboardSnapshot(
+    val userId: Int,
+    val totalProducts: Int,
+    val totalStockQuantity: Int,
+    val inventoryValue: Double,
+    val todaySalesTotal: Double,
+    val todaySalesCount: Int,
+    val lowStockCount: Int,
+    /** Gson JSON arrays for nested dashboard lists. */
+    val weeklySalesJson: String,
+    val recentSalesJson: String,
+    val recentPurchaseOrdersJson: String,
+    val lowStockPreviewJson: String,
+    val cachedAt: Long
+)

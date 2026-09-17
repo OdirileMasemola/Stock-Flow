@@ -486,7 +486,14 @@
     <string name="retry_synchronization">Retry synchronization</string>
     <string name="sync_up_to_date">Up to date</string>
     <string name="sync_status_checking">Checking…</string>
-    <string name="sync_status_online_offline_hint">Online writes sync immediately. Offline product changes wait here until a connection is available.</string>
+    <string name="sync_status_online_offline_hint">Online writes sync immediately. Offline category and product changes wait here until a connection is available (categories sync before products).</string>
     <string name="error_offline_category_requires_existing">You are offline. Choose an existing category, or reconnect to create a new one.</string>
+
+
+    <string name="category_add_new">Add new category</string>
+    <string name="label_new_category_name">New category name</string>
+    <string name="hint_new_category_name">e.g. Beverages</string>
+    <string name="error_category_duplicate">A category with this name already exists</string>
+    <string name="dashboard_offline_empty">No dashboard data cached yet. Connect to the internet to load your dashboard.</string>
 
 </resources>

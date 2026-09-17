@@ -3,17 +3,24 @@ package com.example.stockflow.data.sync
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Generates negative product IDs for offline-created rows so they never collide
+ * Generates negative IDs for offline-created rows so they never collide
  * with positive server IDs. Mapped to a real remote id after CREATE sync succeeds.
  */
 object LocalTempIds {
-    private val counter = AtomicInteger(-1)
+    private val productCounter = AtomicInteger(-1)
+    private val categoryCounter = AtomicInteger(-1)
 
-    fun nextProductId(): Int = counter.getAndDecrement().let { if (it == 0) -1 else it }
+    fun nextProductId(): Int = next(productCounter)
 
-    /** Test helper to reset the sequence. */
+    fun nextCategoryId(): Int = next(categoryCounter)
+
+    private fun next(counter: AtomicInteger): Int =
+        counter.getAndDecrement().let { if (it == 0) -1 else it }
+
+    /** Test helper to reset the sequences. */
     fun resetForTests(start: Int = -1) {
-        counter.set(start)
+        productCounter.set(start)
+        categoryCounter.set(start)
     }
 
     fun isTemporary(id: Int): Boolean = id < 0

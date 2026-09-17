@@ -14,9 +14,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CachedPurchaseOrderItem::class,
         CachedProfile::class,
         CachedBusiness::class,
-        PendingOperationEntity::class
+        PendingOperationEntity::class,
+        CachedDashboardSnapshot::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class StockFlowCacheDatabase : RoomDatabase() {
@@ -27,13 +28,11 @@ abstract class StockFlowCacheDatabase : RoomDatabase() {
     abstract fun profileDao(): ProfileCacheDao
     abstract fun businessDao(): BusinessCacheDao
     abstract fun pendingOperationDao(): PendingOperationDao
+    abstract fun dashboardDao(): DashboardCacheDao
 
     companion object {
         const val DB_NAME = "stockflow_read_cache.db"
 
-        /**
-         * Non-destructive 1→2: preserves all Stage 3A cache tables and adds the write queue.
-         */
         val MIGRATION_1_2: Migration = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -61,6 +60,30 @@ abstract class StockFlowCacheDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS index_pending_operations_userId_entityType_localEntityId " +
                         "ON pending_operations (userId, entityType, localEntityId)"
+                )
+            }
+        }
+
+        /** Non-destructive 2→3: dashboard snapshot cache. CATEGORY uses existing entityType TEXT. */
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS cached_dashboard_snapshots (
+                        userId INTEGER NOT NULL PRIMARY KEY,
+                        totalProducts INTEGER NOT NULL,
+                        totalStockQuantity INTEGER NOT NULL,
+                        inventoryValue REAL NOT NULL,
+                        todaySalesTotal REAL NOT NULL,
+                        todaySalesCount INTEGER NOT NULL,
+                        lowStockCount INTEGER NOT NULL,
+                        weeklySalesJson TEXT NOT NULL,
+                        recentSalesJson TEXT NOT NULL,
+                        recentPurchaseOrdersJson TEXT NOT NULL,
+                        lowStockPreviewJson TEXT NOT NULL,
+                        cachedAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
                 )
             }
         }
