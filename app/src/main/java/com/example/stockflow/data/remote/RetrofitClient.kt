@@ -75,4 +75,9 @@ object RetrofitClient {
     val notificationApi: NotificationApi by lazy {
         retrofit.create(NotificationApi::class.java)
     }
+
+    /** Authenticated activity / audit history (Firestore via API). */
+    val activityApi: ActivityApi by lazy {
+        retrofit.create(ActivityApi::class.java)
+    }
 }

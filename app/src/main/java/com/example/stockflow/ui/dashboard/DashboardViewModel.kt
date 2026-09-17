@@ -3,23 +3,24 @@ package com.example.stockflow.ui.dashboard
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.stockflow.R
+import com.example.stockflow.data.activity.ActivityRepository
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.local.cache.CacheResult
+import com.example.stockflow.data.remote.ActivityItemDto
 import com.example.stockflow.data.remote.DashboardSummaryDto
 import com.example.stockflow.data.repository.DashboardRepository
-import com.example.stockflow.ui.common.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = DashboardRepository(
-        sessionStore = SessionStore(application.applicationContext)
-    )
+    private val sessionStore = SessionStore(application.applicationContext)
+    private val repository = DashboardRepository(sessionStore = sessionStore)
+    private val activityRepository = ActivityRepository(sessionStore = sessionStore)
 
     private val freshnessFlow = MutableStateFlow(Freshness())
     private val loadingFlow = MutableStateFlow(false)
@@ -43,6 +44,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             else -> DashboardUiState.Loading
         }
     }.asLiveData(viewModelScope.coroutineContext)
+
+    private val _activityState = MutableLiveData<ActivityUiState>(ActivityUiState.Loading)
+    val activityState: LiveData<ActivityUiState> = _activityState
 
     init {
         loadDashboard(force = true)
@@ -75,7 +79,6 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                         )
                     }
                     is CacheResult.Error -> {
-                        // Prefer showing cached snapshot if Room already has one (via observe).
                         freshnessFlow.value = freshnessFlow.value.copy(
                             loadedOnce = true,
                             errorMessage = result.message
@@ -84,6 +87,21 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             } finally {
                 loadingFlow.value = false
+            }
+        }
+        loadActivity()
+    }
+
+    fun loadActivity() {
+        _activityState.value = ActivityUiState.Loading
+        viewModelScope.launch {
+            when (val result = activityRepository.getRecentActivity(limit = 10)) {
+                is ActivityRepository.Result.Success ->
+                    _activityState.value = ActivityUiState.Success(result.items)
+                ActivityRepository.Result.Empty ->
+                    _activityState.value = ActivityUiState.Empty
+                is ActivityRepository.Result.Error ->
+                    _activityState.value = ActivityUiState.Error(result.message)
             }
         }
     }
@@ -105,5 +123,12 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val cachedAt: Long? = null
         ) : DashboardUiState()
         data class Error(val message: String) : DashboardUiState()
+    }
+
+    sealed class ActivityUiState {
+        object Loading : ActivityUiState()
+        object Empty : ActivityUiState()
+        data class Success(val items: List<ActivityItemDto>) : ActivityUiState()
+        data class Error(val message: String) : ActivityUiState()
     }
 }

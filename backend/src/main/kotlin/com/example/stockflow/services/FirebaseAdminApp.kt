@@ -11,7 +11,7 @@ import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 
 /**
- * Shared Firebase Admin SDK bootstrap for Auth verification and FCM sending.
+ * Shared Firebase Admin SDK bootstrap for Auth verification, FCM, and Firestore activity.
  *
  * Credential resolution order:
  * 1. [AppConfig.firebaseCredentialsJson] (inline JSON — preferred on Render)
@@ -42,7 +42,7 @@ object FirebaseAdminApp {
             logger.info(
                 "Firebase Admin credentials not configured " +
                     "(set FIREBASE_CREDENTIALS_JSON or FIREBASE_CREDENTIALS_PATH). " +
-                    "FCM push and Firebase ID-token fallback are disabled."
+                    "FCM push, Firestore activity, and Firebase ID-token fallback are disabled."
             )
             ready = false
             return false

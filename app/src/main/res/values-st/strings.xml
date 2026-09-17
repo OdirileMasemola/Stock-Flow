@@ -472,4 +472,14 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
     <string name="error_category_duplicate">Sehlopha se nang le lebitso lena se se ntse se le teng</string>
     <string name="dashboard_offline_empty">Ha ho na data ea dashboard e bolokiloeng hona joale. Khokahana inthaneteng ho kenya dashboard ea hao.</string>
 
+    <string name="recent_activity_title">Ketsahalo ea morao-rao</string>
+    <string name="activity_empty">Ha ho na ketsahalo ea morao-rao hajoale.</string>
+    <string name="activity_error_load">Ha e khone ho kenya ketsahalo.</string>
+    <string name="activity_error_unavailable">Nalane ea ketsahalo ha e fumanehe hona joale.</string>
+    <string name="activity_loading">E ntse e kenya ketsahalo…</string>
+    <string name="activity_type_created">E entsoe</string>
+    <string name="activity_type_updated">E ntlafalitsoe</string>
+    <string name="activity_type_deleted">E hlakotsoe</string>
+    <string name="activity_type_low_stock">Stock e tlase</string>
+
 </resources>

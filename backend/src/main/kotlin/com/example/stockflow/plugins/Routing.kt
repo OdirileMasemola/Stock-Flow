@@ -19,6 +19,7 @@ import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.services.DashboardService
 import com.example.stockflow.services.BusinessService
 import com.example.stockflow.services.notifications.DeviceTokenService
+import com.example.stockflow.services.activity.ActivityService
 import com.example.stockflow.models.RegisterDeviceTokenRequest
 import com.example.stockflow.models.UnregisterDeviceTokenRequest
 import com.example.stockflow.models.RegisterRequest
@@ -50,6 +51,7 @@ fun Application.configureRouting() {
     val dashboardService = DashboardService()
     val businessService = BusinessService()
     val deviceTokenService = DeviceTokenService()
+    val activityService = ActivityService()
 
     routing {
         get("/") {
@@ -241,7 +243,8 @@ fun Application.configureRouting() {
                 delete("/{id}") {
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid product ID")
-                    productService.deleteProduct(id)
+                    val userId = currentUserId(call)
+                    productService.deleteProduct(id, actingUserId = userId)
                     call.respond(HttpStatusCode.NoContent)
                 }
             }
@@ -344,6 +347,14 @@ fun Application.configureRouting() {
                     val request = call.receive<UnregisterDeviceTokenRequest>()
                     deviceTokenService.unregister(userId, request)
                     call.respond(HttpStatusCode.NoContent)
+                }
+            }
+
+            route("/api/activity") {
+                get {
+                    val userId = currentUserId(call)
+                    val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
+                    call.respond(activityService.listRecentForUser(userId, limit))
                 }
             }
 

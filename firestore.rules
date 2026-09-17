@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // StockFlow activity audit history.
+    //
+    // Architecture (Part 3):
+    // - WRITES: backend Firebase Admin SDK only (product CRUD + low-stock).
+    // - READS: Android via authenticated Ktor GET /api/activity (Admin SDK proxy).
+    //
+    // Client SDK access is denied. Admin SDK bypasses these rules.
+    // Do not open world read/write. Email/password users rely on StockFlow JWT,
+    // not Firebase Auth, so client-side Firestore rules cannot safely scope them.
+
+    match /businesses/{businessId}/activity/{activityId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -11,12 +11,14 @@ import com.example.stockflow.models.UpdateProductRequest
 import com.example.stockflow.models.LowStockCrossing
 import com.example.stockflow.repositories.ProductRepository
 import com.example.stockflow.services.notifications.LowStockAlertService
+import com.example.stockflow.services.activity.ActivityService
 import com.example.stockflow.repositories.ProductRepositoryImpl
 
 class ProductService(
     private val repository: ProductRepository = ProductRepositoryImpl(),
     private val imageStorage: ProductImageStorage = ProductImageStorage(),
-    private val lowStockAlerts: LowStockAlertService = LowStockAlertService()
+    private val lowStockAlerts: LowStockAlertService = LowStockAlertService(),
+    private val activityService: ActivityService = ActivityService()
 ) {
     suspend fun getProducts(): List<ProductResponse> = repository.getAllProducts()
 
@@ -69,6 +71,11 @@ class ProductService(
         }
 
         val created = repository.createProduct(request)
+        activityService.recordProductCreated(
+            userId = actingUserId,
+            productId = created.id,
+            productName = created.name
+        )
         // Treat create-as-low as a crossing (previous stock conceptually above min).
         if (created.stockLevel <= created.minStockLevel) {
             lowStockAlerts.notifyCrossingsAsync(
@@ -126,6 +133,12 @@ class ProductService(
             imageStorage.deleteIfManaged(oldUrl)
         }
 
+        activityService.recordProductUpdated(
+            userId = actingUserId,
+            productId = updated.id,
+            productName = updated.name
+        )
+
         lowStockAlerts.notifyCrossingsAsync(
             actingUserId = actingUserId,
             crossings = listOf(
@@ -142,7 +155,7 @@ class ProductService(
         return updated
     }
 
-    suspend fun deleteProduct(id: Int) {
+    suspend fun deleteProduct(id: Int, actingUserId: Int = 0) {
         val existing = repository.getProductById(id)
             ?: throw NotFoundException("Product not found")
         val deleted = repository.deleteProduct(id)
@@ -150,6 +163,11 @@ class ProductService(
             throw NotFoundException("Product not found")
         }
         imageStorage.deleteIfManaged(existing.imageUrl)
+        activityService.recordProductDeleted(
+            userId = actingUserId,
+            productId = existing.id,
+            productName = existing.name
+        )
     }
 
     private suspend fun validateProductFields(
