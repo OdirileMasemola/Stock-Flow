@@ -4,32 +4,77 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.stockflow.R
 import com.example.stockflow.data.local.SessionStore
 import com.example.stockflow.data.local.cache.CacheResult
-import com.example.stockflow.ui.common.AppStrings
 import com.example.stockflow.data.remote.ProductDto
 import com.example.stockflow.data.remote.SaleDto
 import com.example.stockflow.data.repository.ProductRepository
 import com.example.stockflow.data.repository.SaleRepository
+import com.example.stockflow.ui.common.AppStrings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import com.example.stockflow.R
 
 /**
  * POS catalog + sales history. Cart lives in [CartSession].
+ *
+ * Product catalog observes the same Room-backed [ProductRepository.observeProducts]
+ * Flow that Inventory uses, so create/edit/delete (online or offline) appear on POS
+ * immediately without a manual refresh.
  */
 class SalesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sessionStore = SessionStore(application.applicationContext)
-    private val productRepository = ProductRepository(sessionStore = sessionStore)
+    private val productRepository = ProductRepository(
+        sessionStore = sessionStore,
+        appContext = application.applicationContext
+    )
     private val saleRepository = SaleRepository(sessionStore = sessionStore)
 
-    private var allProducts: List<ProductDto> = emptyList()
-    private var lastQuery: String = ""
+    private val queryFlow = MutableStateFlow("")
+    private val freshnessFlow = MutableStateFlow(Freshness())
+    private val errorFlow = MutableStateFlow<String?>(null)
     private var productsLoadInFlight = false
 
-    private val _productsState = MutableLiveData<ProductsUiState>(ProductsUiState.Loading)
-    val productsState: LiveData<ProductsUiState> = _productsState
+    private val productsFlow = productRepository.observeProducts().onEach { products ->
+        CartSession.syncWithProducts(products)
+    }
+
+    val productsState: LiveData<ProductsUiState> = combine(
+        productsFlow,
+        queryFlow,
+        freshnessFlow,
+        errorFlow
+    ) { products, query, freshness, error ->
+        if (error != null && products.isEmpty()) {
+            ProductsUiState.Error(error)
+        } else {
+            val filtered = if (query.isBlank()) {
+                products
+            } else {
+                val q = query.trim().lowercase()
+                products.filter { product ->
+                    product.name.lowercase().contains(q) ||
+                        product.sku.orEmpty().lowercase().contains(q) ||
+                        product.categoryName.orEmpty().lowercase().contains(q)
+                }
+            }
+            when {
+                products.isEmpty() && error == null && !freshness.loadedOnce ->
+                    ProductsUiState.Loading
+                products.isEmpty() ->
+                    ProductsUiState.Empty
+                filtered.isEmpty() ->
+                    ProductsUiState.EmptySearch(query)
+                else ->
+                    ProductsUiState.Success(filtered)
+            }
+        }
+    }.asLiveData(viewModelScope.coroutineContext)
 
     val cartState: LiveData<CartSession.CartUiState> = CartSession.state
 
@@ -39,31 +84,32 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
     private val _historyState = MutableLiveData<HistoryUiState>(HistoryUiState.Loading)
     val historyState: LiveData<HistoryUiState> = _historyState
 
+    init {
+        loadProducts(force = true)
+    }
+
     fun loadProducts(force: Boolean = true) {
         if (productsLoadInFlight) return
-        if (!force) {
-            val current = _productsState.value
-            if (current is ProductsUiState.Success || current is ProductsUiState.Empty) {
-                return
-            }
-        }
+        if (!force && freshnessFlow.value.loadedOnce) return
         productsLoadInFlight = true
-        _productsState.value = ProductsUiState.Loading
         viewModelScope.launch {
             try {
                 when (val result = productRepository.getProducts()) {
-                    is CacheResult.Fresh, is CacheResult.Cached -> {
-                        allProducts = result.getOrNull().orEmpty()
-                        CartSession.syncWithProducts(allProducts)
-                        publishFiltered(lastQuery)
+                    is CacheResult.Fresh -> {
+                        errorFlow.value = null
+                        freshnessFlow.value = Freshness(loadedOnce = true)
+                    }
+                    is CacheResult.Cached -> {
+                        errorFlow.value = null
+                        freshnessFlow.value = Freshness(loadedOnce = true, fromCache = true)
                     }
                     CacheResult.Empty -> {
-                        _productsState.postValue(
-                            ProductsUiState.Error(AppStrings.get(R.string.offline_no_cached_data))
-                        )
+                        freshnessFlow.value = Freshness(loadedOnce = true)
+                        errorFlow.value = AppStrings.get(R.string.offline_no_cached_data)
                     }
                     is CacheResult.Error -> {
-                        _productsState.postValue(ProductsUiState.Error(result.message))
+                        freshnessFlow.value = freshnessFlow.value.copy(loadedOnce = true)
+                        errorFlow.value = result.message
                     }
                 }
             } finally {
@@ -73,8 +119,7 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun search(query: String) {
-        if (_productsState.value is ProductsUiState.Error) return
-        publishFiltered(query)
+        queryFlow.value = query
     }
 
     fun addToCart(product: ProductDto) {
@@ -141,27 +186,10 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun publishFiltered(query: String) {
-        lastQuery = query
-        val filtered = if (query.isBlank()) {
-            allProducts
-        } else {
-            val q = query.trim().lowercase()
-            allProducts.filter { product ->
-                product.name.lowercase().contains(q) ||
-                    product.sku.orEmpty().lowercase().contains(q) ||
-                    product.categoryName.orEmpty().lowercase().contains(q)
-            }
-        }
-
-        _productsState.postValue(
-            when {
-                allProducts.isEmpty() -> ProductsUiState.Empty
-                filtered.isEmpty() -> ProductsUiState.EmptySearch(query)
-                else -> ProductsUiState.Success(filtered)
-            }
-        )
-    }
+    private data class Freshness(
+        val loadedOnce: Boolean = false,
+        val fromCache: Boolean = false
+    )
 
     sealed class ProductsUiState {
         object Loading : ProductsUiState()

@@ -11,6 +11,7 @@ import com.example.stockflow.data.repository.ProductRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -146,5 +147,79 @@ class ProductRepositoryCacheTest {
 
         val result = repository.getProducts() as CacheResult.Cached
         assertEquals(42_000L, result.cachedAt)
+    }
+
+    @Test
+    fun observeProductsEmitsCreateUpdateAndDelete() = runBlocking {
+        // POS and Inventory both subscribe to this Flow; Room mutations must be visible promptly.
+        assertTrue(repository.observeProducts().first().isEmpty())
+
+        coEvery { api.createProduct(any(), any()) } returns Response.success(sample)
+        val created = repository.createProduct(
+            com.example.stockflow.data.remote.CreateProductRequest(
+                name = sample.name,
+                sku = sample.sku,
+                costPrice = sample.costPrice,
+                sellingPrice = sample.sellingPrice,
+                stockLevel = sample.stockLevel,
+                minStockLevel = sample.minStockLevel,
+                categoryId = sample.categoryId,
+                supplierId = sample.supplierId,
+                imageUrl = sample.imageUrl
+            )
+        )
+        assertTrue(created is com.example.stockflow.data.sync.WriteResult.Synced)
+        assertEquals(listOf(sample), repository.observeProducts().first())
+
+        val updated = sample.copy(name = "Soap XL", sellingPrice = 5.0)
+        coEvery { api.updateProduct(any(), any(), any()) } returns Response.success(updated)
+        val updateResult = repository.updateProduct(
+            sample.id,
+            com.example.stockflow.data.remote.UpdateProductRequest(
+                name = updated.name,
+                sku = updated.sku,
+                costPrice = updated.costPrice,
+                sellingPrice = updated.sellingPrice,
+                stockLevel = updated.stockLevel,
+                minStockLevel = updated.minStockLevel,
+                categoryId = updated.categoryId,
+                supplierId = updated.supplierId,
+                imageUrl = updated.imageUrl
+            )
+        )
+        assertTrue(updateResult is com.example.stockflow.data.sync.WriteResult.Synced)
+        val afterUpdate = repository.observeProducts().first()
+        assertEquals("Soap XL", afterUpdate.single().name)
+        assertEquals(5.0, afterUpdate.single().sellingPrice, 0.001)
+
+        coEvery { api.deleteProduct(any(), any()) } returns Response.success(Unit)
+        val deleted = repository.deleteProduct(sample.id)
+        assertTrue(deleted is com.example.stockflow.data.sync.WriteResult.Synced)
+        assertTrue(repository.observeProducts().first().isEmpty())
+    }
+
+    @Test
+    fun observeProductsEmitsOfflineCreate() = runBlocking {
+        coEvery { api.createProduct(any(), any()) } throws IOException("offline")
+        val queued = repository.createProduct(
+            com.example.stockflow.data.remote.CreateProductRequest(
+                name = "Offline Soap",
+                sku = "OFF1",
+                costPrice = 1.0,
+                sellingPrice = 2.0,
+                stockLevel = 3,
+                minStockLevel = 1,
+                categoryId = 1,
+                supplierId = null,
+                imageUrl = null
+            ),
+            categoryName = "Hygiene"
+        )
+        assertTrue(queued is com.example.stockflow.data.sync.WriteResult.Queued)
+        val local = (queued as com.example.stockflow.data.sync.WriteResult.Queued).data
+        val observed = repository.observeProducts().first()
+        assertEquals(1, observed.size)
+        assertEquals("Offline Soap", observed.single().name)
+        assertEquals(local.id, observed.single().id)
     }
 }
