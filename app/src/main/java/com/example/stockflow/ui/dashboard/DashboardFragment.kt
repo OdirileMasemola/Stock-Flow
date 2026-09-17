@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import com.example.stockflow.MainActivity
 import com.example.stockflow.R
 import com.example.stockflow.data.local.SessionStore
+import com.example.stockflow.data.remote.ActivityItemDto
 import com.example.stockflow.data.remote.DashboardLowStockItemDto
 import com.example.stockflow.data.remote.DashboardPurchaseOrderItemDto
 import com.example.stockflow.data.remote.DashboardSaleItemDto
@@ -71,6 +72,10 @@ class DashboardFragment : Fragment() {
             startActivity(Intent(requireContext(), PurchaseOrdersActivity::class.java))
         }
 
+
+        viewModel.activityState.observe(viewLifecycleOwner) { state ->
+            renderActivity(state)
+        }
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is DashboardViewModel.DashboardUiState.Loading -> {
@@ -213,6 +218,67 @@ class DashboardFragment : Fragment() {
                 )
             )
         }
+    }
+
+
+    private fun renderActivity(state: DashboardViewModel.ActivityUiState) {
+        when (state) {
+            DashboardViewModel.ActivityUiState.Loading -> {
+                binding.activityProgress.visibility = View.VISIBLE
+                binding.activityList.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.GONE
+                binding.tvActivityError.visibility = View.GONE
+            }
+            DashboardViewModel.ActivityUiState.Empty -> {
+                binding.activityProgress.visibility = View.GONE
+                binding.activityList.removeAllViews()
+                binding.activityList.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.VISIBLE
+                binding.tvActivityError.visibility = View.GONE
+            }
+            is DashboardViewModel.ActivityUiState.Error -> {
+                binding.activityProgress.visibility = View.GONE
+                binding.activityList.removeAllViews()
+                binding.activityList.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.GONE
+                binding.tvActivityError.visibility = View.VISIBLE
+                binding.tvActivityError.text = state.message
+            }
+            is DashboardViewModel.ActivityUiState.Success -> {
+                binding.activityProgress.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.GONE
+                binding.tvActivityError.visibility = View.GONE
+                binding.activityList.visibility = View.VISIBLE
+                binding.activityList.removeAllViews()
+                for (item in state.items) {
+                    binding.activityList.addView(
+                        rowView(
+                            title = item.message,
+                            subtitle = formatActivitySubtitle(item),
+                            trailing = activityTypeLabel(item.type)
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun formatActivitySubtitle(item: ActivityItemDto): String {
+        val time = item.timestamp.replace('T', ' ').take(16)
+        val product = item.productName?.takeIf { it.isNotBlank() }
+        return if (product != null && !item.message.contains(product)) {
+            "$product · $time"
+        } else {
+            time
+        }
+    }
+
+    private fun activityTypeLabel(type: String): String = when (type) {
+        "PRODUCT_CREATED" -> getString(R.string.activity_type_created)
+        "PRODUCT_UPDATED" -> getString(R.string.activity_type_updated)
+        "PRODUCT_DELETED" -> getString(R.string.activity_type_deleted)
+        "LOW_STOCK" -> getString(R.string.activity_type_low_stock)
+        else -> type
     }
 
     private fun rowView(title: String, subtitle: String?, trailing: String?): View {

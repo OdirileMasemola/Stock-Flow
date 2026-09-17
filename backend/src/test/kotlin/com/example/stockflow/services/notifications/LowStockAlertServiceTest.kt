@@ -1,6 +1,11 @@
 package com.example.stockflow.services.notifications
 
 import com.example.stockflow.models.LowStockCrossing
+import com.example.stockflow.services.activity.ActivityService
+import com.example.stockflow.services.activity.InMemoryActivityStore
+import com.example.stockflow.models.UpdateBusinessRequest
+import com.example.stockflow.repositories.BusinessRepository
+import com.example.stockflow.models.ActivityTypes
 import com.example.stockflow.repositories.DeviceTokenRepository
 import com.example.stockflow.repositories.StoredDeviceToken
 import kotlinx.coroutines.runBlocking
@@ -47,6 +52,16 @@ class LowStockAlertServiceTest {
         }
     }
 
+
+    private class EmptyBusinessRepo : BusinessRepository {
+        override suspend fun findByUserId(userId: Int) = null
+        override suspend fun create(userId: Int, request: UpdateBusinessRequest) = error("n/a")
+        override suspend fun update(userId: Int, request: UpdateBusinessRequest) = error("n/a")
+    }
+
+    private fun activityService(store: InMemoryActivityStore = InMemoryActivityStore()) =
+        ActivityService(store = store, businessRepository = EmptyBusinessRepo())
+
     @Test
     fun onlyNotifiesWhenCrossingIntoLowStock() {
         runBlocking {
@@ -54,7 +69,8 @@ class LowStockAlertServiceTest {
                 tokens += StoredDeviceToken(1, 1, "t1", "android", true)
             }
             val sender = RecordingSender()
-            val service = LowStockAlertService(repo, sender)
+            val activityStore = InMemoryActivityStore()
+            val service = LowStockAlertService(repo, sender, activityService(activityStore))
 
             service.notifyCrossings(
                 actingUserId = 5,
@@ -84,7 +100,7 @@ class LowStockAlertServiceTest {
                 tokens += StoredDeviceToken(1, 1, "bad", "android", true)
             }
             val sender = RecordingSender().apply { result = FcmSendResult.INVALID_TOKEN }
-            val service = LowStockAlertService(repo, sender)
+            val service = LowStockAlertService(repo, sender, activityService())
             service.notifyCrossings(
                 1,
                 listOf(LowStockCrossing(1, "Bread", 8, 2, 5))
@@ -101,12 +117,32 @@ class LowStockAlertServiceTest {
                 tokens += StoredDeviceToken(2, 99, "other", "android", true)
             }
             val sender = RecordingSender()
-            val service = LowStockAlertService(repo, sender)
+            val service = LowStockAlertService(repo, sender, activityService())
             service.notifyCrossings(
                 actingUserId = 1,
                 crossings = listOf(LowStockCrossing(1, "Soap", 10, 1, 5))
             )
             assertEquals(listOf("owner"), sender.calls.map { it.token })
+        }
+    }
+
+    @Test
+    fun recordsLowStockActivityOnCrossing() {
+        runBlocking {
+            val repo = FakeRepo().apply {
+                tokens += StoredDeviceToken(1, 1, "t1", "android", true)
+            }
+            val sender = RecordingSender()
+            val activityStore = InMemoryActivityStore()
+            val service = LowStockAlertService(repo, sender, activityService(activityStore))
+
+            service.notifyCrossings(
+                actingUserId = 5,
+                crossings = listOf(
+                    LowStockCrossing(10, "Milk", previousStock = 6, currentStock = 4, minStockLevel = 5)
+                )
+            )
+            assertTrue(activityStore.records.any { it.type == ActivityTypes.LOW_STOCK })
         }
     }
 }

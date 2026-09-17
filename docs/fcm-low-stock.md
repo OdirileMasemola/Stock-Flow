@@ -54,6 +54,7 @@ Android: keep existing `google-services.json` for project `stockflow-be90c` / `c
 
 ## Out of scope (not started)
 
-- Firestore / NoSQL
 - Play Store listing prep
 - Stage 5+
+
+Firestore activity history is documented in [firestore-activity.md](firestore-activity.md).

@@ -472,4 +472,14 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="error_category_duplicate">Isigaba esinaleli gama sesivele sikhona</string>
     <string name="dashboard_offline_empty">Ayikho idatha yedashboard egciniwe okwamanje. Xhuma ku-inthanethi ukuze ulayishe idashboard yakho.</string>
 
+    <string name="recent_activity_title">Umsebenzi wakamuva</string>
+    <string name="activity_empty">Awukho umsebenzi wakamuva okwamanje.</string>
+    <string name="activity_error_load">Ayikwazi ukulayisha umsebenzi.</string>
+    <string name="activity_error_unavailable">Umlando womsebenzi awutholakali okwesikhashana.</string>
+    <string name="activity_loading">Iyalayisha umsebenzi…</string>
+    <string name="activity_type_created">Kudaliwe</string>
+    <string name="activity_type_updated">Kubuyekeziwe</string>
+    <string name="activity_type_deleted">Kususiwe</string>
+    <string name="activity_type_low_stock">Isitokwe esiphansi</string>
+
 </resources>
