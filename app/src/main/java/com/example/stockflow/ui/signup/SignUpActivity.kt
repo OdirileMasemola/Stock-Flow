@@ -223,7 +223,7 @@ class SignUpActivity : AppCompatActivity() {
                 is SignUpViewModel.SignUpState.Success -> {
                     showLoading(false)
                     Toast.makeText(this, getString(R.string.msg_account_created), Toast.LENGTH_SHORT).show()
-                    finish()
+                    goToMainAfterGoogleSignUp()
                 }
                 is SignUpViewModel.SignUpState.Error -> {
                     showLoading(false)

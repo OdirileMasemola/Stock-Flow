@@ -19,6 +19,9 @@ import com.example.stockflow.data.remote.UpdateSupplierRequest
 import com.google.gson.Gson
 import retrofit2.Response
 import java.io.IOException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 /**
  * Talks to the Ktor supplier endpoints using the JWT from [SessionStore].
@@ -31,6 +34,12 @@ class SupplierRepository(
 ) {
     private val gson = Gson()
     private val supplierDao: SupplierCacheDao? get() = database?.supplierDao()
+
+    fun observeSuppliers(): Flow<List<SupplierDto>> {
+        val userId = sessionStore.getUserId() ?: return flowOf(emptyList())
+        val dao = supplierDao ?: return flowOf(emptyList())
+        return dao.observeAll(userId).map { list -> list.map { it.toDto() } }
+    }
 
     suspend fun getSuppliers(): CacheResult<List<SupplierDto>> {
         val userId = sessionStore.getUserId()

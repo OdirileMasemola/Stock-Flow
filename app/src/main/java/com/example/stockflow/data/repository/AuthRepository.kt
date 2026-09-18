@@ -80,6 +80,12 @@ class AuthRepository(
                 )
             )
             if (response.isSuccessful) {
+                val body = response.body()
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_signup_failed)))
+                val token = body.token?.takeIf { it.isNotBlank() }
+                    ?: return Result.failure(Exception(AppStrings.get(R.string.error_signup_failed)))
+                sessionStore?.saveToken(token)
+                sessionStore?.saveUserFullName(displayNameFrom(body.user))
                 Result.success(true)
             } else {
                 Result.failure(Exception(errorMessage(response, fallback = AppStrings.get(R.string.error_signup_failed))))
