@@ -61,30 +61,46 @@ class PurchaseOrderViewModel(application: Application) : AndroidViewModel(applic
 
     private var selectedSupplierId: Int? = null
 
-    fun loadPurchaseOrders() {
-        _listState.value = ListUiState.Loading
+    private var listLoadedOnce = false
+    private var listLoadInFlight = false
+
+    fun loadPurchaseOrders(force: Boolean = true) {
+        if (listLoadInFlight) return
+        if (!force && listLoadedOnce) return
+        listLoadInFlight = true
+        if (_listState.value !is ListUiState.Success && _listState.value !is ListUiState.Empty) {
+            _listState.value = ListUiState.Loading
+        }
         viewModelScope.launch {
-            when (val result = poRepository.getPurchaseOrders()) {
-                is CacheResult.Fresh -> {
-                    val orders = result.data
-                    _listState.postValue(
-                        if (orders.isEmpty()) ListUiState.Empty()
-                        else ListUiState.Success(orders, fromCache = false, cachedAt = null)
-                    )
+            try {
+                when (val result = poRepository.getPurchaseOrders()) {
+                    is CacheResult.Fresh -> {
+                        val orders = result.data
+                        listLoadedOnce = true
+                        _listState.postValue(
+                            if (orders.isEmpty()) ListUiState.Empty()
+                            else ListUiState.Success(orders, fromCache = false, cachedAt = null)
+                        )
+                    }
+                    is CacheResult.Cached -> {
+                        val orders = result.data
+                        listLoadedOnce = true
+                        _listState.postValue(
+                            if (orders.isEmpty()) ListUiState.Empty(fromCache = true, cachedAt = result.cachedAt)
+                            else ListUiState.Success(orders, fromCache = true, cachedAt = result.cachedAt)
+                        )
+                    }
+                    CacheResult.Empty -> {
+                        listLoadedOnce = true
+                        _listState.postValue(ListUiState.Error(AppStrings.get(R.string.offline_no_cached_data)))
+                    }
+                    is CacheResult.Error -> {
+                        listLoadedOnce = true
+                        _listState.postValue(ListUiState.Error(result.message))
+                    }
                 }
-                is CacheResult.Cached -> {
-                    val orders = result.data
-                    _listState.postValue(
-                        if (orders.isEmpty()) ListUiState.Empty(fromCache = true, cachedAt = result.cachedAt)
-                        else ListUiState.Success(orders, fromCache = true, cachedAt = result.cachedAt)
-                    )
-                }
-                CacheResult.Empty -> {
-                    _listState.postValue(ListUiState.Error(AppStrings.get(R.string.offline_no_cached_data)))
-                }
-                is CacheResult.Error -> {
-                    _listState.postValue(ListUiState.Error(result.message))
-                }
+            } finally {
+                listLoadInFlight = false
             }
         }
     }

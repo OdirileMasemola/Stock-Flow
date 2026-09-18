@@ -41,7 +41,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadProfile() {
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            // Keep showing cached profile while refreshing; only blank on first load.
+            if (_profile.value == null) {
+                _uiState.value = UiState.Loading
+            }
             when (val result = repository.getProfile()) {
                 is CacheResult.Fresh -> {
                     existingImageUrl = result.data.profileImageUrl

@@ -37,6 +37,8 @@ import retrofit2.Response
 import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -57,6 +59,8 @@ class ProductRepository(
     private val gson = Gson()
     private val productDao: ProductCacheDao? get() = database?.productDao()
     private val pendingDao: PendingOperationDao? get() = database?.pendingOperationDao()
+    /** Coalesce concurrent Inventory + POS product refreshes into one network call. */
+    private val productsRefreshMutex = Mutex()
 
     fun observeProducts(): Flow<List<ProductDto>> {
         val userId = sessionStore.getUserId() ?: return flowOf(emptyList())
@@ -70,7 +74,7 @@ class ProductRepository(
         return dao.observeLowStock(userId).map { list -> list.map { it.toDto() } }
     }
 
-    suspend fun getProducts(): CacheResult<List<ProductDto>> {
+    suspend fun getProducts(): CacheResult<List<ProductDto>> = productsRefreshMutex.withLock {
         val userId = sessionStore.getUserId()
         return try {
             val response = api.getProducts(authHeader())

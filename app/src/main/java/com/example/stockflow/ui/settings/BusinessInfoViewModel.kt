@@ -49,7 +49,9 @@ class BusinessInfoViewModel(application: Application) : AndroidViewModel(applica
 
     fun loadBusiness() {
         viewModelScope.launch {
-            _uiState.value = UiState.Loading
+            if (_business.value == null) {
+                _uiState.value = UiState.Loading
+            }
             when (val result = repository.getBusiness()) {
                 is CacheResult.Fresh -> {
                     val data = result.data

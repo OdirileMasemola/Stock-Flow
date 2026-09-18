@@ -15,6 +15,7 @@ class PurchaseOrdersActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPurchaseOrdersBinding
     private val viewModel: PurchaseOrderViewModel by viewModels()
+    private var refreshOnResume = true
     private lateinit var adapter: PurchaseOrderAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +37,7 @@ class PurchaseOrdersActivity : AppCompatActivity() {
         binding.rvOrders.adapter = adapter
 
         binding.btnNewOrder.setOnClickListener {
+            refreshOnResume = true
             startActivity(Intent(this, PurchaseOrderActivity::class.java))
         }
         binding.btnRetry.setOnClickListener { viewModel.loadPurchaseOrders() }
@@ -79,6 +81,7 @@ class PurchaseOrdersActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadPurchaseOrders()
+        viewModel.loadPurchaseOrders(force = refreshOnResume)
+        refreshOnResume = false
     }
 }

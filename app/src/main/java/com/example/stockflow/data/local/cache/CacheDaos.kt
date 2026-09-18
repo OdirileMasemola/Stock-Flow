@@ -85,6 +85,9 @@ interface SupplierCacheDao {
     suspend fun upsert(item: CachedSupplier)
 
     @Query("SELECT * FROM cached_suppliers WHERE userId = :userId ORDER BY name COLLATE NOCASE ASC")
+    fun observeAll(userId: Int): Flow<List<CachedSupplier>>
+
+    @Query("SELECT * FROM cached_suppliers WHERE userId = :userId ORDER BY name COLLATE NOCASE ASC")
     suspend fun getAll(userId: Int): List<CachedSupplier>
 
     @Query("SELECT * FROM cached_suppliers WHERE userId = :userId AND id = :id LIMIT 1")

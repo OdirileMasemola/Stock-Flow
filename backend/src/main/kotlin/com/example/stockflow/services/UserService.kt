@@ -104,7 +104,7 @@ class UserService(
             .sign(Algorithm.HMAC256(AppConfig.jwtSecret))
     }
 
-    suspend fun registerUser(request: RegisterRequest): RegisterResponse {
+    suspend fun registerUser(request: RegisterRequest): LoginResponse {
         validateRegistrationRequest(request)
 
         if (repository.findByUsername(request.username) != null) {
@@ -124,13 +124,7 @@ class UserService(
         }
         val user = repository.createUser(request, passwordHash)
 
-        return RegisterResponse(
-            id = user.id!!,
-            username = user.username,
-            email = user.email,
-            fullName = user.fullName,
-            roleId = user.roleId!!
-        )
+        return LoginResponse(token = generateToken(user), user = user)
     }
 
     suspend fun authenticateWithGoogle(request: GoogleAuthRequest): LoginResponse {

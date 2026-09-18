@@ -209,12 +209,21 @@ class GoogleAuthClient(private val activity: Activity) {
         return try {
             // Keep a local Firebase session for logout / auth-state helpers when Firebase is present.
             if (FirebaseApp.getApps(activity).isNotEmpty()) {
+                // Non-blocking: don't delay backend JWT exchange waiting on Firebase.
+                // Backend still verifies the Google ID token; Firebase is local-only.
                 try {
                     val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
                     FirebaseAuth.getInstance()
                         .signInWithCredential(firebaseCredential)
-                        .await()
-                    Log.d(TAG, "Local Firebase session established")
+                        .addOnSuccessListener {
+                            Log.d(TAG, "Local Firebase session established")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w(
+                                TAG,
+                                "Local Firebase sign-in failed; continuing with Google ID token: ${e.javaClass.simpleName}"
+                            )
+                        }
                 } catch (e: Exception) {
                     Log.w(
                         TAG,

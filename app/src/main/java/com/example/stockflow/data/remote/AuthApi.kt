@@ -10,7 +10,7 @@ interface AuthApi {
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @POST("api/auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
+    suspend fun register(@Body request: RegisterRequest): Response<LoginResponse>
 
     @GET("api/roles")
     suspend fun getRoles(): Response<List<RoleDto>>

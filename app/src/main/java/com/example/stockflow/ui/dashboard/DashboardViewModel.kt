@@ -53,7 +53,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun loadDashboard(force: Boolean = true) {
-        if (!force && freshnessFlow.value.loadedOnce && !loadingFlow.value) return
+        // Deduplicate init + onResume storms while a refresh is already in flight.
+        if (loadingFlow.value) return
+        if (!force && freshnessFlow.value.loadedOnce) return
         loadingFlow.value = true
         viewModelScope.launch {
             try {
