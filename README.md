@@ -35,7 +35,7 @@ StockFlow is a full-stack inventory management and Point of Sale (POS) system de
 - [Known Limitations](#known-limitations)
 - [Development Practices](#development-practices)
 - [AI-Assisted Development](#ai-assisted-development)
-- [Author](#author)
+- [Group Members](#group-members)
 - [License](#license)
 
 ---
@@ -268,13 +268,14 @@ StockFlow is deployed using a containerized approach.
 
 ---
 
-## Author
+## Group Members
 
-**Odirile Masemola**
-
-- Diploma in IT — Software Development
-- GitHub: [OdirileMasemola](https://github.com/OdirileMasemola)
-- LinkedIn: [Odirile Masemola](https://www.linkedin.com/in/odirile-masemola/)
+| Student Number | Name             |
+| -------------- | ---------------- |
+| S10104238      | Lerato Mokoena   |
+| ST10441421     | Odirile Masemola |
+| ST10450294     | Ripfumelo Mabasa |
+| ST10168130     | Sisipho Njili    |
 
 ---
 
