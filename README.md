@@ -59,7 +59,7 @@ This README covers the Part 2 submission of the project.
 
 | | | |
 |---|---|---|
-| ![Get Started 1](docs/images/get-started-1.jpeg) | ![Get Started 2](docs/images/get-started-2.jpeg) | ![Get Started 3](docs/images/get-started-3.jpeg) |
+| ![Get Started 3](docs/images/get-started-3.jpeg) | ![Get Started 2](docs/images/get-started-2.jpeg) | ![Get Started 1](docs/images/get-started-1.jpeg)  |
 
 ### Authentication
 
