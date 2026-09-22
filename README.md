@@ -4,194 +4,149 @@
 
 # StockFlow
 
-### Inventory and Business Management for South African Small Retail Businesses
+StockFlow is an Android inventory and business management app built for small retail businesses in South Africa. Shop owners can track stock, manage sales through a Point of Sale screen, and keep an eye on their business from their phone.
 
-StockFlow is a full-stack inventory management and Point of Sale (POS) system designed for small businesses in South Africa. It provides a professional mobile solution to track stock, manage sales, and monitor business health in real time.
-
-[![StockFlow CI](https://github.com/OdirileMasemola/Stock-Flow/actions/workflows/ci.yml/badge.svg)](https://github.com/OdirileMasemola/Stock-Flow/actions/workflows/ci.yml)
-![Kotlin](https://img.shields.io/badge/Kotlin-2.2-purple.svg)
-![Android](https://img.shields.io/badge/Android-SDK%2035-green.svg)
-![Ktor](https://img.shields.io/badge/Ktor-3.0-orange.svg)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-blue.svg)
+This README covers the Part 2 submission of the project.
 
 ---
 
-## Table of Contents
+## Main Features
 
-- [Overview](#overview)
-- [Objectives](#objectives)
-- [Current Status](#current-status)
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [App Screenshots](#app-screenshots)
-- [System Architecture](#system-architecture)
-- [Database Schema](#database-schema)
-- [Authentication and Security](#authentication-and-security)
-- [Testing and CI](#testing-and-ci)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Production Deployment](#production-deployment)
-- [Future Roadmap](#future-roadmap)
-- [Known Limitations](#known-limitations)
-- [Development Practices](#development-practices)
-- [AI-Assisted Development](#ai-assisted-development)
-- [Author](#author)
-- [License](#license)
+### Authentication
+- Registration and login
+- Google Sign-In
+- Role-based access
 
----
+### Inventory
+- Add, edit and delete products
+- Product categories
+- Stock levels
+- Product images
+- Barcode/QR scanning
 
-## Overview
+### Sales and Purchasing
+- Point of Sale
+- Suppliers
+- Purchase orders
+- Low-stock monitoring
+- Reports
 
-Small retail businesses often struggle with manual stock tracking and disjointed sales records. StockFlow bridges this gap with an integrated Android application and high-performance backend. Shop owners can manage inventory via barcode scanning, process sales through a dedicated POS interface, and generate performance reports — all from a mobile device.
+### Settings
+- Profile management
+- Business information
+- Light/Dark/System theme
 
 ---
 
-## Objectives
+## Technology Used
 
-- **Modernize inventory**: Replace paper-based tracking with a digital, searchable database.
-- **Streamline sales**: Provide a fast POS interface for daily transactions.
-- **Data-driven insights**: Use real-time dashboards and PDF reports to monitor growth.
-- **Accessibility**: Make professional-grade tools available to small businesses through affordable mobile technology.
-
----
-
-## Current Status
-
-StockFlow is in an advanced implementation phase, with an MVVM architecture and production backend in place.
-
-- **Implemented**: Core inventory, POS, auth (JWT + Google), dashboard, reports, scanning, and production deployment.
-- **Planned (Part 3)**: Offline synchronization, cloud storage, and push notifications.
-
----
-
-## Features
-
-### Authentication and Identity
-
-- **Secure registration**: Signup with role selection (Owner, Staff, Supplier).
-- **Email/password login**: Standard authentication secured with BCrypt.
-- **Google Sign-In**: One-tap authentication using Firebase and Google Identity Services.
-- **Role-based access**: Specialized views and permissions by user role.
-
-### Business Intelligence
-
-- **Live dashboard**: Real-time summary of total sales, inventory value, and active suppliers.
-- **Weekly sales chart**: Sales trends over the last 7 days.
-- **Low-stock management**: Tracking and alerts when products reach critical levels.
-- **Professional reports**: Export performance data to PDF.
-
-### Inventory and Operations
-
-- **Product management**: CRUD for products with image support.
-- **Barcode/QR scanning**: Camera-based lookup using Google ML Kit.
-- **POS system**: Cart-based checkout for rapid transactions.
-- **Suppliers and purchasing**: Vendor relationships and purchase orders from draft to receipt.
-
-### Personalization and Settings
-
-- **Profile management**: Update user details and upload profile avatars.
-- **Business info**: Shop location, contact details, and branding.
-- **Theme selection**: Light, Dark, and system-adaptive themes.
-- **Language support**: English base, with planned support for IsiZulu, Sesotho, and Setswana.
-
----
-
-## Technology Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Mobile (Android)** | Kotlin, Jetpack Compose (UI), MVVM, Repository pattern |
-| **Networking** | Retrofit 2, OkHttp 4, Gson |
-| **Backend (Ktor)** | Ktor 3.x (Netty), Kotlin JVM, kotlinx.serialization |
-| **Persistence** | PostgreSQL (Supabase), Exposed ORM, HikariCP |
-| **Authentication** | JWT, BCrypt, Firebase Auth, Google Identity |
-| **Computer Vision** | Google ML Kit (barcode scanning), CameraX |
-| **Infrastructure** | Docker, Render, Gradle 9.x, Java 21 |
-| **DevOps** | GitHub Actions (CI), Git |
+| Area             | Technology                          |
+| ---------------- | ------------------------------------ |
+| Android          | Kotlin, XML, ViewBinding, Fragments |
+| Architecture     | MVVM, Repository Pattern            |
+| Networking       | Retrofit, OkHttp                    |
+| Backend          | Ktor, Kotlin                        |
+| Database         | PostgreSQL, Supabase                |
+| Authentication   | JWT, BCrypt, Google Sign-In         |
+| Barcode Scanning | CameraX, Google ML Kit              |
+| CI/CD            | GitHub Actions                      |
 
 ---
 
 ## App Screenshots
 
-### Get Started
-![Get Started 1](docs/images/get-started-1.jpeg)
-![Get Started 2](docs/images/get-started-2.jpeg)
-![Get Started 3](docs/images/get-started-3.jpeg)
+### Onboarding
 
-### Login
-![Login](docs/images/login.jpeg)
+| | | |
+|---|---|---|
+| ![Get Started 1](docs/images/get-started-1.jpeg) | ![Get Started 2](docs/images/get-started-2.jpeg) | ![Get Started 3](docs/images/get-started-3.jpeg) |
 
-### Register
-![Register](docs/images/register.png)
+### Authentication
+
+| Login | Register |
+|---|---|
+| ![Login](docs/images/login.jpeg) | ![Register](docs/images/register-resized.png) |
 
 ### Dashboard
-![Dashboard](docs/images/dashboard.jpeg)
+
+| Dashboard |
+|---|
+| ![Dashboard](docs/images/dashboard.jpeg) |
 
 ### Inventory
-![Inventory](docs/images/inventory.jpeg)
 
-### Add Product
-![Add Product](docs/images/add-product.jpeg)
+| Inventory | Add Product | Edit Product |
+|---|---|---|
+| ![Inventory](docs/images/inventory.jpeg) | ![Add Product](docs/images/add-product.jpeg) | ![Edit Product](docs/images/edit-product.jpeg) |
 
-### Edit Product
-![Edit Product](docs/images/edit-product.jpeg)
+### Suppliers and Purchase Orders
 
-### Suppliers
-![Suppliers](docs/images/suppliers.jpeg)
-
-### Purchase Orders
-![Purchase Orders](docs/images/purchase-orders.jpeg)
-
-### New Order
-![New Order](docs/images/new-order.jpeg)
+| Suppliers | Purchase Orders | New Order |
+|---|---|---|
+| ![Suppliers](docs/images/suppliers.jpeg) | ![Purchase Orders](docs/images/purchase-orders.jpeg) | ![New Order](docs/images/new-order.jpeg) |
 
 ### Settings
-![Settings](docs/images/settings.jpeg)
+
+| Settings |
+|---|
+| ![Settings](docs/images/settings.jpeg) |
 
 ---
 
 ## System Architecture
 
-StockFlow uses a client-server architecture designed for scalability and security.
+```text
+Android App
+     ↓
+Retrofit
+     ↓
+Ktor REST API
+     ↓
+PostgreSQL Database
+```
 
 <p align="center">
-  <img src="docs/images/Stock-Flow System Architechture.png" width="600" alt="StockFlow Architecture">
+  <img src="docs/images/Stock-Flow%20System%20Architechture.png" width="600" alt="StockFlow Architecture">
 </p>
 
-1. **Android app**: Primary interface; communicates with the backend via a REST API.
-2. **Ktor backend**: Business logic, JWT authentication middleware, and image processing.
-3. **PostgreSQL (Supabase)**: Managed relational database for persistent storage.
+- Android handles the user interface.
+- Ktor handles API requests and business logic.
+- PostgreSQL stores application data.
 
 ---
 
-## Database Schema
+## Database
 
-The relational schema includes 10 core tables:
+The app uses PostgreSQL (hosted on Supabase) to store its data. Main tables:
 
-- **Users and Roles**: Identity and permissions.
-- **Businesses**: Organization-level metadata.
-- **Products and Categories**: Inventory data and relationships.
-- **Sales and SaleItems**: Revenue and transaction history.
-- **Suppliers and PurchaseOrders**: Supply chain management.
-
----
-
-## Authentication and Security
-
-- **JWT security**: Sensitive API endpoints are protected by JWT authentication.
-- **Password hashing**: Passwords are hashed with BCrypt and never stored in plain text.
-- **Google OAuth**: Uses Google's authentication infrastructure for identity verification.
-- **Environment configuration**: Secrets are managed via environment variables and `.env` files (never committed).
+- Users
+- Roles
+- Businesses
+- Products
+- Categories
+- Suppliers
+- Sales
+- Sale Items
+- Purchase Orders
+- Purchase Order Items
 
 ---
 
-## Testing and CI
+## Authentication
 
-Continuous Integration runs via GitHub Actions (`.github/workflows/ci.yml`):
+- Email/password registration and login
+- Passwords hashed with BCrypt
+- JWT authentication for protected endpoints
+- Google Sign-In
 
-- **Backend validation**: Builds the Ktor module and packages the Shadow JAR.
-- **Android validation**: Runs unit tests and assembles the debug APK.
-- **Code integrity**: Every push to `master` must meet project quality standards.
+---
+
+## Testing
+
+GitHub Actions automatically builds and tests the project on every push:
+
+- Backend: builds the Ktor module and packages the Shadow JAR
+- Android: runs unit tests and assembles the debug APK
 
 ---
 
@@ -199,14 +154,10 @@ Continuous Integration runs via GitHub Actions (`.github/workflows/ci.yml`):
 
 ```text
 StockFlow/
-|-- app/                  # Android application (Kotlin)
-|   |-- src/main/java/    # UI, ViewModel, data layers
-|   `-- src/main/res/     # Layouts, drawables, values
-|-- backend/              # Ktor REST API (Kotlin)
-|   |-- src/main/kotlin/  # Routes, services, repositories
-|   `-- Dockerfile        # Production container configuration
-|-- docs/                 # Documentation and architecture diagrams
-`-- gradle/               # Version catalogs and global configuration
+├── app/       # Android application
+├── backend/   # Ktor REST API
+├── docs/      # Documentation and screenshots
+└── gradle/    # Gradle configuration
 ```
 
 ---
@@ -214,10 +165,9 @@ StockFlow/
 ## Getting Started
 
 ### Requirements
-
 - Android Studio (Ladybug or newer)
 - JDK 21
-- PostgreSQL / Supabase account (for backend)
+- PostgreSQL / Supabase account
 
 ### 1. Clone the repository
 
@@ -228,7 +178,7 @@ cd Stock-Flow
 
 ### 2. Backend setup
 
-Create a `.env.local` file in the `backend` directory (or root) with:
+Create a `.env.local` file in the `backend` directory with:
 
 ```env
 DB_URL=jdbc:postgresql://your-db-host:5432/postgres
@@ -251,49 +201,14 @@ Run the backend:
 
 ---
 
-## Production Deployment
+## Group Members
 
-StockFlow is deployed using a containerized approach.
-
-- **API base URL**: `https://stock-flow-trbq.onrender.com`
-- **Health check**: `https://stock-flow-trbq.onrender.com/api/health`
-- **Platform**: Render (web service) and Supabase (managed database).
-
----
-
-## Future Roadmap
-
-- **Offline first**: Local SQLite caching for operations without internet.
-- **Push notifications**: Alerts for low stock and received orders.
-- **Cloud storage**: Firebase Storage or AWS S3 for product images.
-- **Multilingual**: Native support for IsiZulu, Sesotho, and Setswana.
-- **Play Store**: Final optimization and signing for public release.
-
----
-
-## Known Limitations
-
-- **Connection dependency**: Real-time sales require an active internet connection (offline mode planned).
-- **Image storage**: Currently uses local persistent volumes; migration to cloud storage is pending.
-
----
-
-## Development Practices
-
-- **Git flow**: Descriptive commits and branch management for feature tracking.
-- **Clean code**: Repository pattern to decouple UI from data sources.
-- **Validation**: Input validation on both client and server.
-- **Secure config**: Strict use of `.gitignore` for sensitive credentials.
-
----
-
-## Author
-
-**Odirile Masemola**
-
-- Diploma in IT — Software Development
-- GitHub: [OdirileMasemola](https://github.com/OdirileMasemola)
-- LinkedIn: [Odirile Masemola](https://www.linkedin.com/in/odirile-masemola/)
+| Student Number | Name             |
+| --------------- | ---------------- |
+| S10104238       | Lerato Mokoena   |
+| ST10441421      | Odirile Masemola |
+| ST10450294      | Ripfumelo Mabasa |
+| ST10168130      | Sisipho Njili    |
 
 ---
 
