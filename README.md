@@ -65,13 +65,13 @@ This README covers the Part 2 submission of the project.
 
 | Login | Register |
 |---|---|
-| ![Login](docs/images/login.jpeg) | ![Register](docs/images/register-resized.png) |
+| <img src="docs/images/login.jpeg" height="720px"/> | <img src="docs/images/register-resized.png" height="720px"/> |
 
 ### Dashboard
 
 | Dashboard |
 |---|
-| ![Dashboard](docs/images/dashboard.jpeg) |
+| <img src="docs/images/dashboard.jpeg" height="720px"/> |
 
 ### Inventory
 
@@ -89,7 +89,7 @@ This README covers the Part 2 submission of the project.
 
 | Settings |
 |---|
-| ![Settings](docs/images/settings.jpeg) |
+| <img src="docs/images/settings.jpeg" height="720px"/> |
 
 ---
 
