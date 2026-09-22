@@ -113,21 +113,40 @@ StockFlow is in an advanced implementation phase, with an MVVM architecture and 
 
 ## App Screenshots
 
-Screenshots will be added here. Drop your images into `docs/images/` and uncomment the block below.
+### Get Started
+![Get Started 1](docs/images/get-started-1.jpeg)
+![Get Started 2](docs/images/get-started-2.jpeg)
+![Get Started 3](docs/images/get-started-3.jpeg)
 
-<!--
-<p align="center">
-  <img src="docs/images/screen-onboarding.png" width="250" alt="Onboarding">
-  <img src="docs/images/screen-dashboard.png" width="250" alt="Dashboard">
-  <img src="docs/images/screen-pos.png" width="250" alt="POS">
-</p>
--->
+### Login
+![Login](docs/images/login.jpeg)
 
-| Placeholder | Suggested file |
-| :--- | :--- |
-| Onboarding / welcome | `docs/images/screen-onboarding.png` |
-| Dashboard | `docs/images/screen-dashboard.png` |
-| POS / inventory | `docs/images/screen-pos.png` |
+### Register
+![Register](docs/images/register.png)
+
+### Dashboard
+![Dashboard](docs/images/dashboard.jpeg)
+
+### Inventory
+![Inventory](docs/images/inventory.jpeg)
+
+### Add Product
+![Add Product](docs/images/add-product.jpeg)
+
+### Edit Product
+![Edit Product](docs/images/edit-product.jpeg)
+
+### Suppliers
+![Suppliers](docs/images/suppliers.jpeg)
+
+### Purchase Orders
+![Purchase Orders](docs/images/purchase-orders.jpeg)
+
+### New Order
+![New Order](docs/images/new-order.jpeg)
+
+### Settings
+![Settings](docs/images/settings.jpeg)
 
 ---
 
