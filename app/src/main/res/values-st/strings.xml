@@ -71,6 +71,12 @@
     <string name="settings_section_data_sync">Data &amp; Tumellano</string>
     <string name="settings_section_about">Mabapi</string>
     <string name="settings_section_logout">Tsoa</string>
+    <string name="action_delete_account">Hlakola akhaonto</string>
+    <string name="settings_delete_account_subtitle">Tlosa ho kena hona ruri</string>
+    <string name="settings_delete_account_title">Hlakola akhaonto?</string>
+    <string name="settings_delete_account_message">Sena se tlosa ho kena, lebitso, imeile, setšoantšo sa profaele, le lintlha tsa puisano tsa lebenkele, hammoho le lithokene tsa litsebiso le nalane ea mesebetsi ea akhaonto ena. Thekiso e seng e tlalehiloe e sala litlalehong tsa lebenkele, e hokahane le akhaonto e se nang lebitso la hau kapa imeile. Lihlahisoa, lihlopha, bafani, le liodara tsa theko tse arolelanoang ha li hlakoloe. Sena se ke ke sa etsolloa.</string>
+    <string name="settings_delete_account_progress">E hlakola akhaonto…</string>
+    <string name="error_delete_account_failed">Ha ea khona ho hlakola akhaonto</string>
     <string name="settings_profile">Profaele</string>
     <string name="settings_profile_subtitle">Lintlha tsa akhaonto</string>
     <string name="settings_business">Khoebo</string>

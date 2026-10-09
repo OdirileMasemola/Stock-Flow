@@ -19,14 +19,49 @@ val apiBaseUrl: String = localProperties.getProperty(
     "https://stock-flow-trbq.onrender.com/"
 )
 
+// Upload key for Play. The keystore and passwords stay outside the repo.
+data class UploadSigning(
+    val storeFile: File,
+    val storePassword: String,
+    val keyAlias: String,
+    val keyPassword: String,
+)
+
+fun loadUploadSigning(): UploadSigning? {
+    val env = System.getenv()
+    val propsPath = env["STOCKFLOW_SIGNING_PROPERTIES"]?.takeIf { it.isNotBlank() }
+        ?: System.getProperty("user.home") + File.separator + ".android" + File.separator +
+        "stockflow-signing.properties"
+    val props = Properties()
+    val propsFile = File(propsPath)
+    if (propsFile.isFile) {
+        propsFile.inputStream().use { props.load(it) }
+    }
+    fun pick(prop: String, envKey: String): String? =
+        env[envKey]?.takeIf { it.isNotBlank() } ?: props.getProperty(prop)?.takeIf { it.isNotBlank() }
+
+    val store = pick("storeFile", "STOCKFLOW_UPLOAD_STORE_FILE")
+    val storePassword = pick("storePassword", "STOCKFLOW_UPLOAD_STORE_PASSWORD")
+    val keyAlias = pick("keyAlias", "STOCKFLOW_UPLOAD_KEY_ALIAS")
+    val keyPassword = pick("keyPassword", "STOCKFLOW_UPLOAD_KEY_PASSWORD")
+    if (store == null || storePassword == null || keyAlias == null || keyPassword == null) {
+        return null
+    }
+    val storeFile = File(store)
+    if (!storeFile.isFile) return null
+    return UploadSigning(storeFile, storePassword, keyAlias, keyPassword)
+}
+
+val uploadSigning = loadUploadSigning()
+
 android {
-    namespace = "com.example.stockflow"
-    compileSdk = 35
+    namespace = "com.odirilemasemola.stockflow"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.stockflow"
+        applicationId = "com.odirilemasemola.stockflow"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -34,8 +69,22 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
+    if (uploadSigning != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = uploadSigning.storeFile
+                storePassword = uploadSigning.storePassword
+                keyAlias = uploadSigning.keyAlias
+                keyPassword = uploadSigning.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (uploadSigning != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -54,6 +103,25 @@ android {
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
+    }
+}
+
+if (uploadSigning == null) {
+    val releasePackaging = Regex("^(package|bundle|assemble).*Release.*")
+    tasks.configureEach {
+        if (releasePackaging.matches(name)) {
+            doFirst {
+                throw GradleException(
+                    "Release signing is not configured, so this release task is refused " +
+                        "(debug signing is not used for release). Create the upload keystore, then " +
+                        "put storeFile, storePassword, keyAlias and keyPassword in " +
+                        "<user home>/.android/stockflow-signing.properties (or the file named by " +
+                        "STOCKFLOW_SIGNING_PROPERTIES). Or set STOCKFLOW_UPLOAD_STORE_FILE, " +
+                        "STOCKFLOW_UPLOAD_STORE_PASSWORD, STOCKFLOW_UPLOAD_KEY_ALIAS and " +
+                        "STOCKFLOW_UPLOAD_KEY_PASSWORD. storeFile must point at a keystore that exists."
+                )
+            }
+        }
     }
 }
 

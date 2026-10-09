@@ -71,6 +71,12 @@
     <string name="settings_section_data_sync">Idatha &amp; Ukuvumelanisa</string>
     <string name="settings_section_about">Mayelana</string>
     <string name="settings_section_logout">Phuma</string>
+    <string name="action_delete_account">Susa i-akhawunti</string>
+    <string name="settings_delete_account_subtitle">Susa lokhu kungena unomphelo</string>
+    <string name="settings_delete_account_title">Susa i-akhawunti?</string>
+    <string name="settings_delete_account_message">Lokhu kususa ukungena kwakho, igama, i-imeyili, isithombe sephrofayela, nemininingwane yokuxhumana yesitolo, kanye namathokheni ezaziso nomlando womsebenzi wale akhawunti. Ukuthengisa okuseve kubhaliwe kuhlala ezimbhalweni zesitolo, kuxhunywe ne-akhawunti engenalo igama lakho noma i-imeyili. Imikhiqizo, izigaba, abaphakeli, nama-oda okuthenga abiwa awasulwa. Lokhu akukwazi ukuhlehliswa.</string>
+    <string name="settings_delete_account_progress">Isusa i-akhawunti…</string>
+    <string name="error_delete_account_failed">Ayikwazanga ukususa i-akhawunti</string>
     <string name="settings_profile">Iphrofayela</string>
     <string name="settings_profile_subtitle">Imininingwane ye-akhawunti</string>
     <string name="settings_business">Ibhizinisi</string>

@@ -1,0 +1,319 @@
+package com.odirilemasemola.stockflow.ui.dashboard
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import com.odirilemasemola.stockflow.MainActivity
+import com.odirilemasemola.stockflow.R
+import com.odirilemasemola.stockflow.data.local.SessionStore
+import com.odirilemasemola.stockflow.data.remote.ActivityItemDto
+import com.odirilemasemola.stockflow.data.remote.DashboardLowStockItemDto
+import com.odirilemasemola.stockflow.data.remote.DashboardPurchaseOrderItemDto
+import com.odirilemasemola.stockflow.data.remote.DashboardSaleItemDto
+import com.odirilemasemola.stockflow.data.remote.DashboardSummaryDto
+import com.odirilemasemola.stockflow.data.remote.WeeklySalesDayDto
+import com.odirilemasemola.stockflow.databinding.FragmentDashboardBinding
+import com.odirilemasemola.stockflow.ui.common.OfflineBanner
+import com.odirilemasemola.stockflow.ui.inventory.AddProductActivity
+import com.odirilemasemola.stockflow.ui.suppliers.PurchaseOrdersActivity
+import java.util.Calendar
+
+class DashboardFragment : Fragment() {
+
+    private var _binding: FragmentDashboardBinding? = null
+    private val binding get() = _binding!!
+    private val viewModel: DashboardViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        bindGreeting()
+
+        binding.btnRetry.setOnClickListener { viewModel.loadDashboard() }
+        binding.actionAddProduct.setOnClickListener {
+            startActivity(Intent(requireContext(), AddProductActivity::class.java))
+        }
+        binding.actionNewSale.setOnClickListener {
+            (activity as? MainActivity)?.selectNavItem(R.id.nav_sales)
+        }
+        binding.actionSupplier.setOnClickListener {
+            (activity as? MainActivity)?.selectNavItem(R.id.nav_suppliers)
+        }
+        binding.actionReports.setOnClickListener {
+            startActivity(Intent(requireContext(), ReportsActivity::class.java))
+        }
+        binding.cardTotalProducts.setOnClickListener {
+            (activity as? MainActivity)?.selectNavItem(R.id.nav_inventory)
+        }
+        binding.cardLowStock.setOnClickListener {
+            startActivity(Intent(requireContext(), LowStockActivity::class.java))
+        }
+        binding.btnSeeAllSales.setOnClickListener {
+            (activity as? MainActivity)?.selectNavItem(R.id.nav_sales)
+        }
+        binding.btnSeeLowStock.setOnClickListener {
+            startActivity(Intent(requireContext(), LowStockActivity::class.java))
+        }
+        binding.btnSeePurchaseOrders.setOnClickListener {
+            startActivity(Intent(requireContext(), PurchaseOrdersActivity::class.java))
+        }
+
+
+        viewModel.activityState.observe(viewLifecycleOwner) { state ->
+            renderActivity(state)
+        }
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is DashboardViewModel.DashboardUiState.Loading -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
+                    binding.progressLoading.visibility = View.VISIBLE
+                    binding.contentScroll.visibility = View.GONE
+                    binding.errorState.visibility = View.GONE
+                }
+                is DashboardViewModel.DashboardUiState.Success -> {
+                    OfflineBanner.show(binding.tvOfflineBanner, state.fromCache, state.cachedAt)
+                    binding.progressLoading.visibility = View.GONE
+                    binding.errorState.visibility = View.GONE
+                    binding.contentScroll.visibility = View.VISIBLE
+                    bindSummary(state.summary)
+                }
+                is DashboardViewModel.DashboardUiState.Empty -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
+                    binding.progressLoading.visibility = View.GONE
+                    binding.contentScroll.visibility = View.GONE
+                    binding.errorState.visibility = View.VISIBLE
+                    binding.tvErrorMessage.text = getString(R.string.dashboard_offline_empty)
+                    binding.btnRetry.visibility = View.VISIBLE
+                }
+                is DashboardViewModel.DashboardUiState.Error -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
+                    binding.progressLoading.visibility = View.GONE
+                    binding.contentScroll.visibility = View.GONE
+                    binding.errorState.visibility = View.VISIBLE
+                    binding.tvErrorMessage.text = state.message
+                    binding.btnRetry.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        bindGreeting()
+        // Refresh when returning from other activities; skip if already loaded (tab hide/show).
+        val force = viewModel.uiState.value !is DashboardViewModel.DashboardUiState.Success
+        viewModel.loadDashboard(force = force)
+    }
+
+    private fun bindSummary(summary: DashboardSummaryDto) {
+        binding.tvTodaySales.text = getString(R.string.price_format, summary.todaySalesTotal)
+        binding.tvTodaySalesCount.text =
+            getString(R.string.today_sales_count, summary.todaySalesCount)
+        binding.tvInventoryValue.text = getString(R.string.price_format, summary.inventoryValue)
+        binding.tvTotalStock.text =
+            getString(R.string.stock_units_format, summary.totalStockQuantity)
+        binding.tvTotalProducts.text = summary.totalProducts.toString()
+        binding.tvLowStockCount.text = summary.lowStockCount.toString()
+
+        renderWeeklyChart(summary.weeklySales.orEmpty())
+        renderSales(summary.recentSales.orEmpty())
+        renderLowStock(summary.lowStockPreview.orEmpty())
+        renderPurchaseOrders(summary.recentPurchaseOrders.orEmpty())
+    }
+
+    private fun renderWeeklyChart(days: List<WeeklySalesDayDto>) {
+        binding.weeklyLabels.removeAllViews()
+
+        val weekTotal = days.sumOf { it.totalAmount }
+        binding.tvWeeklyTotal.text = getString(R.string.weekly_total_format, weekTotal)
+
+        val hasSales = days.any { it.totalAmount > 0 }
+        binding.tvWeeklyEmpty.visibility = if (hasSales) View.GONE else View.VISIBLE
+        binding.weeklyLineChart.visibility = if (hasSales) View.VISIBLE else View.GONE
+        binding.weeklyLabels.visibility = if (hasSales) View.VISIBLE else View.GONE
+
+        binding.weeklyLineChart.setValues(days.map { it.totalAmount })
+
+        for (day in days) {
+            val label = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                gravity = android.view.Gravity.CENTER
+                text = day.label.take(3)
+                setTextColor(requireContext().getColor(R.color.brand_text_light))
+                textSize = 10f
+                contentDescription =
+                    "${day.label}: ${getString(R.string.price_format, day.totalAmount)}"
+            }
+            binding.weeklyLabels.addView(label)
+        }
+    }
+
+    private fun bindGreeting() {
+        val sessionStore = SessionStore(requireContext())
+        val displayName = sessionStore.getUserFullName()
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.dashboard_welcome)
+
+        binding.greetingText.text = greetingForNow()
+        binding.userNameText.text = displayName
+    }
+
+    private fun renderSales(items: List<DashboardSaleItemDto>) {
+        binding.salesList.removeAllViews()
+        binding.tvSalesEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        for (sale in items) {
+            binding.salesList.addView(
+                rowView(
+                    title = getString(R.string.sale_row_title, sale.id, sale.paymentMethod),
+                    subtitle = sale.createdAt.replace('T', ' ').take(16),
+                    trailing = getString(R.string.price_format, sale.totalAmount)
+                )
+            )
+        }
+    }
+
+    private fun renderLowStock(items: List<DashboardLowStockItemDto>) {
+        binding.lowStockList.removeAllViews()
+        binding.tvLowStockEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        for (item in items) {
+            binding.lowStockList.addView(
+                rowView(
+                    title = getString(
+                        R.string.low_stock_row,
+                        item.name,
+                        item.stockLevel,
+                        item.minStockLevel
+                    ),
+                    subtitle = null,
+                    trailing = null
+                )
+            )
+        }
+    }
+
+    private fun renderPurchaseOrders(items: List<DashboardPurchaseOrderItemDto>) {
+        binding.purchaseOrderList.removeAllViews()
+        binding.tvPurchaseOrdersEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        for (po in items) {
+            val supplier = po.supplierName ?: getString(R.string.supplier_fallback, po.supplierId)
+            binding.purchaseOrderList.addView(
+                rowView(
+                    title = getString(R.string.po_row_title, po.id, supplier),
+                    subtitle = "${po.status} · ${po.createdAt.replace('T', ' ').take(16)}",
+                    trailing = getString(R.string.price_format, po.totalAmount)
+                )
+            )
+        }
+    }
+
+
+    private fun renderActivity(state: DashboardViewModel.ActivityUiState) {
+        when (state) {
+            DashboardViewModel.ActivityUiState.Loading -> {
+                binding.activityProgress.visibility = View.VISIBLE
+                binding.activityList.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.GONE
+                binding.tvActivityError.visibility = View.GONE
+            }
+            DashboardViewModel.ActivityUiState.Empty -> {
+                binding.activityProgress.visibility = View.GONE
+                binding.activityList.removeAllViews()
+                binding.activityList.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.VISIBLE
+                binding.tvActivityError.visibility = View.GONE
+            }
+            is DashboardViewModel.ActivityUiState.Error -> {
+                binding.activityProgress.visibility = View.GONE
+                binding.activityList.removeAllViews()
+                binding.activityList.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.GONE
+                binding.tvActivityError.visibility = View.VISIBLE
+                binding.tvActivityError.text = state.message
+            }
+            is DashboardViewModel.ActivityUiState.Success -> {
+                binding.activityProgress.visibility = View.GONE
+                binding.tvActivityEmpty.visibility = View.GONE
+                binding.tvActivityError.visibility = View.GONE
+                binding.activityList.visibility = View.VISIBLE
+                binding.activityList.removeAllViews()
+                for (item in state.items) {
+                    binding.activityList.addView(
+                        rowView(
+                            title = item.message,
+                            subtitle = formatActivitySubtitle(item),
+                            trailing = activityTypeLabel(item.type)
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun formatActivitySubtitle(item: ActivityItemDto): String {
+        val time = item.timestamp.replace('T', ' ').take(16)
+        val product = item.productName?.takeIf { it.isNotBlank() }
+        return if (product != null && !item.message.contains(product)) {
+            "$product · $time"
+        } else {
+            time
+        }
+    }
+
+    private fun activityTypeLabel(type: String): String = when (type) {
+        "PRODUCT_CREATED" -> getString(R.string.activity_type_created)
+        "PRODUCT_UPDATED" -> getString(R.string.activity_type_updated)
+        "PRODUCT_DELETED" -> getString(R.string.activity_type_deleted)
+        "LOW_STOCK" -> getString(R.string.activity_type_low_stock)
+        else -> type
+    }
+
+    private fun rowView(title: String, subtitle: String?, trailing: String?): View {
+        val row = layoutInflater.inflate(R.layout.item_dashboard_row, binding.salesList, false)
+        row.findViewById<TextView>(R.id.tvTitle).text = title
+        val subtitleView = row.findViewById<TextView>(R.id.tvSubtitle)
+        if (subtitle.isNullOrBlank()) {
+            subtitleView.visibility = View.GONE
+        } else {
+            subtitleView.visibility = View.VISIBLE
+            subtitleView.text = subtitle
+        }
+        val trailingView = row.findViewById<TextView>(R.id.tvTrailing)
+        if (trailing.isNullOrBlank()) {
+            trailingView.visibility = View.GONE
+        } else {
+            trailingView.visibility = View.VISIBLE
+            trailingView.text = trailing
+        }
+        (row.layoutParams as? LinearLayout.LayoutParams)?.bottomMargin =
+            (8 * resources.displayMetrics.density).toInt()
+        return row
+    }
+
+    private fun greetingForNow(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when {
+            hour < 12 -> getString(R.string.good_morning)
+            hour < 17 -> getString(R.string.good_afternoon)
+            else -> getString(R.string.good_evening)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

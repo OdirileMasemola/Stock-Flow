@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Release and any non-debug build: HTTPS only.
+    Debug builds replace this file with development cleartext exceptions.
+    Production API: https://stock-flow-trbq.onrender.com
+-->
 <network-security-config>
-    <!-- Cleartext HTTP allowed for local backend during development -->
-    <domain-config cleartextTrafficPermitted="true">
-        <!-- Android emulator → host machine loopback -->
-        <domain includeSubdomains="false">10.0.2.2</domain>
-        <!-- Physical device → this PC on Wi-Fi (update if your LAN IP changes) -->
-        <domain includeSubdomains="false">10.198.132.188</domain>
-        <!-- Optional localhost aliases -->
-        <domain includeSubdomains="false">localhost</domain>
-        <domain includeSubdomains="false">127.0.0.1</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

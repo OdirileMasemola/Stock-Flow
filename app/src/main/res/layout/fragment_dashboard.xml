@@ -442,7 +442,7 @@
                             android:orientation="vertical"
                             android:padding="16dp">
 
-                            <com.example.stockflow.ui.dashboard.WeeklySalesLineChartView
+                            <com.odirilemasemola.stockflow.ui.dashboard.WeeklySalesLineChartView
                                 android:id="@+id/weeklyLineChart"
                                 android:layout_width="match_parent"
                                 android:layout_height="140dp"

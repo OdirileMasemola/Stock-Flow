@@ -1,0 +1,464 @@
+package com.odirilemasemola.stockflow.ui.settings
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.odirilemasemola.stockflow.BuildConfig
+import com.odirilemasemola.stockflow.R
+import com.odirilemasemola.stockflow.data.auth.GoogleAuthClient
+import com.odirilemasemola.stockflow.data.local.LanguagePreferences
+import com.odirilemasemola.stockflow.data.local.SessionStore
+import com.odirilemasemola.stockflow.data.repository.UserRepository
+import com.odirilemasemola.stockflow.data.notifications.FcmRegistrationHelper
+import com.odirilemasemola.stockflow.data.notifications.FcmTokenStore
+import com.odirilemasemola.stockflow.data.notifications.NotificationRepository
+import com.odirilemasemola.stockflow.data.local.ThemePreferences
+import com.odirilemasemola.stockflow.databinding.ActivitySettingsBinding
+import com.odirilemasemola.stockflow.databinding.ItemSettingsRowBinding
+import com.odirilemasemola.stockflow.ui.common.SystemBars
+import com.odirilemasemola.stockflow.ui.login.LoginActivity
+import com.odirilemasemola.stockflow.data.sync.SyncScheduler
+import com.odirilemasemola.stockflow.data.sync.SyncStatusRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+
+class SettingsActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivitySettingsBinding
+    private lateinit var themePreferences: ThemePreferences
+    private lateinit var languagePreferences: LanguagePreferences
+    private lateinit var sessionStore: SessionStore
+    private var deletionInProgress = false
+    private var deletionProgress: AlertDialog? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        themePreferences = ThemePreferences(this)
+        languagePreferences = LanguagePreferences(this)
+        sessionStore = SessionStore(this)
+
+        SystemBars.applyThemeAware(this, binding.settingsRoot)
+
+        binding.toolbar.setNavigationOnClickListener { finish() }
+
+        bindRows()
+        setupClicks()
+    }
+
+    private val uiScope = CoroutineScope(Dispatchers.Main + Job())
+
+    override fun onResume() {
+        super.onResume()
+        binding.rowTheme.tvSubtitle.text = themeLabel(themePreferences.getMode())
+        binding.rowLanguage.tvSubtitle.text = languageLabel(languagePreferences.getLanguageTag())
+        binding.rowNotifications.tvSubtitle.text = notificationStatusSubtitle()
+        refreshSyncStatus()
+    }
+
+    override fun onDestroy() {
+        deletionProgress?.dismiss()
+        uiScope.coroutineContext[Job]?.cancel()
+        super.onDestroy()
+    }
+
+    private fun refreshSyncStatus() {
+        uiScope.launch {
+            val status = withContext(Dispatchers.IO) {
+                SyncStatusRepository(sessionStore).currentStatus()
+            }
+            binding.rowSync.tvSubtitle.text = when {
+                status.isSyncing -> getString(R.string.syncing)
+                status.hasFailed -> getString(R.string.sync_failed)
+                status.hasPending -> getString(R.string.pending_sync_count, status.pendingCount)
+                else -> getString(R.string.sync_up_to_date)
+            }
+        }
+    }
+
+    private fun bindRows() {
+        bindRow(
+            row = binding.rowProfile,
+            iconRes = R.drawable.ic_user,
+            iconColor = R.color.icon_profile,
+            iconBg = R.color.icon_bg_profile,
+            title = getString(R.string.settings_profile),
+            subtitle = getString(R.string.settings_profile_subtitle)
+        )
+        bindRow(
+            row = binding.rowBusiness,
+            iconRes = R.drawable.ic_business,
+            iconColor = R.color.icon_business,
+            iconBg = R.color.icon_bg_business,
+            title = getString(R.string.settings_business),
+            subtitle = getString(R.string.settings_business_subtitle)
+        )
+        bindRow(
+            row = binding.rowTheme,
+            iconRes = R.drawable.ic_theme,
+            iconColor = R.color.icon_theme,
+            iconBg = R.color.icon_bg_theme,
+            title = getString(R.string.settings_theme),
+            subtitle = themeLabel(themePreferences.getMode())
+        )
+        bindRow(
+            row = binding.rowLanguage,
+            iconRes = R.drawable.ic_language,
+            iconColor = R.color.icon_language,
+            iconBg = R.color.icon_bg_language,
+            title = getString(R.string.settings_app_language),
+            subtitle = languageLabel(languagePreferences.getLanguageTag())
+        )
+        bindRow(
+            row = binding.rowNotifications,
+            iconRes = R.drawable.ic_notifications,
+            iconColor = R.color.icon_notifications,
+            iconBg = R.color.icon_bg_notifications,
+            title = getString(R.string.settings_notifications),
+            subtitle = notificationStatusSubtitle()
+        )
+        bindRow(
+            row = binding.rowSync,
+            iconRes = R.drawable.ic_sync,
+            iconColor = R.color.icon_sync,
+            iconBg = R.color.icon_bg_sync,
+            title = getString(R.string.settings_sync),
+            subtitle = getString(R.string.sync_status_checking)
+        )
+        bindRow(
+            row = binding.rowAbout,
+            iconRes = R.drawable.ic_info,
+            iconColor = R.color.icon_about,
+            iconBg = R.color.icon_bg_about,
+            title = getString(R.string.settings_about),
+            subtitle = getString(R.string.settings_about_subtitle)
+        )
+        bindRow(
+            row = binding.rowDeleteAccount,
+            iconRes = R.drawable.ic_logout,
+            iconColor = R.color.icon_logout,
+            iconBg = R.color.icon_bg_logout,
+            title = getString(R.string.action_delete_account),
+            subtitle = getString(R.string.settings_delete_account_subtitle),
+            showChevron = false
+        )
+        binding.rowDeleteAccount.tvTitle.setTextColor(getColor(R.color.logout_text))
+        bindRow(
+            row = binding.rowVersion,
+            iconRes = R.drawable.ic_info,
+            iconColor = R.color.icon_about,
+            iconBg = R.color.icon_bg_about,
+            title = getString(R.string.settings_app_version),
+            subtitle = BuildConfig.VERSION_NAME,
+            showChevron = false
+        )
+
+        // Logout row chip
+        val logoutChip = binding.rowLogout.getChildAt(0) as? View
+        logoutChip?.background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(getColor(R.color.icon_bg_logout))
+        }
+    }
+
+    private fun bindRow(
+        row: ItemSettingsRowBinding,
+        iconRes: Int,
+        iconColor: Int,
+        iconBg: Int,
+        title: String,
+        subtitle: String,
+        showChevron: Boolean = true
+    ) {
+        row.ivIcon.setImageResource(iconRes)
+        row.ivIcon.imageTintList =
+            android.content.res.ColorStateList.valueOf(getColor(iconColor))
+        (row.ivIcon.parent as? View)?.background =
+            android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(getColor(iconBg))
+            }
+        row.tvTitle.text = title
+        row.tvSubtitle.text = subtitle
+        row.ivChevron.visibility = if (showChevron) View.VISIBLE else View.GONE
+    }
+
+    private fun setupClicks() {
+        binding.rowProfile.root.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
+        binding.rowBusiness.root.setOnClickListener {
+            startActivity(Intent(this, BusinessInfoActivity::class.java))
+        }
+        binding.rowTheme.root.setOnClickListener { showThemeDialog() }
+        binding.rowLanguage.root.setOnClickListener { showLanguageDialog() }
+        binding.rowNotifications.root.setOnClickListener {
+            FcmRegistrationHelper.requestNotificationPermissionIfNeeded(this)
+            FcmRegistrationHelper.registerIfLoggedIn(this)
+            binding.rowNotifications.tvSubtitle.text = notificationStatusSubtitle()
+            AlertDialog.Builder(this)
+                .setTitle(R.string.settings_notifications)
+                .setMessage(R.string.settings_notifications_info)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+        binding.rowSync.root.setOnClickListener {
+            showSyncDialog()
+        }
+        binding.rowDeleteAccount.root.setOnClickListener { confirmDeleteAccount() }
+        binding.rowAbout.root.setOnClickListener { showAboutDialog() }
+        binding.rowVersion.root.setOnClickListener { showAboutDialog() }
+        binding.rowLogout.setOnClickListener { confirmLogout() }
+    }
+
+    private fun showThemeDialog() {
+        val modes = arrayOf(
+            ThemePreferences.Mode.SYSTEM,
+            ThemePreferences.Mode.LIGHT,
+            ThemePreferences.Mode.DARK
+        )
+        val labels = arrayOf(
+            getString(R.string.settings_theme_system),
+            getString(R.string.settings_theme_light),
+            getString(R.string.settings_theme_dark)
+        )
+        val checked = modes.indexOf(themePreferences.getMode()).coerceAtLeast(0)
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.settings_theme)
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                themePreferences.setMode(modes[which])
+                binding.rowTheme.tvSubtitle.text = themeLabel(modes[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showLanguageDialog() {
+        // Indices 0–2 are switchable; Setswana (3) remains a future option.
+        val languageTags = arrayOf(
+            LanguagePreferences.TAG_ENGLISH,
+            LanguagePreferences.TAG_ISIZULU,
+            LanguagePreferences.TAG_SESOTHO,
+            null // Setswana — not implemented yet
+        )
+        val languages = arrayOf(
+            getString(R.string.settings_language_english),
+            getString(R.string.settings_language_isizulu),
+            getString(R.string.settings_language_sesotho),
+            getString(R.string.settings_language_setswana)
+        )
+        val currentTag = languagePreferences.getLanguageTag()
+        val checked = languageTags.indexOf(currentTag).coerceAtLeast(0)
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.settings_app_language)
+            .setSingleChoiceItems(languages, checked) { dialog, which ->
+                val tag = languageTags[which]
+                if (tag != null) {
+                    languagePreferences.setLanguageTag(tag)
+                    binding.rowLanguage.tvSubtitle.text = languageLabel(tag)
+                    Toast.makeText(
+                        this,
+                        getString(R.string.settings_language_changed, languageLabel(tag)),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        R.string.settings_language_future,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAboutDialog() {
+        val message = getString(
+            R.string.settings_about_body,
+            BuildConfig.VERSION_NAME
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.app_name)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    private fun showSyncDialog() {
+        uiScope.launch {
+            val status = withContext(Dispatchers.IO) {
+                SyncStatusRepository(sessionStore).currentStatus()
+            }
+            val body = buildString {
+                appendLine(getString(R.string.sync_status_online_offline_hint))
+                appendLine()
+                when {
+                    status.isSyncing -> appendLine(getString(R.string.syncing))
+                    status.hasFailed -> {
+                        appendLine(getString(R.string.sync_failed))
+                        if (!status.lastError.isNullOrBlank()) {
+                            appendLine(status.lastError)
+                        }
+                    }
+                    status.hasPending -> appendLine(
+                        getString(R.string.pending_sync_count, status.pendingCount)
+                    )
+                    else -> appendLine(getString(R.string.sync_complete))
+                }
+                if (status.hasPending || status.hasFailed) {
+                    appendLine()
+                    append(getString(R.string.changes_pending))
+                }
+            }
+            AlertDialog.Builder(this@SettingsActivity)
+                .setTitle(R.string.settings_sync)
+                .setMessage(body.trim())
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.retry_synchronization) { _, _ ->
+                    SyncScheduler.enqueueSyncReplace(this@SettingsActivity)
+                    Toast.makeText(
+                        this@SettingsActivity,
+                        R.string.syncing,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    refreshSyncStatus()
+                }
+                .show()
+        }
+    }
+
+    private fun showPlaceholder(message: String) {
+        AlertDialog.Builder(this)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    private fun confirmDeleteAccount() {
+        if (deletionInProgress) return
+        AlertDialog.Builder(this)
+            .setTitle(R.string.settings_delete_account_title)
+            .setMessage(R.string.settings_delete_account_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.action_delete_account) { _, _ -> startAccountDeletion() }
+            .show()
+    }
+
+    private fun startAccountDeletion() {
+        if (deletionInProgress) return
+        deletionInProgress = true
+        deletionProgress = AlertDialog.Builder(this)
+            .setMessage(R.string.settings_delete_account_progress)
+            .setCancelable(false)
+            .show()
+        val coordinator = AccountDeletionCoordinator(
+            requestDeletion = {
+                UserRepository(sessionStore = sessionStore).deleteAccount()
+            },
+            onConfirmedDeletion = {
+                sessionStore.clearSession()
+                FcmTokenStore(this).clear()
+                if (FirebaseApp.getApps(this).isNotEmpty()) {
+                    FirebaseAuth.getInstance().signOut()
+                }
+            }
+        )
+        uiScope.launch {
+            val result = coordinator.onConfirmationResult(confirmed = true)
+            deletionProgress?.dismiss()
+            deletionProgress = null
+            deletionInProgress = false
+            result.onSuccess {
+                withContext(Dispatchers.IO) {
+                    try {
+                        GoogleAuthClient(this@SettingsActivity).clearLastGoogleAccount()
+                    } catch (_: Exception) {
+                        // The StockFlow account is already closed. Continue to the signed-out screen.
+                    }
+                }
+                startActivity(
+                    Intent(this@SettingsActivity, LoginActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                )
+                finish()
+            }.onFailure { error ->
+                if (error is AccountDeletionCancelled) return@onFailure
+                AlertDialog.Builder(this@SettingsActivity)
+                    .setTitle(R.string.settings_delete_account_title)
+                    .setMessage(error.message ?: getString(R.string.error_delete_account_failed))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
+            }
+        }
+    }
+
+    private fun confirmLogout() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.action_logout)
+            .setMessage(R.string.settings_logout_confirm)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.action_logout) { _, _ -> performLogout() }
+            .show()
+    }
+
+    private fun performLogout() {
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    NotificationRepository(
+                        sessionStore = sessionStore,
+                        tokenStore = FcmTokenStore(this@SettingsActivity)
+                    ).unregisterCurrentToken()
+                } catch (_: Exception) {
+                    // Best-effort unregister
+                }
+            }
+            sessionStore.clearSession()
+            if (FirebaseApp.getApps(this@SettingsActivity).isNotEmpty()) {
+                FirebaseAuth.getInstance().signOut()
+            }
+            startActivity(
+                Intent(this@SettingsActivity, LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
+            finish()
+        }
+    }
+
+    private fun notificationStatusSubtitle(): String {
+        return if (FcmRegistrationHelper.areNotificationsLikelyEnabled(this)) {
+            getString(R.string.settings_notifications_enabled)
+        } else {
+            getString(R.string.settings_notifications_disabled)
+        }
+    }
+
+    private fun themeLabel(mode: ThemePreferences.Mode): String = when (mode) {
+        ThemePreferences.Mode.SYSTEM -> getString(R.string.settings_theme_system)
+        ThemePreferences.Mode.LIGHT -> getString(R.string.settings_theme_light)
+        ThemePreferences.Mode.DARK -> getString(R.string.settings_theme_dark)
+    }
+
+    private fun languageLabel(tag: String): String = when (LanguagePreferences.normalizeTag(tag)) {
+        LanguagePreferences.TAG_ISIZULU -> getString(R.string.settings_language_isizulu)
+        LanguagePreferences.TAG_SESOTHO -> getString(R.string.settings_language_sesotho)
+        else -> getString(R.string.settings_language_english)
+    }
+}
