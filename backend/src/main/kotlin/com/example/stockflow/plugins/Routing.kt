@@ -67,6 +67,9 @@ fun Application.configureRouting() {
         get("/account-deletion") {
             call.respondText(AccountDeletionPage.html, ContentType.Text.Html)
         }
+        get("/privacy-policy") {
+            call.respondText(PrivacyPolicyPage.html, ContentType.Text.Html)
+        }
 
         // Local-disk images only. Cloud (Supabase) URLs are absolute and served by Supabase CDN.
         if (AppConfig.isLocalStorage) {
