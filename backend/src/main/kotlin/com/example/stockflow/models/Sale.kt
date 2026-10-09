@@ -30,6 +30,8 @@ object Sales : Table("sales") {
     val totalAmount = decimal("total_amount", 12, 2)
     val paymentMethod = varchar("payment_method", 20) // e.g., Cash, Card, EFT
     val createdAt = datetime("created_at").default(LocalDateTime.now()).index()
+    /** Shop owner. Backfilled from [userId] for sales recorded before shops existed. */
+    val ownerUserId = integer("owner_user_id").references(Users.id).nullable().index()
 
     override val primaryKey = PrimaryKey(id)
 }

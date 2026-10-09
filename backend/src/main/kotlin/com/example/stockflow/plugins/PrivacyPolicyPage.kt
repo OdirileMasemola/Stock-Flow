@@ -60,16 +60,17 @@ object PrivacyPolicyPage {
             </ul>
 
             <h2>3. Who can see your information</h2>
-            <p>StockFlow currently works as <strong>one shared workspace</strong>. Shop records are not separated by shop or owner.</p>
+            <p>Each StockFlow account is its own shop. Shop records are kept separate for each account.</p>
             <ul>
-              <li><strong>Shared with every signed-in StockFlow user, whatever their role:</strong> products, categories, prices, stock levels, product photos, suppliers (including the contact details entered for them), purchase orders, sales and the items sold, and dashboard and report totals. Signed-in users can also add categories and add, change or delete products, suppliers and purchase orders.</li>
-              <li><strong>Sales</strong> show the user ID of the account that recorded them, not your name or email.</li>
+              <li><strong>Private to your shop:</strong> products, prices, stock levels, SKUs/barcodes, suppliers (including the contact details you enter for them), purchase orders, sales and the items sold, and dashboard and report totals. Other StockFlow users cannot see or change them.</li>
+              <li><strong>Staff accounts:</strong> StockFlow cannot yet link Staff accounts to an Owner's shop. A Staff account is currently its own separate shop: the Staff user does not see the Owner's records, and the Owner does not see the Staff user's records.</li>
+              <li><strong>Supplier accounts</strong> cannot view or change any shop's products, sales, suppliers, purchase orders, dashboard or reports.</li>
+              <li><strong>Categories are shared:</strong> category names (for example "Beverages") form one list shared by all StockFlow users. Any signed-in user can see the list, and Owner and Staff users can add to it. Do not put personal or confidential information in a category name.</li>
               <li><strong>Private to your account:</strong> your profile (name, username, email), your store profile (store name, phone, email, address and map location) and your activity history.</li>
               <li>People without a StockFlow account cannot see shop records.</li>
             </ul>
-            <p>Do not enter information into shop records that you do not want other StockFlow users to see.</p>
             <h3>Photos</h3>
-            <p>Profile, store and product photos are stored at public web addresses so the app can display them. Anyone who has a photo's address can view it, without signing in.</p>
+            <p>Profile, store and product photos are stored at public web addresses so the app can display them. Anyone who has a photo's address can view it, without signing in. This applies to product photos even though the product itself is private to your shop.</p>
 
             <h2>4. How information is stored and shared</h2>
             <p>Your data is sent over encrypted HTTPS connections to the StockFlow server. It is processed by these service providers on our behalf:</p>
@@ -82,10 +83,11 @@ object PrivacyPolicyPage {
             </table>
             <p>We do not sell your personal information and do not share it with third parties for advertising.</p>
             <h3>On your device</h3>
-            <p>The app keeps a local copy of shop data so it works offline, and syncs changes when you are online. Your sign-in session is stored encrypted and is excluded from Android backups. The offline copy of shop data may be included in your device's Android backup.</p>
+            <p>The app keeps a local copy of your shop data on your device so it works offline. Changes you make offline are queued on the device and sent to the server when you are online and signed in. If your session expires, queued changes stay on the device and are sent after you sign in again with the same account. Signing out removes your account's offline copy from the device, including changes that have not been sent yet.</p>
+            <p>Your sign-in session is stored encrypted and is excluded from Android backups. The offline copy of shop data may be included in your device's Android backup.</p>
 
             <h2>5. Data retention</h2>
-            <p>Your information is kept while your account is active. When you delete your account, it is deleted or anonymised as described below. We review stored records yearly.</p>
+            <p>Your information is kept while your account is active. When you delete your account, your personal account details are deleted or anonymised, and your shop records are kept under the anonymised account, as described below. We review stored records yearly.</p>
 
             <h2>6. Deleting your account</h2>
             <p>You can delete your account in the app: <strong>Settings &rarr; Delete account</strong>. If you cannot open the app, email <a href="mailto:odirilemasemola1@gmail.com">odirilemasemola1@gmail.com</a> from the email address on your account. Full details are at <a href="https://stock-flow-trbq.onrender.com/account-deletion">https://stock-flow-trbq.onrender.com/account-deletion</a>.</p>
@@ -94,8 +96,9 @@ object PrivacyPolicyPage {
               <li>Your sign-in, name, username and email address are removed.</li>
               <li>Your profile photo and store profile (including store location and store photo) are deleted.</li>
               <li>Notification tokens and activity history for your account are deleted.</li>
-              <li>Sales you recorded are kept as shop records. The account they link to stays only as an anonymised record with no name, email, username or sign-in.</li>
-              <li>Products, categories, suppliers, purchase orders and product photos are shared shop records and are not deleted.</li>
+              <li>Your account stays in the database only as an anonymised record with no name, email, username or sign-in.</li>
+              <li>Your shop records are <strong>not</strong> deleted. Products, product photos, suppliers (including the contact details you entered for them), purchase orders and their items, and sales and the items sold stay in the database, linked to the anonymised account, so stock, sales and purchasing history stay consistent. Nobody can sign in to the anonymised account, so these records are no longer shown to any StockFlow user. Product photos remain at their public web addresses.</li>
+              <li>Categories you added stay in the shared category list.</li>
             </ul>
 
             <h2>7. Age requirement</h2>

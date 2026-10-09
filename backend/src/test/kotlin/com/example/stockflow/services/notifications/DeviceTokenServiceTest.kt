@@ -51,8 +51,8 @@ class DeviceTokenServiceTest {
         override suspend fun findActiveTokensForUserIds(userIds: Collection<Int>): List<StoredDeviceToken> =
             tokens.values.filter { it.active && it.userId in userIds }
 
-        override suspend fun resolveAlertRecipientUserIds(actingUserId: Int): List<Int> =
-            listOfNotNull(actingUserId.takeIf { it > 0 }, 1).distinct()
+        override suspend fun resolveAlertRecipientUserIds(shopOwnerUserId: Int): List<Int> =
+            listOfNotNull(shopOwnerUserId.takeIf { it > 0 }, 1).distinct()
     }
 
     @Test

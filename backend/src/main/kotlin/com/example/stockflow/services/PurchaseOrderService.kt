@@ -16,42 +16,46 @@ import java.math.RoundingMode
 class PurchaseOrderService(
     private val repository: PurchaseOrderRepository = PurchaseOrderRepositoryImpl()
 ) {
-    suspend fun getPurchaseOrders(): List<PurchaseOrderResponse> =
-        repository.getAllPurchaseOrders()
+    suspend fun getPurchaseOrders(ownerUserId: Int): List<PurchaseOrderResponse> =
+        repository.getAllPurchaseOrders(ownerUserId)
 
-    suspend fun getPurchaseOrder(id: Int): PurchaseOrderResponse {
-        return repository.getPurchaseOrderById(id)
+    suspend fun getPurchaseOrder(id: Int, ownerUserId: Int): PurchaseOrderResponse {
+        return repository.getPurchaseOrderById(id, ownerUserId)
             ?: throw NotFoundException("Purchase order not found")
     }
 
-    suspend fun createPurchaseOrder(request: CreatePurchaseOrderRequest): PurchaseOrderResponse {
-        validateSupplier(request.supplierId)
+    suspend fun createPurchaseOrder(request: CreatePurchaseOrderRequest, ownerUserId: Int): PurchaseOrderResponse {
+        validateSupplier(request.supplierId, ownerUserId)
         val lines = validateAndMergeItems(request.items)
-        ensureProductsExist(lines)
+        ensureProductsExist(lines, ownerUserId)
         val expected = parseOptionalDateTime(request.expectedDeliveryDate)
-        return repository.createPurchaseOrder(request.supplierId, expected, lines)
+        return repository.createPurchaseOrder(ownerUserId, request.supplierId, expected, lines)
     }
 
-    suspend fun updatePurchaseOrder(id: Int, request: UpdatePurchaseOrderRequest): PurchaseOrderResponse {
-        repository.getPurchaseOrderById(id)
+    suspend fun updatePurchaseOrder(
+        id: Int,
+        request: UpdatePurchaseOrderRequest,
+        ownerUserId: Int
+    ): PurchaseOrderResponse {
+        repository.getPurchaseOrderById(id, ownerUserId)
             ?: throw NotFoundException("Purchase order not found")
 
-        validateSupplier(request.supplierId)
+        validateSupplier(request.supplierId, ownerUserId)
         val lines = validateAndMergeItems(request.items)
-        ensureProductsExist(lines)
+        ensureProductsExist(lines, ownerUserId)
         val expected = parseOptionalDateTime(request.expectedDeliveryDate)
-        return repository.updatePurchaseOrder(id, request.supplierId, expected, lines)
+        return repository.updatePurchaseOrder(id, ownerUserId, request.supplierId, expected, lines)
     }
 
-    suspend fun receivePurchaseOrder(id: Int): PurchaseOrderResponse {
-        return repository.receivePurchaseOrder(id)
+    suspend fun receivePurchaseOrder(id: Int, ownerUserId: Int): PurchaseOrderResponse {
+        return repository.receivePurchaseOrder(id, ownerUserId)
     }
 
-    private suspend fun validateSupplier(supplierId: Int) {
+    private suspend fun validateSupplier(supplierId: Int, ownerUserId: Int) {
         if (supplierId <= 0) {
             throw BadRequestException("Invalid supplier ID")
         }
-        if (!repository.supplierExists(supplierId)) {
+        if (!repository.supplierExists(supplierId, ownerUserId)) {
             throw NotFoundException("Supplier not found")
         }
     }
@@ -93,9 +97,9 @@ class PurchaseOrderService(
         }
     }
 
-    private suspend fun ensureProductsExist(lines: List<PurchaseOrderLineInput>) {
+    private suspend fun ensureProductsExist(lines: List<PurchaseOrderLineInput>, ownerUserId: Int) {
         for (line in lines) {
-            if (!repository.productExists(line.productId)) {
+            if (!repository.productExists(line.productId, ownerUserId)) {
                 throw NotFoundException("Product not found: id=${line.productId}")
             }
         }

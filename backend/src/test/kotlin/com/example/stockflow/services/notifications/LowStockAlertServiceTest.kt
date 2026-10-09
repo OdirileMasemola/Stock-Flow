@@ -32,8 +32,8 @@ class LowStockAlertServiceTest {
         override suspend fun findActiveTokensForUserIds(userIds: Collection<Int>): List<StoredDeviceToken> =
             tokens.filter { it.active && it.userId in userIds }
 
-        override suspend fun resolveAlertRecipientUserIds(actingUserId: Int): List<Int> =
-            listOf(1, actingUserId).distinct()
+        override suspend fun resolveAlertRecipientUserIds(shopOwnerUserId: Int): List<Int> =
+            listOf(1, shopOwnerUserId).distinct()
     }
 
     private class RecordingSender : FcmSender {

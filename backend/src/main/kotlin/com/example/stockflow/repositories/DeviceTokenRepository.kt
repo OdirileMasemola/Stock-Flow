@@ -2,7 +2,6 @@ package com.example.stockflow.repositories
 
 import com.example.stockflow.database.DatabaseFactory.dbQuery
 import com.example.stockflow.models.DeviceTokens
-import com.example.stockflow.models.Roles
 import com.example.stockflow.models.Users
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
@@ -27,8 +26,8 @@ interface DeviceTokenRepository {
     suspend fun delete(userId: Int, token: String): Boolean
     suspend fun markInactiveByToken(token: String)
     suspend fun findActiveTokensForUserIds(userIds: Collection<Int>): List<StoredDeviceToken>
-    /** Owner-role user IDs plus [actingUserId] (deduplicated). */
-    suspend fun resolveAlertRecipientUserIds(actingUserId: Int): List<Int>
+    /** Users who receive low-stock alerts for the shop owned by [shopOwnerUserId]. */
+    suspend fun resolveAlertRecipientUserIds(shopOwnerUserId: Int): List<Int>
 }
 
 class DeviceTokenRepositoryImpl : DeviceTokenRepository {
@@ -119,15 +118,9 @@ class DeviceTokenRepositoryImpl : DeviceTokenRepository {
         }
     }
 
-    override suspend fun resolveAlertRecipientUserIds(actingUserId: Int): List<Int> = dbQuery {
-        val ownerIds = (Users innerJoin Roles)
-            .select(Users.id)
-            .where { Roles.name eq "Owner" }
+    override suspend fun resolveAlertRecipientUserIds(shopOwnerUserId: Int): List<Int> = dbQuery {
+        Users.select(Users.id)
+            .where { Users.id eq shopOwnerUserId }
             .map { it[Users.id] }
-            .toMutableSet()
-        if (actingUserId > 0) {
-            ownerIds.add(actingUserId)
-        }
-        ownerIds.toList()
     }
 }

@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.leftJoin
@@ -19,25 +20,29 @@ import org.jetbrains.exposed.sql.update
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+/** Every method is scoped to [ownerUserId]; rows from other shops behave as if they do not exist. */
 interface ProductRepository {
-    suspend fun getAllProducts(): List<ProductResponse>
-    suspend fun getLowStockProducts(): List<ProductResponse>
-    suspend fun getProductById(id: Int): ProductResponse?
-    suspend fun createProduct(request: CreateProductRequest): ProductResponse
-    suspend fun updateProduct(id: Int, request: UpdateProductRequest): ProductResponse?
-    suspend fun deleteProduct(id: Int): Boolean
-    suspend fun findBySku(sku: String): ProductResponse?
+    suspend fun getAllProducts(ownerUserId: Int): List<ProductResponse>
+    suspend fun getLowStockProducts(ownerUserId: Int): List<ProductResponse>
+    suspend fun getProductById(id: Int, ownerUserId: Int): ProductResponse?
+    suspend fun createProduct(request: CreateProductRequest, ownerUserId: Int): ProductResponse
+    suspend fun updateProduct(id: Int, request: UpdateProductRequest, ownerUserId: Int): ProductResponse?
+    suspend fun deleteProduct(id: Int, ownerUserId: Int): Boolean
+    suspend fun findBySku(sku: String, ownerUserId: Int): ProductResponse?
     suspend fun categoryExists(categoryId: Int): Boolean
-    suspend fun supplierExists(supplierId: Int): Boolean
+    suspend fun supplierExists(supplierId: Int, ownerUserId: Int): Boolean
+    /** True when any product in any shop still uses [imageUrl]. Guards shared photo files from deletion. */
+    suspend fun isImageInUse(imageUrl: String): Boolean
 }
 
 class ProductRepositoryImpl : ProductRepository {
 
-    override suspend fun getAllProducts(): List<ProductResponse> = dbQuery {
+    override suspend fun getAllProducts(ownerUserId: Int): List<ProductResponse> = dbQuery {
         // Left-join categories so we can show the category name in the inventory list.
         Products
             .leftJoin(Categories, { Products.categoryId }, { Categories.id })
             .selectAll()
+            .where { Products.ownerUserId eq ownerUserId }
             .orderBy(Products.name)
             .map { toProductResponse(it) }
     }
@@ -46,25 +51,22 @@ class ProductRepositoryImpl : ProductRepository {
      * Products at or below their minimum stock threshold (`stockLevel <= minStockLevel`).
      * Ordered by stock ascending so out-of-stock items surface first.
      */
-    override suspend fun getLowStockProducts(): List<ProductResponse> = dbQuery {
+    override suspend fun getLowStockProducts(ownerUserId: Int): List<ProductResponse> = dbQuery {
         Products
             .leftJoin(Categories, { Products.categoryId }, { Categories.id })
             .selectAll()
-            .where { Products.stockLevel lessEq Products.minStockLevel }
+            .where {
+                (Products.ownerUserId eq ownerUserId) and (Products.stockLevel lessEq Products.minStockLevel)
+            }
             .orderBy(Products.stockLevel to SortOrder.ASC, Products.name to SortOrder.ASC)
             .map { toProductResponse(it) }
     }
 
-    override suspend fun getProductById(id: Int): ProductResponse? = dbQuery {
-        Products
-            .leftJoin(Categories, { Products.categoryId }, { Categories.id })
-            .selectAll()
-            .where { Products.id eq id }
-            .map { toProductResponse(it) }
-            .singleOrNull()
+    override suspend fun getProductById(id: Int, ownerUserId: Int): ProductResponse? = dbQuery {
+        loadOwned(id, ownerUserId)
     }
 
-    override suspend fun createProduct(request: CreateProductRequest): ProductResponse = dbQuery {
+    override suspend fun createProduct(request: CreateProductRequest, ownerUserId: Int): ProductResponse = dbQuery {
         val insertStatement = Products.insert {
             it[name] = request.name.trim()
             it[sku] = normalizeSku(request.sku)
@@ -75,22 +77,22 @@ class ProductRepositoryImpl : ProductRepository {
             it[categoryId] = request.categoryId
             it[supplierId] = request.supplierId
             it[imageUrl] = normalizeImageUrl(request.imageUrl)
+            it[Products.ownerUserId] = ownerUserId
         }
 
         val newId = insertStatement.resultedValues?.first()?.get(Products.id)
             ?: throw RuntimeException("Failed to create product")
 
         // Re-read with category join so the response includes categoryName.
-        Products
-            .leftJoin(Categories, { Products.categoryId }, { Categories.id })
-            .selectAll()
-            .where { Products.id eq newId }
-            .map { toProductResponse(it) }
-            .single()
+        loadOwned(newId, ownerUserId)!!
     }
 
-    override suspend fun updateProduct(id: Int, request: UpdateProductRequest): ProductResponse? = dbQuery {
-        val updated = Products.update({ Products.id eq id }) {
+    override suspend fun updateProduct(
+        id: Int,
+        request: UpdateProductRequest,
+        ownerUserId: Int
+    ): ProductResponse? = dbQuery {
+        val updated = Products.update({ (Products.id eq id) and (Products.ownerUserId eq ownerUserId) }) {
             it[name] = request.name.trim()
             it[sku] = normalizeSku(request.sku)
             it[costPrice] = toMoney(request.costPrice)
@@ -106,24 +108,19 @@ class ProductRepositoryImpl : ProductRepository {
             return@dbQuery null
         }
 
-        Products
-            .leftJoin(Categories, { Products.categoryId }, { Categories.id })
-            .selectAll()
-            .where { Products.id eq id }
-            .map { toProductResponse(it) }
-            .singleOrNull()
+        loadOwned(id, ownerUserId)
     }
 
-    override suspend fun deleteProduct(id: Int): Boolean = dbQuery {
-        Products.deleteWhere { Products.id eq id } > 0
+    override suspend fun deleteProduct(id: Int, ownerUserId: Int): Boolean = dbQuery {
+        Products.deleteWhere { (Products.id eq id) and (Products.ownerUserId eq ownerUserId) } > 0
     }
 
-    override suspend fun findBySku(sku: String): ProductResponse? = dbQuery {
+    override suspend fun findBySku(sku: String, ownerUserId: Int): ProductResponse? = dbQuery {
         val normalized = sku.trim()
         Products
             .leftJoin(Categories, { Products.categoryId }, { Categories.id })
             .selectAll()
-            .where { Products.sku eq normalized }
+            .where { (Products.ownerUserId eq ownerUserId) and (Products.sku eq normalized) }
             .map { toProductResponse(it) }
             .singleOrNull()
     }
@@ -132,9 +129,23 @@ class ProductRepositoryImpl : ProductRepository {
         Categories.selectAll().where { Categories.id eq categoryId }.count() > 0
     }
 
-    override suspend fun supplierExists(supplierId: Int): Boolean = dbQuery {
-        Suppliers.selectAll().where { Suppliers.id eq supplierId }.count() > 0
+    override suspend fun supplierExists(supplierId: Int, ownerUserId: Int): Boolean = dbQuery {
+        Suppliers.selectAll()
+            .where { (Suppliers.id eq supplierId) and (Suppliers.ownerUserId eq ownerUserId) }
+            .count() > 0
     }
+
+    override suspend fun isImageInUse(imageUrl: String): Boolean = dbQuery {
+        Products.selectAll().where { Products.imageUrl eq imageUrl.trim() }.count() > 0
+    }
+
+    private fun loadOwned(id: Int, ownerUserId: Int): ProductResponse? =
+        Products
+            .leftJoin(Categories, { Products.categoryId }, { Categories.id })
+            .selectAll()
+            .where { (Products.id eq id) and (Products.ownerUserId eq ownerUserId) }
+            .map { toProductResponse(it) }
+            .singleOrNull()
 
     private fun toProductResponse(row: ResultRow) = ProductResponse(
         id = row[Products.id],

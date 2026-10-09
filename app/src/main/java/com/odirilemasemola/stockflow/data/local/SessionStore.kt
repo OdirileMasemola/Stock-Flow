@@ -54,6 +54,14 @@ class SessionStore(context: Context) {
     }
 
     /**
+     * Drops only the JWT the server rejected. Unlike [clearSession] this keeps the Room cache and
+     * queued offline writes, which sync again once the same user signs back in.
+     */
+    fun clearExpiredToken() {
+        prefs.edit().remove(KEY_TOKEN).apply()
+    }
+
+    /**
      * True when a StockFlow JWT is stored locally and not past its `exp` claim.
      * Expiry is checked client-side for UX only; the server remains authoritative.
      */

@@ -11,9 +11,9 @@ import com.example.stockflow.repositories.resolveReportRange
 class DashboardService(
     private val repository: DashboardRepository = DashboardRepositoryImpl()
 ) {
-    suspend fun getSummary(): DashboardSummaryResponse = repository.getSummary()
+    suspend fun getSummary(ownerUserId: Int): DashboardSummaryResponse = repository.getSummary(ownerUserId)
 
-    suspend fun getReports(range: String?, from: String?, to: String?): ReportsResponse {
+    suspend fun getReports(ownerUserId: Int, range: String?, from: String?, to: String?): ReportsResponse {
         val (start, end, label) = try {
             if (!from.isNullOrBlank() && !to.isNullOrBlank()) {
                 resolveCustomReportRange(from, to)
@@ -23,6 +23,6 @@ class DashboardService(
         } catch (e: IllegalArgumentException) {
             throw BadRequestException(e.message ?: "Invalid date range")
         }
-        return repository.getReports(start, end, label)
+        return repository.getReports(ownerUserId, start, end, label)
     }
 }

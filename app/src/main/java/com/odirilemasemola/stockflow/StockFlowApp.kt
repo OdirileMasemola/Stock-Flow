@@ -2,10 +2,14 @@ package com.odirilemasemola.stockflow
 
 import android.app.Application
 import com.odirilemasemola.stockflow.data.local.LanguagePreferences
+import com.odirilemasemola.stockflow.data.local.SessionStore
 import com.odirilemasemola.stockflow.data.local.ThemePreferences
 import com.odirilemasemola.stockflow.data.local.cache.CacheDatabaseProvider
 import com.odirilemasemola.stockflow.data.notifications.FcmRegistrationHelper
+import com.odirilemasemola.stockflow.data.remote.SessionExpiry
+import com.odirilemasemola.stockflow.data.remote.SessionExpiryHandler
 import com.odirilemasemola.stockflow.data.sync.SyncScheduler
+import com.odirilemasemola.stockflow.ui.common.SessionExpiryNavigator
 
 /**
  * Applies the persisted theme and language before any Activity is created.
@@ -19,6 +23,13 @@ class StockFlowApp : Application() {
         ThemePreferences(this).applySavedMode()
         LanguagePreferences(this).applySavedLanguage()
         CacheDatabaseProvider.init(this)
+        val sessionExpiryNavigator = SessionExpiryNavigator(this)
+        registerActivityLifecycleCallbacks(sessionExpiryNavigator)
+        // Lazy: the encrypted session store needs the Android Keystore, unavailable in Robolectric.
+        val sessionExpiryHandler by lazy {
+            SessionExpiryHandler(SessionStore(this), sessionExpiryNavigator::requestLogin)
+        }
+        SessionExpiry.handler = SessionExpiry.Handler { token -> sessionExpiryHandler.onTokenRejected(token) }
         try {
             // Attempt to flush any leftover PENDING writes when the app launches.
             SyncScheduler.enqueueSync(this)

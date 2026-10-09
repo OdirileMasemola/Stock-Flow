@@ -40,7 +40,10 @@ object AccountDeletionPage {
               <li>Activity history stored for your account.</li>
             </ul>
             <h2>What is kept</h2>
-            <p>Sales already recorded stay in the shop records. Each sale must keep a link to an account, so the account row remains with the name, email, username and sign-in removed. Products, categories, suppliers and purchase orders are shared shop records and are not deleted with an account. Product photos belong to those shared products and are not deleted with an account.</p>
+            <p>Your account stays in the database as an anonymised record with the name, email, username and sign-in removed.</p>
+            <p>Your shop records are not deleted. Products, product photos, suppliers (including the contact details you entered for them), purchase orders and their items, and sales and the items sold stay in the database, linked to the anonymised account, so stock, sales and purchasing history stay consistent. Nobody can sign in to the anonymised account, so these records are no longer shown to any StockFlow user. Product photos remain at their public web addresses.</p>
+            <p>Categories you added stay in the shared category list used by all StockFlow users.</p>
+            <p>Unsent offline changes on your device are not uploaded after the account is deleted.</p>
             <h2>How long it takes</h2>
             <p>The account is closed during the deletion request. If activity or photo cleanup does not finish, the app reports the failure and does not tell you the account was fully deleted. Sign in and choose Delete account again to retry the remaining cleanup.</p>
             <h2>Contact</h2>

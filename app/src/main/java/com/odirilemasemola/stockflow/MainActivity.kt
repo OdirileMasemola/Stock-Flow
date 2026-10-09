@@ -18,6 +18,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.odirilemasemola.stockflow.data.local.SessionStore
 import com.odirilemasemola.stockflow.data.notifications.FcmRegistrationHelper
+import com.odirilemasemola.stockflow.data.sync.SyncScheduler
 import com.odirilemasemola.stockflow.databinding.ActivityMainBinding
 import com.odirilemasemola.stockflow.databinding.ItemBottomNavBinding
 import com.odirilemasemola.stockflow.ui.dashboard.DashboardFragment
@@ -61,6 +62,8 @@ class MainActivity : AppCompatActivity() {
 
         FcmRegistrationHelper.requestNotificationPermissionIfNeeded(this)
         FcmRegistrationHelper.registerIfLoggedIn(this)
+        // Writes deferred by an expired session resume once the user is back in.
+        SyncScheduler.enqueueSync(this)
 
         if (savedInstanceState == null) {
             selectNavItem(R.id.nav_dashboard, animate = false)

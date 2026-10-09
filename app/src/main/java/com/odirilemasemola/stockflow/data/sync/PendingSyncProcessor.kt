@@ -22,7 +22,8 @@ data class SyncSummary(
     val failedPermanent: Int = 0,
     val deferredNetwork: Int = 0,
     val skippedWrongUser: Int = 0,
-    val deferredDependency: Int = 0
+    val deferredDependency: Int = 0,
+    val deferredAuth: Int = 0
 )
 
 /**
@@ -117,6 +118,14 @@ class PendingSyncProcessor(
                     Log.i(TAG, "sync network defer ${op.id} retry=$retries")
                     break
                 }
+                is SyncOpOutcome.AuthRequired -> {
+                    // Token expired or revoked: keep the write for after the user signs in again.
+                    // No retry count bump; sync does not run again until a token is stored.
+                    dao.upsert(inflight.copy(status = PendingOpStatus.PENDING, updatedAt = clock()))
+                    summary = summary.copy(deferredAuth = summary.deferredAuth + 1)
+                    Log.i(TAG, "sync auth required; deferring ${op.id}")
+                    break
+                }
                 is SyncOpOutcome.DeferredDependency -> {
                     dao.upsert(
                         inflight.copy(
@@ -174,6 +183,7 @@ class PendingSyncProcessor(
                 rewriteProductCategoryIds(userId, op.localEntityId, body.id)
                 SyncOpOutcome.Success
             }
+            response.code() == 401 -> SyncOpOutcome.AuthRequired
             response.code() in 400..499 -> SyncOpOutcome.PermanentFailure(errorMessage(response))
             else -> {
                 if (op.retryCount + 1 >= maxTransientRetries) {
@@ -243,6 +253,7 @@ class PendingSyncProcessor(
                 remappedPendingOps(userId, op.localEntityId, body.id)
                 SyncOpOutcome.Success
             }
+            response.code() == 401 -> SyncOpOutcome.AuthRequired
             response.code() in 400..499 -> SyncOpOutcome.PermanentFailure(errorMessage(response))
             else -> {
                 if (op.retryCount + 1 >= maxTransientRetries) {
@@ -272,6 +283,7 @@ class PendingSyncProcessor(
                 productDao?.upsert(body.toCachedEntity(userId, clock()))
                 SyncOpOutcome.Success
             }
+            response.code() == 401 -> SyncOpOutcome.AuthRequired
             response.code() in 400..499 -> SyncOpOutcome.PermanentFailure(errorMessage(response))
             else -> {
                 if (op.retryCount + 1 >= maxTransientRetries) {
@@ -301,6 +313,7 @@ class PendingSyncProcessor(
                 productDao?.deleteById(userId, remoteId)
                 SyncOpOutcome.Success
             }
+            response.code() == 401 -> SyncOpOutcome.AuthRequired
             response.code() in 400..499 -> SyncOpOutcome.PermanentFailure(errorMessage(response))
             else -> {
                 if (op.retryCount + 1 >= maxTransientRetries) {
@@ -451,4 +464,5 @@ private sealed class SyncOpOutcome {
     data class NetworkFailure(val message: String) : SyncOpOutcome()
     data class PermanentFailure(val message: String) : SyncOpOutcome()
     data class DeferredDependency(val message: String) : SyncOpOutcome()
+    data object AuthRequired : SyncOpOutcome()
 }

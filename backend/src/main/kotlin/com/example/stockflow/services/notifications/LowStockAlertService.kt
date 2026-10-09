@@ -17,8 +17,7 @@ import org.slf4j.LoggerFactory
  * `previousStock > minStockLevel && currentStock <= minStockLevel`.
  * Further sales while already low do **not** re-notify.
  *
- * Recipients: all active tokens for Owner-role users plus the acting user
- * (shared store inventory has no per-product owner).
+ * Recipients: active tokens of the shop that owns the product, never other shops.
  *
  * FCM failures never fail the originating sale/update — errors are logged only.
  */
@@ -34,13 +33,17 @@ class LowStockAlertService(
      * Fire-and-forget: inspect crossings and push asynchronously so the HTTP
      * response is not blocked by FCM latency.
      */
-    fun notifyCrossingsAsync(actingUserId: Int, crossings: List<LowStockCrossing>) {
+    fun notifyCrossingsAsync(
+        actingUserId: Int,
+        crossings: List<LowStockCrossing>,
+        shopOwnerUserId: Int = actingUserId
+    ) {
         val toNotify = crossings.filter { it.crossedIntoLow }
         if (toNotify.isEmpty()) return
 
         scope.launch {
             try {
-                notifyCrossings(actingUserId, toNotify)
+                notifyCrossings(actingUserId, toNotify, shopOwnerUserId)
             } catch (e: Exception) {
                 logger.error("Low-stock FCM notify failed (non-fatal)", e)
             }
@@ -50,7 +53,11 @@ class LowStockAlertService(
     /**
      * Synchronous path for unit tests.
      */
-    suspend fun notifyCrossings(actingUserId: Int, crossings: List<LowStockCrossing>) {
+    suspend fun notifyCrossings(
+        actingUserId: Int,
+        crossings: List<LowStockCrossing>,
+        shopOwnerUserId: Int = actingUserId
+    ) {
         val relevant = crossings.filter { it.crossedIntoLow }
         if (relevant.isEmpty()) return
 
@@ -73,7 +80,7 @@ class LowStockAlertService(
             }
         }
 
-        val recipientIds = deviceTokens.resolveAlertRecipientUserIds(actingUserId)
+        val recipientIds = deviceTokens.resolveAlertRecipientUserIds(shopOwnerUserId)
         val tokens = deviceTokens.findActiveTokensForUserIds(recipientIds)
         if (tokens.isEmpty()) {
             logger.info(

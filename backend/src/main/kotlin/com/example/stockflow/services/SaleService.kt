@@ -18,14 +18,14 @@ class SaleService(
         val ALLOWED_PAYMENT_METHODS = setOf("Cash", "Card", "Other")
     }
 
-    suspend fun getSales(): List<SaleResponse> = repository.getAllSales()
+    suspend fun getSales(ownerUserId: Int): List<SaleResponse> = repository.getAllSales(ownerUserId)
 
-    suspend fun getSale(id: Int): SaleResponse {
-        return repository.getSaleById(id)
+    suspend fun getSale(id: Int, ownerUserId: Int): SaleResponse {
+        return repository.getSaleById(id, ownerUserId)
             ?: throw NotFoundException("Sale not found")
     }
 
-    suspend fun createSale(userId: Int, request: CreateSaleRequest): SaleResponse {
+    suspend fun createSale(userId: Int, ownerUserId: Int, request: CreateSaleRequest): SaleResponse {
         if (userId <= 0) {
             throw BadRequestException("Invalid user")
         }
@@ -53,12 +53,13 @@ class SaleService(
 
         val result = repository.createSale(
             userId = userId,
+            ownerUserId = ownerUserId,
             paymentMethod = paymentMethod,
             lines = lines
         )
 
         // Non-blocking FCM; never fails the sale.
-        lowStockAlerts.notifyCrossingsAsync(userId, result.lowStockCrossings)
+        lowStockAlerts.notifyCrossingsAsync(userId, result.lowStockCrossings, shopOwnerUserId = ownerUserId)
 
         return result.sale
     }

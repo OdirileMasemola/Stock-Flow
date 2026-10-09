@@ -84,7 +84,7 @@
     <string name="action_delete_account">Delete account</string>
     <string name="settings_delete_account_subtitle">Permanently remove this login</string>
     <string name="settings_delete_account_title">Delete account?</string>
-    <string name="settings_delete_account_message">This removes your sign-in, name, email, profile photo, and store contact details, plus notification tokens and activity history for this account. Sales already recorded stay in the shop records, linked to an account that no longer has your name or email. Shared products, categories, suppliers, and purchase orders are not deleted. This cannot be undone.</string>
+    <string name="settings_delete_account_message">This removes your sign-in, name, email, profile photo, and store contact details, plus notification tokens and activity history for this account. Your shop records (products, product photos, suppliers, purchase orders, and sales) are not deleted: they stay stored under the closed account, without your name or email, and are no longer shown to anyone. Categories stay in the shared list. This cannot be undone.</string>
     <string name="settings_delete_account_progress">Deleting account…</string>
     <string name="error_delete_account_failed">Could not delete the account</string>
     <string name="settings_profile">Profile</string>

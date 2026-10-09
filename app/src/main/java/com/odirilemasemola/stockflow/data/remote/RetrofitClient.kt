@@ -23,6 +23,7 @@ object RetrofitClient {
             .callTimeout(45, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .addInterceptor(IdempotentGetRetryInterceptor(maxExtraAttempts = 1))
+            .addInterceptor(UnauthorizedInterceptor())
             .build()
     }
 

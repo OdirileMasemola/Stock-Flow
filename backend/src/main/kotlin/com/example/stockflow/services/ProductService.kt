@@ -13,6 +13,7 @@ import com.example.stockflow.repositories.ProductRepository
 import com.example.stockflow.services.notifications.LowStockAlertService
 import com.example.stockflow.services.activity.ActivityService
 import com.example.stockflow.repositories.ProductRepositoryImpl
+import com.example.stockflow.services.storage.ImageFolder
 
 class ProductService(
     private val repository: ProductRepository = ProductRepositoryImpl(),
@@ -20,16 +21,17 @@ class ProductService(
     private val lowStockAlerts: LowStockAlertService = LowStockAlertService(),
     private val activityService: ActivityService = ActivityService()
 ) {
-    suspend fun getProducts(): List<ProductResponse> = repository.getAllProducts()
+    suspend fun getProducts(ownerUserId: Int): List<ProductResponse> = repository.getAllProducts(ownerUserId)
 
-    suspend fun getLowStockProducts(): List<ProductResponse> = repository.getLowStockProducts()
+    suspend fun getLowStockProducts(ownerUserId: Int): List<ProductResponse> =
+        repository.getLowStockProducts(ownerUserId)
 
-    suspend fun getProduct(id: Int): ProductResponse {
-        return repository.getProductById(id)
+    suspend fun getProduct(id: Int, ownerUserId: Int): ProductResponse {
+        return repository.getProductById(id, ownerUserId)
             ?: throw NotFoundException("Product not found")
     }
 
-    suspend fun getProductBySku(sku: String): ProductResponse {
+    suspend fun getProductBySku(sku: String, ownerUserId: Int): ProductResponse {
         val normalized = sku.trim()
         if (normalized.isEmpty()) {
             throw BadRequestException("SKU cannot be blank")
@@ -37,7 +39,7 @@ class ProductService(
         if (normalized.length > 50) {
             throw BadRequestException("SKU must be 50 characters or fewer")
         }
-        return repository.findBySku(normalized)
+        return repository.findBySku(normalized, ownerUserId)
             ?: throw NotFoundException("Product not found")
     }
 
@@ -52,7 +54,11 @@ class ProductService(
 
     fun uploadsRoot() = imageStorage.uploadsRoot()
 
-    suspend fun createProduct(request: CreateProductRequest, actingUserId: Int = 0): ProductResponse {
+    suspend fun createProduct(
+        request: CreateProductRequest,
+        ownerUserId: Int,
+        actingUserId: Int = ownerUserId
+    ): ProductResponse {
         validateProductFields(
             name = request.name,
             sku = request.sku,
@@ -62,15 +68,16 @@ class ProductService(
             minStockLevel = request.minStockLevel,
             categoryId = request.categoryId,
             supplierId = request.supplierId,
-            imageUrl = request.imageUrl
+            imageUrl = request.imageUrl,
+            ownerUserId = ownerUserId
         )
 
         val normalizedSku = request.sku?.trim()?.takeIf { it.isNotEmpty() }
-        if (normalizedSku != null && repository.findBySku(normalizedSku) != null) {
+        if (normalizedSku != null && repository.findBySku(normalizedSku, ownerUserId) != null) {
             throw ConflictException("A product with this SKU already exists")
         }
 
-        val created = repository.createProduct(request)
+        val created = repository.createProduct(request, ownerUserId)
         activityService.recordProductCreated(
             userId = actingUserId,
             productId = created.id,
@@ -80,6 +87,7 @@ class ProductService(
         if (created.stockLevel <= created.minStockLevel) {
             lowStockAlerts.notifyCrossingsAsync(
                 actingUserId = actingUserId,
+                shopOwnerUserId = ownerUserId,
                 crossings = listOf(
                     LowStockCrossing(
                         productId = created.id,
@@ -97,10 +105,11 @@ class ProductService(
     suspend fun updateProduct(
         id: Int,
         request: UpdateProductRequest,
-        actingUserId: Int = 0
+        ownerUserId: Int,
+        actingUserId: Int = ownerUserId
     ): ProductResponse {
-        // Ensure the product exists before validating other fields
-        val existing = repository.getProductById(id)
+        // Ensure the product exists in this shop before validating other fields
+        val existing = repository.getProductById(id, ownerUserId)
             ?: throw NotFoundException("Product not found")
 
         validateProductFields(
@@ -112,25 +121,26 @@ class ProductService(
             minStockLevel = request.minStockLevel,
             categoryId = request.categoryId,
             supplierId = request.supplierId,
-            imageUrl = request.imageUrl
+            imageUrl = request.imageUrl,
+            ownerUserId = ownerUserId
         )
 
         val normalizedSku = request.sku?.trim()?.takeIf { it.isNotEmpty() }
         if (normalizedSku != null) {
-            val existingWithSku = repository.findBySku(normalizedSku)
+            val existingWithSku = repository.findBySku(normalizedSku, ownerUserId)
             // Allow keeping the same SKU on the same product; block other products.
             if (existingWithSku != null && existingWithSku.id != id) {
                 throw ConflictException("A product with this SKU already exists")
             }
         }
 
-        val updated = repository.updateProduct(id, request)
+        val updated = repository.updateProduct(id, request, ownerUserId)
             ?: throw NotFoundException("Product not found")
 
         val oldUrl = existing.imageUrl?.trim()?.takeIf { it.isNotEmpty() }
         val newUrl = updated.imageUrl?.trim()?.takeIf { it.isNotEmpty() }
         if (oldUrl != null && oldUrl != newUrl) {
-            imageStorage.deleteIfManaged(oldUrl)
+            deleteProductImageIfUnused(oldUrl)
         }
 
         activityService.recordProductUpdated(
@@ -141,6 +151,7 @@ class ProductService(
 
         lowStockAlerts.notifyCrossingsAsync(
             actingUserId = actingUserId,
+            shopOwnerUserId = ownerUserId,
             crossings = listOf(
                 LowStockCrossing(
                     productId = updated.id,
@@ -155,19 +166,29 @@ class ProductService(
         return updated
     }
 
-    suspend fun deleteProduct(id: Int, actingUserId: Int = 0) {
-        val existing = repository.getProductById(id)
+    suspend fun deleteProduct(id: Int, ownerUserId: Int, actingUserId: Int = ownerUserId) {
+        val existing = repository.getProductById(id, ownerUserId)
             ?: throw NotFoundException("Product not found")
-        val deleted = repository.deleteProduct(id)
+        val deleted = repository.deleteProduct(id, ownerUserId)
         if (!deleted) {
             throw NotFoundException("Product not found")
         }
-        imageStorage.deleteIfManaged(existing.imageUrl)
+        deleteProductImageIfUnused(existing.imageUrl)
         activityService.recordProductDeleted(
             userId = actingUserId,
             productId = existing.id,
             productName = existing.name
         )
+    }
+
+    /**
+     * Image URLs come from the client, so a product may point at a file another shop uploaded.
+     * Only product-folder files that no product row still references are removed.
+     */
+    private suspend fun deleteProductImageIfUnused(imageUrl: String?) {
+        val url = imageUrl?.trim()?.takeIf { it.isNotEmpty() } ?: return
+        if (repository.isImageInUse(url)) return
+        imageStorage.deleteOwned(url, ImageFolder.PRODUCTS)
     }
 
     private suspend fun validateProductFields(
@@ -179,7 +200,8 @@ class ProductService(
         minStockLevel: Int,
         categoryId: Int,
         supplierId: Int?,
-        imageUrl: String?
+        imageUrl: String?,
+        ownerUserId: Int
     ) {
         if (name.isBlank()) {
             throw BadRequestException("Product name cannot be blank")
@@ -221,7 +243,7 @@ class ProductService(
             throw BadRequestException("Category does not exist")
         }
 
-        if (supplierId != null && !repository.supplierExists(supplierId)) {
+        if (supplierId != null && !repository.supplierExists(supplierId, ownerUserId)) {
             throw BadRequestException("Supplier does not exist")
         }
     }

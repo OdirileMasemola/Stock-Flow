@@ -13,6 +13,7 @@ import com.odirilemasemola.stockflow.data.local.cache.StockFlowCacheDatabase
 import com.odirilemasemola.stockflow.data.remote.ProductApi
 import com.odirilemasemola.stockflow.data.remote.ProductDto
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -135,6 +136,26 @@ class PendingSyncProcessorTest {
         val failed = db.pendingOperationDao().getAllForUser(7).single()
         assertEquals(PendingOpStatus.FAILED, failed.status)
         assertTrue(failed.lastError!!.contains("Invalid category"))
+    }
+
+    @Test
+    fun expiredSessionKeepsQueuedWritesPendingAndStopsBatch() = runBlocking {
+        val first = pendingCreate(-1)
+        val second = pendingCreate(-2).copy(createdAt = now + 1)
+        db.pendingOperationDao().upsert(first)
+        db.pendingOperationDao().upsert(second)
+        val body = """{"error":"Authentication required"}""".toResponseBody("application/json".toMediaType())
+        coEvery { api.createProduct(any(), any()) } returns Response.error(401, body)
+
+        val summary = processor.syncPendingForCurrentUser()
+
+        assertEquals(1, summary.deferredAuth)
+        assertEquals(0, summary.failedPermanent)
+        assertEquals(0, db.pendingOperationDao().countFailed(7))
+        val pending = db.pendingOperationDao().getPendingForUser(7)
+        assertEquals(setOf(first.id, second.id), pending.map { it.id }.toSet())
+        assertTrue(pending.all { it.retryCount == 0 })
+        coVerify(exactly = 1) { api.createProduct(any(), any()) }
     }
 
     @Test
