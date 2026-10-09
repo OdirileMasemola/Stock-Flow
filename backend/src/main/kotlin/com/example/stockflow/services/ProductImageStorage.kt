@@ -3,6 +3,7 @@ package com.example.stockflow.services
 import com.example.stockflow.services.storage.ImageFolder
 import com.example.stockflow.services.storage.ImageStorage
 import com.example.stockflow.services.storage.ImageStorageFactory
+import com.example.stockflow.services.storage.OwnedImageDeleteResult
 import java.io.File
 
 /**
@@ -29,6 +30,9 @@ class ProductImageStorage(
     ): String = delegate.save(folder, bytes, originalFileName, contentType)
 
     fun deleteIfManaged(imageUrl: String?) = delegate.deleteIfManaged(imageUrl)
+
+    fun deleteOwned(imageUrl: String?, folder: ImageFolder): OwnedImageDeleteResult =
+        delegate.deleteOwned(imageUrl, folder)
 
     /** Local uploads root, or an empty temp dir when using cloud storage (static route unused). */
     fun uploadsRoot(): File = delegate.uploadsRoot() ?: File(System.getProperty("java.io.tmpdir"), "stockflow-uploads-unused")

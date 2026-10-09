@@ -35,6 +35,7 @@ import com.example.stockflow.models.CreatePurchaseOrderRequest
 import com.example.stockflow.models.UpdatePurchaseOrderRequest
 import com.example.stockflow.models.UpdateProfileRequest
 import com.example.stockflow.models.UpdateBusinessRequest
+import com.example.stockflow.models.DeleteAccountRequest
 import com.example.stockflow.models.BadRequestException
 import com.example.stockflow.config.AppConfig
 import io.ktor.server.auth.*
@@ -62,6 +63,9 @@ fun Application.configureRouting() {
         }
         get("/health") {
             call.respond(mapOf("status" to "up"))
+        }
+        get("/account-deletion") {
+            call.respondText(AccountDeletionPage.html, ContentType.Text.Html)
         }
 
         // Local-disk images only. Cloud (Supabase) URLs are absolute and served by Supabase CDN.
@@ -120,6 +124,16 @@ fun Application.configureRouting() {
                     val userId = currentUserId(call)
                     val request = call.receive<UpdateProfileRequest>()
                     call.respond(userService.updateProfile(userId, request))
+                }
+                delete {
+                    val userId = currentUserId(call)
+                    val request = try {
+                        call.receive<DeleteAccountRequest>()
+                    } catch (_: Exception) {
+                        throw BadRequestException("Confirmation is required")
+                    }
+                    userService.deleteAccount(userId, request.confirmation)
+                    call.respond(HttpStatusCode.NoContent)
                 }
                 post("/image") {
                     val multipart = call.receiveMultipart()

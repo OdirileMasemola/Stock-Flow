@@ -95,14 +95,19 @@ class SupabaseImageStorage(
 
     override fun deleteIfManaged(imageUrl: String?) {
         val path = imageUrl?.trim().orEmpty()
-        if (path.isEmpty() || !path.startsWith(publicUrlPrefix)) return
+        val folder = ImageFolder.entries.firstOrNull { candidate ->
+            path.startsWith("$publicUrlPrefix${candidate.dirName}/")
+        } ?: return
+        deleteOwned(imageUrl, folder)
+    }
 
+    override fun deleteOwned(imageUrl: String?, folder: ImageFolder): OwnedImageDeleteResult {
+        val path = imageUrl?.trim().orEmpty()
+        if (path.isEmpty() || !path.startsWith(publicUrlPrefix)) return OwnedImageDeleteResult.Skipped
         val objectPath = path.removePrefix(publicUrlPrefix)
-        if (objectPath.isBlank() || objectPath.contains("..")) return
-
-        // Only delete objects under our known folders.
-        val folderOk = ImageFolder.entries.any { objectPath.startsWith("${it.dirName}/") }
-        if (!folderOk) return
+        if (objectPath.isBlank() || objectPath.contains("..") || !objectPath.startsWith("${folder.dirName}/")) {
+            return OwnedImageDeleteResult.Skipped
+        }
 
         val deleteUri = URI.create("$baseUrl/storage/v1/object/$bucket/$objectPath")
         val request = HttpRequest.newBuilder(deleteUri)
@@ -112,18 +117,24 @@ class SupabaseImageStorage(
             .DELETE()
             .build()
 
-        try {
+        return try {
             val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
-            if (response.statusCode() !in 200..299 && response.statusCode() != 404) {
-                logger.warn(
-                    "Supabase Storage delete returned HTTP {} for {}: {}",
-                    response.statusCode(),
-                    objectPath,
-                    response.body().take(300)
-                )
+            when (response.statusCode()) {
+                in 200..299 -> OwnedImageDeleteResult.Deleted
+                404 -> OwnedImageDeleteResult.AlreadyAbsent
+                else -> {
+                    logger.warn(
+                        "Supabase Storage delete returned HTTP {} for {}: {}",
+                        response.statusCode(),
+                        objectPath,
+                        response.body().take(300)
+                    )
+                    OwnedImageDeleteResult.Failed
+                }
             }
         } catch (e: Exception) {
             logger.warn("Failed to delete Supabase object {}", objectPath, e)
+            OwnedImageDeleteResult.Failed
         }
     }
 }

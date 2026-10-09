@@ -66,11 +66,23 @@ class LocalDiskImageStorage(
     override fun deleteIfManaged(imageUrl: String?) {
         val path = imageUrl?.trim().orEmpty()
         val folder = ImageFolder.entries.firstOrNull { path.startsWith(it.localUrlPrefix) } ?: return
+        deleteOwned(imageUrl, folder)
+    }
+
+    override fun deleteOwned(imageUrl: String?, folder: ImageFolder): OwnedImageDeleteResult {
+        val path = imageUrl?.trim().orEmpty()
+        if (!path.startsWith(folder.localUrlPrefix)) return OwnedImageDeleteResult.Skipped
         val fileName = path.removePrefix(folder.localUrlPrefix)
-        if (fileName.isBlank() || fileName.contains('/') || fileName.contains('\\')) return
+        if (fileName.isBlank() || fileName.contains('/') || fileName.contains('\\') || fileName.contains("..")) {
+            return OwnedImageDeleteResult.Skipped
+        }
         val file = File(File(rootDir, folder.dirName), fileName)
-        if (file.exists() && !file.delete()) {
+        if (!file.exists()) return OwnedImageDeleteResult.AlreadyAbsent
+        return if (file.delete()) {
+            OwnedImageDeleteResult.Deleted
+        } else {
             logger.warn("Failed to delete image {}", file.absolutePath)
+            OwnedImageDeleteResult.Failed
         }
     }
 

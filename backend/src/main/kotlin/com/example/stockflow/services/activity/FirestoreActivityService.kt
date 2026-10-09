@@ -20,7 +20,16 @@ import java.util.UUID
  * Writes use the Firebase Admin SDK (same credentials as FCM). Failures are
  * logged and never thrown to callers — product CRUD must not fail because of Firestore.
  */
+sealed class ActivityCleanupResult {
+    data object Cleared : ActivityCleanupResult()
+    /** Firebase is not configured, so there is no activity collection to clean. */
+    data object Unavailable : ActivityCleanupResult()
+    data object Failed : ActivityCleanupResult()
+}
+
 interface ActivityStore {
+    suspend fun deleteBusinessActivity(businessId: String): ActivityCleanupResult
+
     suspend fun write(
         businessId: String,
         type: String,
@@ -38,6 +47,25 @@ class FirestoreActivityService(
     private val firestoreProvider: () -> Firestore? = { resolveFirestore() }
 ) : ActivityStore {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    override suspend fun deleteBusinessActivity(businessId: String): ActivityCleanupResult =
+        withContext(Dispatchers.IO) {
+            try {
+                val db = firestoreProvider() ?: return@withContext ActivityCleanupResult.Unavailable
+                val collection = db.collection("businesses").document(businessId).collection("activity")
+                while (true) {
+                    val snapshot = collection.limit(100).get().get()
+                    if (snapshot.isEmpty) break
+                    val batch = db.batch()
+                    snapshot.documents.forEach { batch.delete(it.reference) }
+                    batch.commit().get()
+                }
+                ActivityCleanupResult.Cleared
+            } catch (e: Exception) {
+                logger.error("Firestore activity delete failed businessId={}", businessId, e)
+                ActivityCleanupResult.Failed
+            }
+        }
 
     override suspend fun write(
         businessId: String,
@@ -155,6 +183,13 @@ class InMemoryActivityStore : ActivityStore {
     val records = mutableListOf<Record>()
     var writeFails: Boolean = false
     var readFails: Boolean = false
+    var deleteFails: Boolean = false
+
+    override suspend fun deleteBusinessActivity(businessId: String): ActivityCleanupResult {
+        if (deleteFails) return ActivityCleanupResult.Failed
+        records.removeAll { it.businessId == businessId }
+        return ActivityCleanupResult.Cleared
+    }
 
     override suspend fun write(
         businessId: String,

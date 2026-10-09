@@ -1,8 +1,15 @@
 package com.example.stockflow.services
 
 import com.example.stockflow.models.*
+import com.example.stockflow.repositories.AccountDeletionRepository
+import com.example.stockflow.repositories.AccountDeletionStore
 import com.example.stockflow.repositories.UserRepository
 import com.example.stockflow.repositories.UserRepositoryImpl
+import com.example.stockflow.services.activity.ActivityCleanupResult
+import com.example.stockflow.services.activity.ActivityStore
+import com.example.stockflow.services.activity.FirestoreActivityService
+import com.example.stockflow.services.storage.ImageFolder
+import com.example.stockflow.services.storage.OwnedImageDeleteResult
 import com.example.stockflow.config.AppConfig
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -14,7 +21,9 @@ import java.util.*
 class UserService(
     private val repository: UserRepository = UserRepositoryImpl(),
     private val firebaseTokenVerifier: FirebaseTokenVerifier = FirebaseTokenVerifier(),
-    private val imageStorage: ProductImageStorage = ProductImageStorage()
+    private val imageStorage: ProductImageStorage = ProductImageStorage(),
+    private val accountDeletionStore: AccountDeletionStore = AccountDeletionRepository(),
+    private val activityStore: ActivityStore = FirestoreActivityService()
 ) {
     suspend fun getUser(id: Int): User? {
         return repository.findUserById(id)
@@ -87,6 +96,9 @@ class UserService(
         if (!passwordOk) {
             throw UnauthorizedException("Invalid username/email or password")
         }
+        if (isClosedAccount(user)) {
+            throw UnauthorizedException("This account has been deleted")
+        }
 
         val token = generateToken(user)
 
@@ -134,6 +146,9 @@ class UserService(
 
         val existingByUid = repository.findByFirebaseUid(verified.uid)
         if (existingByUid != null) {
+            if (isClosedAccount(existingByUid)) {
+                throw UnauthorizedException("This account has been deleted")
+            }
             return LoginResponse(generateToken(existingByUid), existingByUid)
         }
 
@@ -162,6 +177,65 @@ class UserService(
         )
 
         return LoginResponse(generateToken(user), user)
+    }
+
+    /**
+     * Closes the authenticated account.
+     * [userId] must come from the JWT. Sales and shared catalog rows are left in place.
+     * Image and activity cleanup run before the account row is closed. A failure there
+     * leaves the account signed in so the caller can retry.
+     */
+    suspend fun deleteAccount(userId: Int, confirmation: String) {
+        if (confirmation != AccountClosure.CONFIRMATION) {
+            throw BadRequestException("Confirmation is required")
+        }
+        if (userId <= 0) {
+            throw BadRequestException("Authentication required")
+        }
+
+        val snapshot = accountDeletionStore.load(userId)
+            ?: throw NotFoundException("User not found")
+
+        if (!snapshot.closed) {
+            removeExclusiveImage(snapshot.profileImageUrl, ImageFolder.PROFILES, userId)
+            removeExclusiveImage(snapshot.businessImageUrl, ImageFolder.BUSINESSES, userId)
+            val activityIds = buildList {
+                snapshot.businessId?.let { add(it.toString()) }
+                add("user-$userId")
+            }.distinct()
+            for (businessId in activityIds) {
+                ensureActivityCleared(businessId, accountClosed = false)
+            }
+            accountDeletionStore.close(userId)
+        } else {
+            ensureActivityCleared("user-$userId", accountClosed = true)
+        }
+    }
+
+    private suspend fun removeExclusiveImage(url: String?, folder: ImageFolder, userId: Int) {
+        val trimmed = url?.trim().orEmpty()
+        if (trimmed.isEmpty()) return
+        if (accountDeletionStore.imageReferencedElsewhere(trimmed, userId)) return
+        if (imageStorage.deleteOwned(trimmed, folder) == OwnedImageDeleteResult.Failed) {
+            throw CleanupIncompleteException(
+                "Image cleanup failed. The account was not deleted. Try again."
+            )
+        }
+    }
+
+    private suspend fun ensureActivityCleared(businessId: String, accountClosed: Boolean) {
+        if (activityStore.deleteBusinessActivity(businessId) != ActivityCleanupResult.Failed) return
+        val message = if (accountClosed) {
+            "Activity cleanup failed. The account is already closed. Try again."
+        } else {
+            "Activity cleanup failed. The account was not deleted. Try again."
+        }
+        throw CleanupIncompleteException(message)
+    }
+
+    private fun isClosedAccount(user: User): Boolean {
+        val id = user.id ?: return false
+        return AccountClosure.isClosed(id, user.username, user.email)
     }
 
     private suspend fun uniqueUsername(email: String, firebaseUid: String): String {

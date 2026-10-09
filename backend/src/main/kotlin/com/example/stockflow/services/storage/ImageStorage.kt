@@ -23,10 +23,23 @@ interface ImageStorage {
     fun deleteIfManaged(imageUrl: String?)
 
     /**
+     * Deletes [imageUrl] only when it is stored in [folder].
+     * [OwnedImageDeleteResult.Failed] means the object was still there and could not be removed.
+     */
+    fun deleteOwned(imageUrl: String?, folder: ImageFolder): OwnedImageDeleteResult
+
+    /**
      * Local disk root for static `/uploads` serving, or null when this provider
      * does not serve files from the API process.
      */
     fun uploadsRoot(): File? = null
+}
+
+enum class OwnedImageDeleteResult {
+    Deleted,
+    AlreadyAbsent,
+    Skipped,
+    Failed
 }
 
 enum class ImageFolder(val dirName: String) {
