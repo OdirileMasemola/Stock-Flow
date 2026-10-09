@@ -32,10 +32,12 @@ data class PurchaseOrderLineInput(
     val unitCost: BigDecimal
 )
 
+/** Every method is scoped to [ownerUserId]; orders, suppliers and products of other shops are not found. */
 interface PurchaseOrderRepository {
-    suspend fun getAllPurchaseOrders(): List<PurchaseOrderResponse>
-    suspend fun getPurchaseOrderById(id: Int): PurchaseOrderResponse?
+    suspend fun getAllPurchaseOrders(ownerUserId: Int): List<PurchaseOrderResponse>
+    suspend fun getPurchaseOrderById(id: Int, ownerUserId: Int): PurchaseOrderResponse?
     suspend fun createPurchaseOrder(
+        ownerUserId: Int,
         supplierId: Int,
         expectedDeliveryDate: LocalDateTime?,
         lines: List<PurchaseOrderLineInput>
@@ -43,14 +45,15 @@ interface PurchaseOrderRepository {
 
     suspend fun updatePurchaseOrder(
         id: Int,
+        ownerUserId: Int,
         supplierId: Int,
         expectedDeliveryDate: LocalDateTime?,
         lines: List<PurchaseOrderLineInput>
     ): PurchaseOrderResponse
 
-    suspend fun receivePurchaseOrder(id: Int): PurchaseOrderResponse
-    suspend fun supplierExists(supplierId: Int): Boolean
-    suspend fun productExists(productId: Int): Boolean
+    suspend fun receivePurchaseOrder(id: Int, ownerUserId: Int): PurchaseOrderResponse
+    suspend fun supplierExists(supplierId: Int, ownerUserId: Int): Boolean
+    suspend fun productExists(productId: Int, ownerUserId: Int): Boolean
 }
 
 class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
@@ -60,10 +63,11 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
         const val STATUS_RECEIVED = "Received"
     }
 
-    override suspend fun getAllPurchaseOrders(): List<PurchaseOrderResponse> = dbQuery {
+    override suspend fun getAllPurchaseOrders(ownerUserId: Int): List<PurchaseOrderResponse> = dbQuery {
         PurchaseOrders
             .leftJoin(Suppliers)
             .selectAll()
+            .where { PurchaseOrders.ownerUserId eq ownerUserId }
             .orderBy(PurchaseOrders.createdAt, SortOrder.DESC)
             .map { row ->
                 PurchaseOrderResponse(
@@ -79,16 +83,18 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
             }
     }
 
-    override suspend fun getPurchaseOrderById(id: Int): PurchaseOrderResponse? = dbQuery {
-        loadPurchaseOrder(id)
+    override suspend fun getPurchaseOrderById(id: Int, ownerUserId: Int): PurchaseOrderResponse? = dbQuery {
+        loadPurchaseOrder(id, ownerUserId)
     }
 
     override suspend fun createPurchaseOrder(
+        ownerUserId: Int,
         supplierId: Int,
         expectedDeliveryDate: LocalDateTime?,
         lines: List<PurchaseOrderLineInput>
     ): PurchaseOrderResponse = dbQuery {
-        val priced = priceLines(lines)
+        requireOwnedSupplier(supplierId, ownerUserId)
+        val priced = priceLines(lines, ownerUserId)
         val total = priced.fold(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)) { acc, line ->
             acc.add(line.subtotal)
         }
@@ -100,37 +106,37 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
             it[status] = STATUS_PENDING
             it[PurchaseOrders.expectedDeliveryDate] = expectedDeliveryDate
             it[createdAt] = now
+            it[PurchaseOrders.ownerUserId] = ownerUserId
         }
 
         val poId = insert.resultedValues?.first()?.get(PurchaseOrders.id)
             ?: throw RuntimeException("Failed to create purchase order")
 
         insertItems(poId, priced)
-        loadPurchaseOrder(poId)!!
+        loadPurchaseOrder(poId, ownerUserId)!!
     }
 
     override suspend fun updatePurchaseOrder(
         id: Int,
+        ownerUserId: Int,
         supplierId: Int,
         expectedDeliveryDate: LocalDateTime?,
         lines: List<PurchaseOrderLineInput>
     ): PurchaseOrderResponse = dbQuery {
-        val existing = PurchaseOrders
-            .selectAll()
-            .where { PurchaseOrders.id eq id }
-            .singleOrNull()
+        val existing = findOwnedOrder(id, ownerUserId)
             ?: throw NotFoundException("Purchase order not found")
 
         if (existing[PurchaseOrders.status] != STATUS_PENDING) {
             throw ConflictException("Only pending purchase orders can be updated")
         }
 
-        val priced = priceLines(lines)
+        requireOwnedSupplier(supplierId, ownerUserId)
+        val priced = priceLines(lines, ownerUserId)
         val total = priced.fold(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)) { acc, line ->
             acc.add(line.subtotal)
         }
 
-        PurchaseOrders.update({ PurchaseOrders.id eq id }) {
+        PurchaseOrders.update({ (PurchaseOrders.id eq id) and (PurchaseOrders.ownerUserId eq ownerUserId) }) {
             it[PurchaseOrders.supplierId] = supplierId
             it[totalAmount] = total
             it[PurchaseOrders.expectedDeliveryDate] = expectedDeliveryDate
@@ -138,14 +144,11 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
 
         PurchaseOrderItems.deleteWhere { PurchaseOrderItems.purchaseOrderId eq id }
         insertItems(id, priced)
-        loadPurchaseOrder(id)!!
+        loadPurchaseOrder(id, ownerUserId)!!
     }
 
-    override suspend fun receivePurchaseOrder(id: Int): PurchaseOrderResponse = dbQuery {
-        val existing = PurchaseOrders
-            .selectAll()
-            .where { PurchaseOrders.id eq id }
-            .singleOrNull()
+    override suspend fun receivePurchaseOrder(id: Int, ownerUserId: Int): PurchaseOrderResponse = dbQuery {
+        val existing = findOwnedOrder(id, ownerUserId)
             ?: throw NotFoundException("Purchase order not found")
 
         val status = existing[PurchaseOrders.status]
@@ -171,11 +174,13 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
 
             val product = Products
                 .selectAll()
-                .where { Products.id eq productId }
+                .where { (Products.id eq productId) and (Products.ownerUserId eq ownerUserId) }
                 .singleOrNull()
                 ?: throw NotFoundException("Product not found: id=$productId")
 
-            val updated = Products.update({ Products.id eq productId }) {
+            val updated = Products.update({
+                (Products.id eq productId) and (Products.ownerUserId eq ownerUserId)
+            }) {
                 with(SqlExpressionBuilder) {
                     it[stockLevel] = stockLevel + quantity
                 }
@@ -187,7 +192,9 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
         }
 
         val updatedRows = PurchaseOrders.update({
-            (PurchaseOrders.id eq id) and (PurchaseOrders.status eq STATUS_PENDING)
+            (PurchaseOrders.id eq id) and
+                (PurchaseOrders.ownerUserId eq ownerUserId) and
+                (PurchaseOrders.status eq STATUS_PENDING)
         }) {
             it[PurchaseOrders.status] = STATUS_RECEIVED
         }
@@ -196,23 +203,42 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
             throw ConflictException("Purchase order has already been received")
         }
 
-        loadPurchaseOrder(id)!!
+        loadPurchaseOrder(id, ownerUserId)!!
     }
 
-    override suspend fun supplierExists(supplierId: Int): Boolean = dbQuery {
-        Suppliers.selectAll().where { Suppliers.id eq supplierId }.count() > 0
+    override suspend fun supplierExists(supplierId: Int, ownerUserId: Int): Boolean = dbQuery {
+        ownsSupplier(supplierId, ownerUserId)
     }
 
-    override suspend fun productExists(productId: Int): Boolean = dbQuery {
-        Products.selectAll().where { Products.id eq productId }.count() > 0
+    override suspend fun productExists(productId: Int, ownerUserId: Int): Boolean = dbQuery {
+        Products.selectAll()
+            .where { (Products.id eq productId) and (Products.ownerUserId eq ownerUserId) }
+            .count() > 0
     }
 
-    private fun priceLines(lines: List<PurchaseOrderLineInput>): List<PricedLine> {
+    private fun ownsSupplier(supplierId: Int, ownerUserId: Int): Boolean =
+        Suppliers.selectAll()
+            .where { (Suppliers.id eq supplierId) and (Suppliers.ownerUserId eq ownerUserId) }
+            .count() > 0
+
+    private fun requireOwnedSupplier(supplierId: Int, ownerUserId: Int) {
+        if (!ownsSupplier(supplierId, ownerUserId)) {
+            throw NotFoundException("Supplier not found")
+        }
+    }
+
+    private fun findOwnedOrder(id: Int, ownerUserId: Int) =
+        PurchaseOrders
+            .selectAll()
+            .where { (PurchaseOrders.id eq id) and (PurchaseOrders.ownerUserId eq ownerUserId) }
+            .singleOrNull()
+
+    private fun priceLines(lines: List<PurchaseOrderLineInput>, ownerUserId: Int): List<PricedLine> {
         val result = mutableListOf<PricedLine>()
         for (line in lines) {
             val product = Products
                 .selectAll()
-                .where { Products.id eq line.productId }
+                .where { (Products.id eq line.productId) and (Products.ownerUserId eq ownerUserId) }
                 .singleOrNull()
                 ?: throw NotFoundException("Product not found: id=${line.productId}")
 
@@ -244,11 +270,11 @@ class PurchaseOrderRepositoryImpl : PurchaseOrderRepository {
         }
     }
 
-    private fun loadPurchaseOrder(id: Int): PurchaseOrderResponse? {
+    private fun loadPurchaseOrder(id: Int, ownerUserId: Int): PurchaseOrderResponse? {
         val row = PurchaseOrders
             .leftJoin(Suppliers)
             .selectAll()
-            .where { PurchaseOrders.id eq id }
+            .where { (PurchaseOrders.id eq id) and (PurchaseOrders.ownerUserId eq ownerUserId) }
             .singleOrNull()
             ?: return null
 

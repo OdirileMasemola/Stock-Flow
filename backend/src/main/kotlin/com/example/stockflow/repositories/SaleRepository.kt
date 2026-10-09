@@ -2,6 +2,7 @@ package com.example.stockflow.repositories
 
 import com.example.stockflow.database.DatabaseFactory.dbQuery
 import com.example.stockflow.models.BadRequestException
+import com.example.stockflow.models.LowStockCrossing
 import com.example.stockflow.models.NotFoundException
 import com.example.stockflow.models.Products
 import com.example.stockflow.models.SaleItemResponse
@@ -30,24 +31,33 @@ data class SaleLineInput(
     val quantity: Int
 )
 
+data class CreateSaleResult(
+    val sale: SaleResponse,
+    /** Products that crossed into low stock during this sale (for FCM alerts). */
+    val lowStockCrossings: List<LowStockCrossing> = emptyList()
+)
+
+/** Sales and the products they sell are scoped to [ownerUserId]. */
 interface SaleRepository {
     suspend fun createSale(
         userId: Int,
+        ownerUserId: Int,
         paymentMethod: String,
         lines: List<SaleLineInput>
-    ): SaleResponse
+    ): CreateSaleResult
 
-    suspend fun getAllSales(): List<SaleResponse>
-    suspend fun getSaleById(id: Int): SaleResponse?
+    suspend fun getAllSales(ownerUserId: Int): List<SaleResponse>
+    suspend fun getSaleById(id: Int, ownerUserId: Int): SaleResponse?
 }
 
 class SaleRepositoryImpl : SaleRepository {
 
     override suspend fun createSale(
         userId: Int,
+        ownerUserId: Int,
         paymentMethod: String,
         lines: List<SaleLineInput>
-    ): SaleResponse = dbQuery {
+    ): CreateSaleResult = dbQuery {
         // Entire sale + stock deduction runs in one suspended transaction.
         val pricedLines = mutableListOf<PricedLine>()
         var total = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
@@ -55,12 +65,13 @@ class SaleRepositoryImpl : SaleRepository {
         for (line in lines) {
             val product = Products
                 .selectAll()
-                .where { Products.id eq line.productId }
+                .where { (Products.id eq line.productId) and (Products.ownerUserId eq ownerUserId) }
                 .singleOrNull()
                 ?: throw NotFoundException("Product not found: id=${line.productId}")
 
             val name = product[Products.name]
             val stock = product[Products.stockLevel]
+            val minStock = product[Products.minStockLevel]
             val unitPrice = product[Products.sellingPrice].setScale(2, RoundingMode.HALF_UP)
 
             if (line.quantity > stock) {
@@ -75,6 +86,8 @@ class SaleRepositoryImpl : SaleRepository {
                 productId = line.productId,
                 productName = name,
                 quantity = line.quantity,
+                previousStock = stock,
+                minStockLevel = minStock,
                 unitPrice = unitPrice,
                 subtotal = subtotal
             )
@@ -87,6 +100,7 @@ class SaleRepositoryImpl : SaleRepository {
             it[totalAmount] = total
             it[Sales.paymentMethod] = paymentMethod
             it[createdAt] = now
+            it[Sales.ownerUserId] = ownerUserId
         }
 
         val saleId = saleInsert.resultedValues?.first()?.get(Sales.id)
@@ -97,7 +111,9 @@ class SaleRepositoryImpl : SaleRepository {
         for (line in pricedLines) {
             // Conditional update prevents oversell under concurrent sales.
             val updated = Products.update({
-                (Products.id eq line.productId) and (Products.stockLevel greaterEq line.quantity)
+                (Products.id eq line.productId) and
+                    (Products.ownerUserId eq ownerUserId) and
+                    (Products.stockLevel greaterEq line.quantity)
             }) {
                 with(SqlExpressionBuilder) {
                     it[stockLevel] = stockLevel - line.quantity
@@ -129,19 +145,33 @@ class SaleRepositoryImpl : SaleRepository {
             )
         }
 
-        SaleResponse(
-            id = saleId,
-            userId = userId,
-            totalAmount = total.toDouble(),
-            paymentMethod = paymentMethod,
-            createdAt = formatDateTime(now),
-            items = itemResponses
+        val crossings = pricedLines.map { line ->
+            LowStockCrossing(
+                productId = line.productId,
+                productName = line.productName,
+                previousStock = line.previousStock,
+                currentStock = line.previousStock - line.quantity,
+                minStockLevel = line.minStockLevel
+            )
+        }
+
+        CreateSaleResult(
+            sale = SaleResponse(
+                id = saleId,
+                userId = userId,
+                totalAmount = total.toDouble(),
+                paymentMethod = paymentMethod,
+                createdAt = formatDateTime(now),
+                items = itemResponses
+            ),
+            lowStockCrossings = crossings
         )
     }
 
-    override suspend fun getAllSales(): List<SaleResponse> = dbQuery {
+    override suspend fun getAllSales(ownerUserId: Int): List<SaleResponse> = dbQuery {
         Sales
             .selectAll()
+            .where { Sales.ownerUserId eq ownerUserId }
             .orderBy(Sales.createdAt, SortOrder.DESC)
             .map { row ->
                 val saleId = row[Sales.id]
@@ -156,10 +186,10 @@ class SaleRepositoryImpl : SaleRepository {
             }
     }
 
-    override suspend fun getSaleById(id: Int): SaleResponse? = dbQuery {
+    override suspend fun getSaleById(id: Int, ownerUserId: Int): SaleResponse? = dbQuery {
         val saleRow = Sales
             .selectAll()
-            .where { Sales.id eq id }
+            .where { (Sales.id eq id) and (Sales.ownerUserId eq ownerUserId) }
             .singleOrNull()
             ?: return@dbQuery null
 
@@ -201,6 +231,8 @@ class SaleRepositoryImpl : SaleRepository {
         val productId: Int,
         val productName: String,
         val quantity: Int,
+        val previousStock: Int,
+        val minStockLevel: Int,
         val unitPrice: BigDecimal,
         val subtotal: BigDecimal
     )

@@ -18,6 +18,11 @@ import com.example.stockflow.services.CategoryService
 import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.services.DashboardService
 import com.example.stockflow.services.BusinessService
+import com.example.stockflow.services.ShopAccessService
+import com.example.stockflow.services.notifications.DeviceTokenService
+import com.example.stockflow.services.activity.ActivityService
+import com.example.stockflow.models.RegisterDeviceTokenRequest
+import com.example.stockflow.models.UnregisterDeviceTokenRequest
 import com.example.stockflow.models.RegisterRequest
 import com.example.stockflow.models.LoginRequest
 import com.example.stockflow.models.GoogleAuthRequest
@@ -31,7 +36,9 @@ import com.example.stockflow.models.CreatePurchaseOrderRequest
 import com.example.stockflow.models.UpdatePurchaseOrderRequest
 import com.example.stockflow.models.UpdateProfileRequest
 import com.example.stockflow.models.UpdateBusinessRequest
+import com.example.stockflow.models.DeleteAccountRequest
 import com.example.stockflow.models.BadRequestException
+import com.example.stockflow.config.AppConfig
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 
@@ -45,6 +52,9 @@ fun Application.configureRouting() {
     val purchaseOrderService = PurchaseOrderService()
     val dashboardService = DashboardService()
     val businessService = BusinessService()
+    val deviceTokenService = DeviceTokenService()
+    val activityService = ActivityService()
+    val shopAccess = ShopAccessService()
 
     routing {
         get("/") {
@@ -56,9 +66,17 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(mapOf("status" to "up"))
         }
+        get("/account-deletion") {
+            call.respondText(AccountDeletionPage.html, ContentType.Text.Html)
+        }
+        get("/privacy-policy") {
+            call.respondText(PrivacyPolicyPage.html, ContentType.Text.Html)
+        }
 
-        // Public product image files (paths stored on products as /uploads/products/...).
-        staticFiles("/uploads", productService.uploadsRoot())
+        // Local-disk images only. Cloud (Supabase) URLs are absolute and served by Supabase CDN.
+        if (AppConfig.isLocalStorage) {
+            staticFiles("/uploads", productService.uploadsRoot())
+        }
 
         get("/api/roles") {
             call.respond(roleService.listRoles())
@@ -111,6 +129,16 @@ fun Application.configureRouting() {
                     val userId = currentUserId(call)
                     val request = call.receive<UpdateProfileRequest>()
                     call.respond(userService.updateProfile(userId, request))
+                }
+                delete {
+                    val userId = currentUserId(call)
+                    val request = try {
+                        call.receive<DeleteAccountRequest>()
+                    } catch (_: Exception) {
+                        throw BadRequestException("Confirmation is required")
+                    }
+                    userService.deleteAccount(userId, request.confirmation)
+                    call.respond(HttpStatusCode.NoContent)
                 }
                 post("/image") {
                     val multipart = call.receiveMultipart()
@@ -178,17 +206,21 @@ fun Application.configureRouting() {
 
             route("/api/products") {
                 get {
-                    call.respond(productService.getProducts())
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
+                    call.respond(productService.getProducts(shop.ownerUserId))
                 }
                 get("/low-stock") {
-                    call.respond(productService.getLowStockProducts())
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
+                    call.respond(productService.getLowStockProducts(shop.ownerUserId))
                 }
                 get("/sku/{sku}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val sku = call.parameters["sku"]
                         ?: throw BadRequestException("SKU is required")
-                    call.respond(productService.getProductBySku(sku))
+                    call.respond(productService.getProductBySku(sku, shop.ownerUserId))
                 }
                 post("/images") {
+                    shopAccess.requireShopMember(currentUserId(call))
                     val multipart = call.receiveMultipart()
                     var uploadBytes: ByteArray? = null
                     var originalName: String? = null
@@ -214,72 +246,83 @@ fun Application.configureRouting() {
                     call.respond(HttpStatusCode.Created, response)
                 }
                 get("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid product ID")
-                    call.respond(productService.getProduct(id))
+                    call.respond(productService.getProduct(id, shop.ownerUserId))
                 }
                 post {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val request = call.receive<CreateProductRequest>()
-                    val created = productService.createProduct(request)
+                    val created = productService.createProduct(request, shop.ownerUserId, actingUserId = shop.userId)
                     call.respond(HttpStatusCode.Created, created)
                 }
                 put("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid product ID")
                     val request = call.receive<UpdateProductRequest>()
-                    call.respond(productService.updateProduct(id, request))
+                    call.respond(
+                        productService.updateProduct(id, request, shop.ownerUserId, actingUserId = shop.userId)
+                    )
                 }
                 delete("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid product ID")
-                    productService.deleteProduct(id)
+                    productService.deleteProduct(id, shop.ownerUserId, actingUserId = shop.userId)
                     call.respond(HttpStatusCode.NoContent)
                 }
             }
 
             route("/api/sales") {
                 get {
-                    call.respond(saleService.getSales())
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
+                    call.respond(saleService.getSales(shop.ownerUserId))
                 }
                 get("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid sale ID")
-                    call.respond(saleService.getSale(id))
+                    call.respond(saleService.getSale(id, shop.ownerUserId))
                 }
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                        ?: throw BadRequestException("Authentication required")
-                    val userId = principal.payload.getClaim("userId").asInt()
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val request = call.receive<CreateSaleRequest>()
-                    val created = saleService.createSale(userId, request)
+                    val created = saleService.createSale(shop.userId, shop.ownerUserId, request)
                     call.respond(HttpStatusCode.Created, created)
                 }
             }
 
             route("/api/suppliers") {
                 get {
-                    call.respond(supplierService.getSuppliers())
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
+                    call.respond(supplierService.getSuppliers(shop.ownerUserId))
                 }
                 get("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid supplier ID")
-                    call.respond(supplierService.getSupplier(id))
+                    call.respond(supplierService.getSupplier(id, shop.ownerUserId))
                 }
                 post {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val request = call.receive<CreateSupplierRequest>()
-                    val created = supplierService.createSupplier(request)
+                    val created = supplierService.createSupplier(request, shop.ownerUserId)
                     call.respond(HttpStatusCode.Created, created)
                 }
                 put("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid supplier ID")
                     val request = call.receive<UpdateSupplierRequest>()
-                    call.respond(supplierService.updateSupplier(id, request))
+                    call.respond(supplierService.updateSupplier(id, request, shop.ownerUserId))
                 }
                 delete("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid supplier ID")
-                    supplierService.deleteSupplier(id)
+                    supplierService.deleteSupplier(id, shop.ownerUserId)
                     call.respond(HttpStatusCode.NoContent)
                 }
             }
@@ -289,6 +332,7 @@ fun Application.configureRouting() {
                     call.respond(categoryService.getCategories())
                 }
                 post {
+                    shopAccess.requireShopMember(currentUserId(call))
                     val request = call.receive<CreateCategoryRequest>()
                     val result = categoryService.findOrCreate(request)
                     val status = if (result.created) HttpStatusCode.Created else HttpStatusCode.OK
@@ -298,43 +342,73 @@ fun Application.configureRouting() {
 
             route("/api/purchase-orders") {
                 get {
-                    call.respond(purchaseOrderService.getPurchaseOrders())
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
+                    call.respond(purchaseOrderService.getPurchaseOrders(shop.ownerUserId))
                 }
                 get("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid purchase order ID")
-                    call.respond(purchaseOrderService.getPurchaseOrder(id))
+                    call.respond(purchaseOrderService.getPurchaseOrder(id, shop.ownerUserId))
                 }
                 post {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val request = call.receive<CreatePurchaseOrderRequest>()
-                    val created = purchaseOrderService.createPurchaseOrder(request)
+                    val created = purchaseOrderService.createPurchaseOrder(request, shop.ownerUserId)
                     call.respond(HttpStatusCode.Created, created)
                 }
                 put("/{id}") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid purchase order ID")
                     val request = call.receive<UpdatePurchaseOrderRequest>()
-                    call.respond(purchaseOrderService.updatePurchaseOrder(id, request))
+                    call.respond(purchaseOrderService.updatePurchaseOrder(id, request, shop.ownerUserId))
                 }
                 post("/{id}/receive") {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val id = call.parameters["id"]?.toIntOrNull()
                         ?: throw BadRequestException("Invalid purchase order ID")
-                    call.respond(purchaseOrderService.receivePurchaseOrder(id))
+                    call.respond(purchaseOrderService.receivePurchaseOrder(id, shop.ownerUserId))
+                }
+            }
+
+            route("/api/notifications") {
+                post("/device-token") {
+                    val userId = currentUserId(call)
+                    val request = call.receive<RegisterDeviceTokenRequest>()
+                    val response = deviceTokenService.register(userId, request)
+                    call.respond(HttpStatusCode.OK, response)
+                }
+                delete("/device-token") {
+                    val userId = currentUserId(call)
+                    val request = call.receive<UnregisterDeviceTokenRequest>()
+                    deviceTokenService.unregister(userId, request)
+                    call.respond(HttpStatusCode.NoContent)
+                }
+            }
+
+            route("/api/activity") {
+                get {
+                    val userId = currentUserId(call)
+                    val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
+                    call.respond(activityService.listRecentForUser(userId, limit))
                 }
             }
 
             route("/api/dashboard") {
                 get("/summary") {
-                    call.respond(dashboardService.getSummary())
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
+                    call.respond(dashboardService.getSummary(shop.ownerUserId))
                 }
             }
 
             route("/api/reports") {
                 get {
+                    val shop = shopAccess.requireShopMember(currentUserId(call))
                     val range = call.request.queryParameters["range"]
                     val from = call.request.queryParameters["from"]
                     val to = call.request.queryParameters["to"]
-                    call.respond(dashboardService.getReports(range, from, to))
+                    call.respond(dashboardService.getReports(shop.ownerUserId, range, from, to))
                 }
             }
         }

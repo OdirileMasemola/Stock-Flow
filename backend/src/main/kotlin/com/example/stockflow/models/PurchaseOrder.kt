@@ -32,6 +32,8 @@ object PurchaseOrders : Table("purchase_orders") {
     val status = varchar("status", 20).default("Pending")
     val expectedDeliveryDate = datetime("expected_delivery_date").nullable()
     val createdAt = datetime("created_at").default(LocalDateTime.now()).index()
+    /** Shop owner. Null for rows created before shops existed; those are visible to no one. */
+    val ownerUserId = integer("owner_user_id").references(Users.id).nullable().index()
 
     override val primaryKey = PrimaryKey(id)
 }

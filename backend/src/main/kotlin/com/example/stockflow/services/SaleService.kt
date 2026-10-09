@@ -7,23 +7,25 @@ import com.example.stockflow.models.SaleResponse
 import com.example.stockflow.repositories.SaleLineInput
 import com.example.stockflow.repositories.SaleRepository
 import com.example.stockflow.repositories.SaleRepositoryImpl
+import com.example.stockflow.services.notifications.LowStockAlertService
 
 class SaleService(
-    private val repository: SaleRepository = SaleRepositoryImpl()
+    private val repository: SaleRepository = SaleRepositoryImpl(),
+    private val lowStockAlerts: LowStockAlertService = LowStockAlertService()
 ) {
     companion object {
         /** Allowed payment methods for StockFlow POS (no gateway — record only). */
         val ALLOWED_PAYMENT_METHODS = setOf("Cash", "Card", "Other")
     }
 
-    suspend fun getSales(): List<SaleResponse> = repository.getAllSales()
+    suspend fun getSales(ownerUserId: Int): List<SaleResponse> = repository.getAllSales(ownerUserId)
 
-    suspend fun getSale(id: Int): SaleResponse {
-        return repository.getSaleById(id)
+    suspend fun getSale(id: Int, ownerUserId: Int): SaleResponse {
+        return repository.getSaleById(id, ownerUserId)
             ?: throw NotFoundException("Sale not found")
     }
 
-    suspend fun createSale(userId: Int, request: CreateSaleRequest): SaleResponse {
+    suspend fun createSale(userId: Int, ownerUserId: Int, request: CreateSaleRequest): SaleResponse {
         if (userId <= 0) {
             throw BadRequestException("Invalid user")
         }
@@ -49,11 +51,17 @@ class SaleService(
             SaleLineInput(productId = productId, quantity = quantity)
         }
 
-        return repository.createSale(
+        val result = repository.createSale(
             userId = userId,
+            ownerUserId = ownerUserId,
             paymentMethod = paymentMethod,
             lines = lines
         )
+
+        // Non-blocking FCM; never fails the sale.
+        lowStockAlerts.notifyCrossingsAsync(userId, result.lowStockCrossings, shopOwnerUserId = ownerUserId)
+
+        return result.sale
     }
 
     private fun normalizePaymentMethod(raw: String): String {

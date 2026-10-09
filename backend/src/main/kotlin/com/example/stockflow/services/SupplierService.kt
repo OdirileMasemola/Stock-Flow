@@ -12,14 +12,14 @@ import com.example.stockflow.repositories.SupplierRepositoryImpl
 class SupplierService(
     private val repository: SupplierRepository = SupplierRepositoryImpl()
 ) {
-    suspend fun getSuppliers(): List<SupplierResponse> = repository.getAllSuppliers()
+    suspend fun getSuppliers(ownerUserId: Int): List<SupplierResponse> = repository.getAllSuppliers(ownerUserId)
 
-    suspend fun getSupplier(id: Int): SupplierResponse {
-        return repository.getSupplierById(id)
+    suspend fun getSupplier(id: Int, ownerUserId: Int): SupplierResponse {
+        return repository.getSupplierById(id, ownerUserId)
             ?: throw NotFoundException("Supplier not found")
     }
 
-    suspend fun createSupplier(request: CreateSupplierRequest): SupplierResponse {
+    suspend fun createSupplier(request: CreateSupplierRequest, ownerUserId: Int): SupplierResponse {
         validateSupplierFields(
             name = request.name,
             contactName = request.contactName,
@@ -28,16 +28,16 @@ class SupplierService(
             address = request.address
         )
 
-        val existing = repository.findByName(request.name.trim())
+        val existing = repository.findByName(request.name.trim(), ownerUserId)
         if (existing != null) {
             throw ConflictException("A supplier with this name already exists")
         }
 
-        return repository.createSupplier(request)
+        return repository.createSupplier(request, ownerUserId)
     }
 
-    suspend fun updateSupplier(id: Int, request: UpdateSupplierRequest): SupplierResponse {
-        repository.getSupplierById(id)
+    suspend fun updateSupplier(id: Int, request: UpdateSupplierRequest, ownerUserId: Int): SupplierResponse {
+        repository.getSupplierById(id, ownerUserId)
             ?: throw NotFoundException("Supplier not found")
 
         validateSupplierFields(
@@ -48,17 +48,17 @@ class SupplierService(
             address = request.address
         )
 
-        val existingWithName = repository.findByName(request.name.trim())
+        val existingWithName = repository.findByName(request.name.trim(), ownerUserId)
         if (existingWithName != null && existingWithName.id != id) {
             throw ConflictException("A supplier with this name already exists")
         }
 
-        return repository.updateSupplier(id, request)
+        return repository.updateSupplier(id, request, ownerUserId)
             ?: throw NotFoundException("Supplier not found")
     }
 
-    suspend fun deleteSupplier(id: Int) {
-        repository.getSupplierById(id)
+    suspend fun deleteSupplier(id: Int, ownerUserId: Int) {
+        repository.getSupplierById(id, ownerUserId)
             ?: throw NotFoundException("Supplier not found")
 
         if (repository.isReferencedByProducts(id)) {
@@ -72,7 +72,7 @@ class SupplierService(
             )
         }
 
-        val deleted = repository.deleteSupplier(id)
+        val deleted = repository.deleteSupplier(id, ownerUserId)
         if (!deleted) {
             throw NotFoundException("Supplier not found")
         }

@@ -5,7 +5,9 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import com.example.stockflow.models.BadRequestException
+import com.example.stockflow.models.CleanupIncompleteException
 import com.example.stockflow.models.ConflictException
+import com.example.stockflow.models.ForbiddenException
 import com.example.stockflow.models.NotFoundException
 import com.example.stockflow.models.UnauthorizedException
 
@@ -20,10 +22,20 @@ fun Application.configureStatusPages() {
         exception<NotFoundException> { call, cause ->
             call.respond(HttpStatusCode.NotFound, mapOf("error" to cause.message))
         }
+        exception<CleanupIncompleteException> { call, cause ->
+            call.application.environment.log.warn("Account cleanup incomplete: {}", cause.message)
+            call.respond(
+                HttpStatusCode.ServiceUnavailable,
+                mapOf("error" to (cause.message ?: "Account cleanup did not finish"))
+            )
+        }
         exception<UnauthorizedException> { call, cause ->
             val body = mutableMapOf("error" to (cause.message ?: "Unauthorized"))
             cause.code?.let { body["code"] = it }
             call.respond(HttpStatusCode.Unauthorized, body)
+        }
+        exception<ForbiddenException> { call, cause ->
+            call.respond(HttpStatusCode.Forbidden, mapOf("error" to cause.message))
         }
         exception<IllegalStateException> { call, cause ->
             call.application.environment.log.warn("IllegalStateException: {}", cause.message)

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launcher-only adaptive foreground. In-app screens use @drawable/stockflow_logo directly. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:width="52dp"
-        android:height="52dp"
-        android:gravity="center"
-        android:drawable="@drawable/stockflow_logo" />
-</layer-list>
+<!-- Launcher adaptive foreground: 25% inset keeps logo in the 72dp safe zone (zoom out). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/stockflow_logo"
+    android:insetLeft="25%"
+    android:insetTop="25%"
+    android:insetRight="25%"
+    android:insetBottom="25%" />

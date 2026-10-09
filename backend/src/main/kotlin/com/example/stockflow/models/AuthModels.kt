@@ -41,3 +41,4 @@ data class GoogleAuthRequest(
 class BadRequestException(message: String) : RuntimeException(message)
 class ConflictException(message: String) : RuntimeException(message)
 class UnauthorizedException(message: String, val code: String? = null) : RuntimeException(message)
+class ForbiddenException(message: String) : RuntimeException(message)

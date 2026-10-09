@@ -9,7 +9,7 @@
     android:paddingHorizontal="24dp"
     android:paddingTop="20dp"
     android:paddingBottom="24dp"
-    tools:context="com.example.stockflow.ui.getstarted.GetStartedActivity">
+    tools:context="com.odirilemasemola.stockflow.ui.getstarted.GetStartedActivity">
 
     <ImageView
         android:id="@+id/logoImage"

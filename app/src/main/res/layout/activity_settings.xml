@@ -173,6 +173,16 @@
                 android:background="@drawable/bg_settings_group"
                 android:orientation="vertical">
 
+                <include
+                    android:id="@+id/rowDeleteAccount"
+                    layout="@layout/item_settings_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="66dp"
+                    android:background="@color/divider_color" />
+
                 <LinearLayout
                     android:id="@+id/rowLogout"
                     android:layout_width="match_parent"

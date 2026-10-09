@@ -11,6 +11,9 @@
 
 # Local configuration / secrets
 local.properties
+/keystore.properties
+/signing.properties
+/stockflow-signing.properties
 .env
 .env.*
 !.env.example

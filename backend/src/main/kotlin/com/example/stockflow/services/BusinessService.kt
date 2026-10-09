@@ -1,5 +1,6 @@
 package com.example.stockflow.services
 
+import com.example.stockflow.config.AppConfig
 import com.example.stockflow.models.BadRequestException
 import com.example.stockflow.models.Business
 import com.example.stockflow.models.ImageUploadResponse
@@ -33,6 +34,9 @@ class BusinessService(
         val email = request.email?.trim()?.takeIf { it.isNotEmpty() }
         val address = request.address?.trim()?.takeIf { it.isNotEmpty() }
         val imageUrl = request.imageUrl?.trim()?.takeIf { it.isNotEmpty() }
+        if (imageUrl != null && imageUrl.length > AppConfig.IMAGE_URL_MAX_LENGTH) {
+            throw BadRequestException("Image URL must be ${AppConfig.IMAGE_URL_MAX_LENGTH} characters or fewer")
+        }
 
         if (email != null && !isValidEmail(email)) {
             throw BadRequestException("Invalid email format")
