@@ -7,7 +7,11 @@ import com.example.stockflow.models.DashboardSaleItem
 import com.example.stockflow.models.DashboardSummaryResponse
 import com.example.stockflow.models.InventoryReportSection
 import com.example.stockflow.models.PaymentMethodBreakdown
+import com.example.stockflow.models.ProductPerformanceSection
 import com.example.stockflow.models.Products
+import com.example.stockflow.models.SaleItems
+import com.example.stockflow.services.ProductPerformanceCalculator
+import org.jetbrains.exposed.sql.innerJoin
 import com.example.stockflow.models.PurchaseOrders
 import com.example.stockflow.models.PurchaseReportSection
 import com.example.stockflow.models.ReportsResponse
@@ -170,8 +174,37 @@ class DashboardRepositoryImpl : DashboardRepository {
                 receivedCount = received,
                 purchasingTotal = purchasingTotal.toDouble(),
                 recentPurchaseOrders = loadRecentPurchaseOrders(ownerUserId, 10)
-            )
+            ),
+            productPerformance = loadProductPerformance(ownerUserId, rangeStart, rangeEnd)
         )
+    }
+
+    /** Units and revenue per product in the period (shop-scoped), ranked by [ProductPerformanceCalculator]. */
+    private fun loadProductPerformance(
+        ownerUserId: Int,
+        rangeStart: LocalDateTime,
+        rangeEnd: LocalDateTime
+    ): ProductPerformanceSection {
+        val qty = SaleItems.quantity.sum()
+        val revenue = SaleItems.subtotal.sum()
+        val sold = SaleItems.innerJoin(Sales, { SaleItems.saleId }, { Sales.id })
+            .select(SaleItems.productId, qty, revenue)
+            .where {
+                (Sales.ownerUserId eq ownerUserId) and
+                    (Sales.createdAt greaterEq rangeStart) and (Sales.createdAt less rangeEnd)
+            }
+            .groupBy(SaleItems.productId)
+            .associate { row ->
+                row[SaleItems.productId] to ProductPerformanceCalculator.Sold(
+                    quantity = row[qty] ?: 0,
+                    revenue = row[revenue]?.toDouble() ?: 0.0
+                )
+            }
+        val products = Products
+            .select(Products.id, Products.name, Products.stockLevel)
+            .where { Products.ownerUserId eq ownerUserId }
+            .map { ProductPerformanceCalculator.ProductStock(it[Products.id], it[Products.name], it[Products.stockLevel]) }
+        return ProductPerformanceCalculator.calculate(products, sold)
     }
 
     /**

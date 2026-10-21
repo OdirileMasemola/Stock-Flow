@@ -96,5 +96,26 @@ data class ReportsResponse(
     val range: String,
     val sales: SalesReportSection,
     val inventory: InventoryReportSection,
-    val purchases: PurchaseReportSection
+    val purchases: PurchaseReportSection,
+    val productPerformance: ProductPerformanceSection = ProductPerformanceSection()
+)
+
+/** One product's sales in the report period. */
+@Serializable
+data class ProductPerformanceItem(
+    val productId: Int,
+    val name: String,
+    val quantitySold: Int,
+    val revenue: Double,
+    val stockLevel: Int
+)
+
+/**
+ * Best-selling = most units sold in the period. Slow-moving = products still in stock with the
+ * fewest (or zero) units sold in the period.
+ */
+@Serializable
+data class ProductPerformanceSection(
+    val bestSelling: List<ProductPerformanceItem> = emptyList(),
+    val slowMoving: List<ProductPerformanceItem> = emptyList()
 )

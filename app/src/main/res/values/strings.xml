@@ -563,4 +563,12 @@
         <item quantity="one">%d team member</item>
         <item quantity="other">%d team members</item>
     </plurals>
+    <string name="best_selling_title">Best-selling products</string>
+    <string name="best_selling_subtitle">Most units sold in the selected period</string>
+    <string name="slow_moving_title">Slow-moving products</string>
+    <string name="slow_moving_subtitle">In stock with the fewest sales in the selected period</string>
+    <string name="report_best_selling_line">%1$d. %2$s — %3$d sold · R%4$.2f</string>
+    <string name="report_slow_moving_line">%1$d. %2$s — %3$d sold · %4$d in stock</string>
+    <string name="report_best_selling_none">No products sold in this period.</string>
+    <string name="report_slow_moving_none">No in-stock products to show.</string>
 </resources>

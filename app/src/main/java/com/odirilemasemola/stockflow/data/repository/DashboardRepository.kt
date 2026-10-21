@@ -1,6 +1,7 @@
 package com.odirilemasemola.stockflow.data.repository
 
 import com.odirilemasemola.stockflow.R
+import com.odirilemasemola.stockflow.data.local.ReportsCache
 import com.odirilemasemola.stockflow.data.local.SessionStore
 import com.odirilemasemola.stockflow.data.local.cache.CacheDatabaseProvider
 import com.odirilemasemola.stockflow.data.local.cache.CacheResult
@@ -29,7 +30,8 @@ class DashboardRepository(
     private val api: DashboardApi = RetrofitClient.dashboardApi,
     private val sessionStore: SessionStore,
     private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
-    private val clock: () -> Long = { System.currentTimeMillis() }
+    private val clock: () -> Long = { System.currentTimeMillis() },
+    private val reportsCache: ReportsCache? = null
 ) {
     private val gson = Gson()
     private val dashboardDao: DashboardCacheDao? get() = database?.dashboardDao()
@@ -84,12 +86,23 @@ class DashboardRepository(
             if (response.isSuccessful) {
                 val body = response.body()
                     ?: return Result.failure(Exception(AppStrings.get(R.string.error_unable_load_reports)))
+                sessionStore.getUserId()?.let { userId ->
+                    reportsCache?.save(userId, ReportsCache.periodKey(range, from, to), body, clock())
+                }
                 Result.success(body)
             } else {
                 Result.failure(Exception(errorMessage(response, AppStrings.get(R.string.error_unable_load_reports))))
             }
         } catch (_: IOException) {
-            Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            // Offline: fall back to the last report saved for this period (shown with the offline banner).
+            val cached = sessionStore.getUserId()?.let { userId ->
+                reportsCache?.load(userId, ReportsCache.periodKey(range, from, to))
+            }
+            if (cached != null) {
+                Result.success(cached)
+            } else {
+                Result.failure(Exception(AppStrings.get(R.string.error_unable_reach_server)))
+            }
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: AppStrings.get(R.string.error_unable_load_reports)))
         }

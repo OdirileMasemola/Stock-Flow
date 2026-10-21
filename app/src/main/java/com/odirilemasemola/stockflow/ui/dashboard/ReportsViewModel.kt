@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.odirilemasemola.stockflow.data.local.ReportsCache
 import com.odirilemasemola.stockflow.data.local.SessionStore
 import com.odirilemasemola.stockflow.data.remote.ReportsDto
 import com.odirilemasemola.stockflow.data.repository.DashboardRepository
@@ -17,7 +18,8 @@ import com.odirilemasemola.stockflow.R
 class ReportsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = DashboardRepository(
-        sessionStore = SessionStore(application.applicationContext)
+        sessionStore = SessionStore(application.applicationContext),
+        reportsCache = ReportsCache(application.applicationContext)
     )
 
     private val _uiState = MutableLiveData<ReportsUiState>(ReportsUiState.Loading)

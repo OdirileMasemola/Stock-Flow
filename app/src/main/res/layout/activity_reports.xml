@@ -21,6 +21,19 @@
             app:title="@string/reports_title"
             app:titleTextColor="@color/brand_text_dark" />
 
+        <TextView
+            android:id="@+id/tvOfflineBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFF3CD"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:text="@string/offline_cached_banner"
+            android:textColor="#856404"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
         <androidx.core.widget.NestedScrollView
             android:id="@+id/contentScroll"
             android:layout_width="match_parent"
@@ -156,6 +169,84 @@
                             android:textColor="@color/brand_text_light"
                             android:textSize="13sp" />
                     </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- best_selling_title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/best_selling_title"
+                    android:textColor="@color/brand_text_dark"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/best_selling_subtitle"
+                    android:textColor="@color/brand_text_light"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:cardBackgroundColor="@color/surface"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/divider_color"
+                    app:strokeWidth="1dp">
+
+                    <TextView
+                        android:id="@+id/tvBestSelling"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="6dp"
+                        android:padding="16dp"
+                        android:textColor="@color/brand_text_dark"
+                        android:textSize="14sp"
+                        tools:text="1. Milk — 24 sold · R480.00" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- slow_moving_title -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/slow_moving_title"
+                    android:textColor="@color/brand_text_dark"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/slow_moving_subtitle"
+                    android:textColor="@color/brand_text_light"
+                    android:textSize="12sp" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    app:cardBackgroundColor="@color/surface"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/divider_color"
+                    app:strokeWidth="1dp">
+
+                    <TextView
+                        android:id="@+id/tvSlowMoving"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="6dp"
+                        android:padding="16dp"
+                        android:textColor="@color/brand_text_dark"
+                        android:textSize="14sp"
+                        tools:text="1. Milk — 24 sold · R480.00" />
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Inventory -->

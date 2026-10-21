@@ -131,6 +131,12 @@ object ReportsPdfExporter {
             }
         }
 
+        val performance = reports.productPerformance
+        drawHeading(context.getString(R.string.best_selling_title))
+        ProductPerformanceText.bestSellingLines(context, performance?.bestSelling).forEach { drawBody(it) }
+        drawHeading(context.getString(R.string.slow_moving_title))
+        ProductPerformanceText.slowMovingLines(context, performance?.slowMoving).forEach { drawBody(it) }
+
         val inv = reports.inventory
         drawHeading(context.getString(R.string.pdf_section_inventory))
         drawBody(context.getString(R.string.report_inv_products, inv?.totalProducts ?: 0))

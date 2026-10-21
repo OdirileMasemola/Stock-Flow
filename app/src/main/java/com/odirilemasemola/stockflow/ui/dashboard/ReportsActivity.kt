@@ -10,6 +10,7 @@ import androidx.core.content.FileProvider
 import com.odirilemasemola.stockflow.R
 import com.odirilemasemola.stockflow.data.remote.ReportsDto
 import com.odirilemasemola.stockflow.databinding.ActivityReportsBinding
+import com.odirilemasemola.stockflow.ui.common.OfflineBanner
 import com.odirilemasemola.stockflow.ui.common.SystemBars
 import com.google.android.material.datepicker.MaterialDatePicker
 import java.io.File
@@ -80,6 +81,7 @@ class ReportsActivity : AppCompatActivity() {
                     bindReports(state.reports)
                 }
                 is ReportsViewModel.ReportsUiState.Error -> {
+                    OfflineBanner.hide(binding.tvOfflineBanner)
                     binding.progressLoading.visibility = View.GONE
                     binding.contentScroll.visibility = View.GONE
                     binding.errorState.visibility = View.VISIBLE
@@ -265,6 +267,13 @@ class ReportsActivity : AppCompatActivity() {
                 )
             }
         }
+
+        val performance = reports.productPerformance
+        binding.tvBestSelling.text =
+            ProductPerformanceText.bestSellingLines(this, performance?.bestSelling).joinToString("\n")
+        binding.tvSlowMoving.text =
+            ProductPerformanceText.slowMovingLines(this, performance?.slowMoving).joinToString("\n")
+        OfflineBanner.show(binding.tvOfflineBanner, fromCache = reports.cachedAt != null, cachedAt = reports.cachedAt)
 
         val inv = reports.inventory
         binding.tvInvProducts.text = getString(

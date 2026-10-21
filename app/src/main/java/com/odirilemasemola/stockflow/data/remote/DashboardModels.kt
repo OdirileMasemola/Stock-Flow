@@ -72,9 +72,25 @@ data class PurchaseReportSectionDto(
     val recentPurchaseOrders: List<DashboardPurchaseOrderItemDto>? = emptyList()
 )
 
+data class ProductPerformanceItemDto(
+    val productId: Int = 0,
+    val name: String? = null,
+    val quantitySold: Int = 0,
+    val revenue: Double = 0.0,
+    val stockLevel: Int = 0
+)
+
+data class ProductPerformanceSectionDto(
+    val bestSelling: List<ProductPerformanceItemDto>? = emptyList(),
+    val slowMoving: List<ProductPerformanceItemDto>? = emptyList()
+)
+
 data class ReportsDto(
     val range: String? = null,
     val sales: SalesReportSectionDto? = null,
     val inventory: InventoryReportSectionDto? = null,
-    val purchases: PurchaseReportSectionDto? = null
+    val purchases: PurchaseReportSectionDto? = null,
+    val productPerformance: ProductPerformanceSectionDto? = null,
+    /** Local only: set when this report came from the offline cache (time it was saved). */
+    val cachedAt: Long? = null
 )

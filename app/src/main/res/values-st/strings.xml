@@ -539,4 +539,12 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
         <item quantity="one">Setho sa sehlopha se le %d</item>
         <item quantity="other">Litho tsa sehlopha tse %d</item>
     </plurals>
+    <string name="best_selling_title">Lihlahisoa tse rekisoang haholo</string>
+    <string name="best_selling_subtitle">Liyuniti tse ngata tse rekisitsoeng nakong e khethiloeng</string>
+    <string name="slow_moving_title">Lihlahisoa tse tsamaeang butle</string>
+    <string name="slow_moving_subtitle">Tse setokong tse nang le thekiso e fokolang ka ho fetisisa nakong e khethiloeng</string>
+    <string name="report_best_selling_line">%1$d. %2$s — ho rekisitsoe %3$d · R%4$.2f</string>
+    <string name="report_slow_moving_line">%1$d. %2$s — ho rekisitsoe %3$d · %4$d setokong</string>
+    <string name="report_best_selling_none">Ha ho lihlahisoa tse rekisitsoeng nakong ena.</string>
+    <string name="report_slow_moving_none">Ha ho lihlahisoa tse setokong tse ka bontšoang.</string>
 </resources>

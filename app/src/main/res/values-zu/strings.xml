@@ -539,4 +539,12 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
         <item quantity="one">Ilungu leqembu elingu-%d</item>
         <item quantity="other">Amalungu eqembu angu-%d</item>
     </plurals>
+    <string name="best_selling_title">Imikhiqizo ethengiswa kakhulu</string>
+    <string name="best_selling_subtitle">Amayunithi amaningi athengisiwe esikhathini esikhethiwe</string>
+    <string name="slow_moving_title">Imikhiqizo ehamba kancane</string>
+    <string name="slow_moving_subtitle">Esesitokweni enokuthengisa okuncane kakhulu esikhathini esikhethiwe</string>
+    <string name="report_best_selling_line">%1$d. %2$s — kuthengiswe %3$d · R%4$.2f</string>
+    <string name="report_slow_moving_line">%1$d. %2$s — kuthengiswe %3$d · %4$d esitokweni</string>
+    <string name="report_best_selling_none">Ayikho imikhiqizo ethengisiwe kulesi sikhathi.</string>
+    <string name="report_slow_moving_none">Ayikho imikhiqizo esesitokweni engaboniswa.</string>
 </resources>

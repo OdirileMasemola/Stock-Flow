@@ -425,11 +425,17 @@ class ShopIsolationTest {
         assertEquals(1, reportA.sales.salesCount)
         assertEquals(1, reportA.purchases.purchaseOrderCount)
         assertEquals(1, reportA.inventory.totalProducts)
+        assertEquals(listOf(productA.id), reportA.productPerformance.bestSelling.map { it.productId })
+        assertEquals(2, reportA.productPerformance.bestSelling.single().quantitySold)
+        assertEquals(10.0, reportA.productPerformance.bestSelling.single().revenue)
 
         val reportB = dashboard.getReports(ownerB, "7d", null, null)
         assertEquals(3.0, reportB.sales.totalSales)
         assertEquals(0, reportB.purchases.purchaseOrderCount)
         assertEquals(0.0, reportB.purchases.purchasingTotal)
+        // Shop B's best seller list never includes shop A's products.
+        assertEquals(listOf(productB.id), reportB.productPerformance.bestSelling.map { it.productId })
+        assertTrue(reportB.productPerformance.slowMoving.isEmpty())
 
         val empty = dashboard.getSummary(staffC)
         assertEquals(0, empty.totalProducts)

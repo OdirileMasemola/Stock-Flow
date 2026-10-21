@@ -44,6 +44,9 @@ class SessionStore(context: Context) {
             .remove(KEY_TOKEN)
             .remove(KEY_USER_FULL_NAME)
             .apply()
+        if (userId != null) {
+            ReportsCache(appContext).clearUser(userId)
+        }
         if (userId != null && CacheDatabaseProvider.getOrNull() != null) {
             try {
                 CacheDatabaseProvider.clearUserBlocking(userId)
