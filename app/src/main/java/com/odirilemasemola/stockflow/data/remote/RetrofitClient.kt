@@ -85,6 +85,11 @@ object RetrofitClient {
         retrofit.create(NotificationApi::class.java)
     }
 
+    /** Shop membership + owner-only employee management. */
+    val employeeApi: EmployeeApi by lazy {
+        retrofit.create(EmployeeApi::class.java)
+    }
+
     /** Authenticated activity / audit history (Firestore via API). */
     val activityApi: ActivityApi by lazy {
         retrofit.create(ActivityApi::class.java)

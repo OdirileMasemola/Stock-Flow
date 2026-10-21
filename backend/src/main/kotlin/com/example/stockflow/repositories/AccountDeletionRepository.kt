@@ -48,6 +48,8 @@ class AccountDeletionRepository : AccountDeletionStore {
     override suspend fun close(userId: Int): Unit = dbQuery {
         DeviceTokens.deleteWhere { DeviceTokens.userId eq userId }
         Businesses.deleteWhere { Businesses.userId eq userId }
+        // Closing a shop owner releases its staff; closing a staff account leaves the shop.
+        Users.update({ Users.shopOwnerUserId eq userId }) { it[shopOwnerUserId] = null }
         Users.update({ Users.id eq userId }) {
             it[username] = AccountClosure.username(userId)
             it[email] = AccountClosure.email(userId)
@@ -55,6 +57,7 @@ class AccountDeletionRepository : AccountDeletionStore {
             it[passwordHash] = null
             it[firebaseUid] = null
             it[profileImageUrl] = null
+            it[shopOwnerUserId] = null
         }
     }
 

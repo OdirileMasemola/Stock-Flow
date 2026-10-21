@@ -12,6 +12,8 @@ import com.odirilemasemola.stockflow.data.auth.GoogleAuthClient
 import com.odirilemasemola.stockflow.data.local.LanguagePreferences
 import com.odirilemasemola.stockflow.data.local.SessionStore
 import com.odirilemasemola.stockflow.data.repository.UserRepository
+import com.odirilemasemola.stockflow.data.repository.EmployeeRepository
+import com.odirilemasemola.stockflow.ui.employees.EmployeesActivity
 import com.odirilemasemola.stockflow.data.notifications.FcmRegistrationHelper
 import com.odirilemasemola.stockflow.data.notifications.FcmTokenStore
 import com.odirilemasemola.stockflow.data.notifications.NotificationRepository
@@ -64,6 +66,20 @@ class SettingsActivity : AppCompatActivity() {
         binding.rowLanguage.tvSubtitle.text = languageLabel(languagePreferences.getLanguageTag())
         binding.rowNotifications.tvSubtitle.text = notificationStatusSubtitle()
         refreshSyncStatus()
+        refreshEmployeesEntry()
+    }
+
+    /** Employees is owner-only; the row stays hidden offline or for staff/suppliers. */
+    private fun refreshEmployeesEntry() {
+        uiScope.launch {
+            val canManage = withContext(Dispatchers.IO) {
+                EmployeeRepository(sessionStore = sessionStore).getMembership()
+                    .getOrNull()?.canManageEmployees == true
+            }
+            val visibility = if (canManage) View.VISIBLE else View.GONE
+            binding.rowEmployees.root.visibility = visibility
+            binding.dividerEmployees.visibility = visibility
+        }
     }
 
     override fun onDestroy() {
@@ -102,6 +118,14 @@ class SettingsActivity : AppCompatActivity() {
             iconBg = R.color.icon_bg_business,
             title = getString(R.string.settings_business),
             subtitle = getString(R.string.settings_business_subtitle)
+        )
+        bindRow(
+            row = binding.rowEmployees,
+            iconRes = R.drawable.ic_group,
+            iconColor = R.color.icon_employees,
+            iconBg = R.color.icon_bg_employees,
+            title = getString(R.string.settings_employees),
+            subtitle = getString(R.string.settings_employees_subtitle)
         )
         bindRow(
             row = binding.rowTheme,
@@ -199,6 +223,9 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.rowBusiness.root.setOnClickListener {
             startActivity(Intent(this, BusinessInfoActivity::class.java))
+        }
+        binding.rowEmployees.root.setOnClickListener {
+            startActivity(Intent(this, EmployeesActivity::class.java))
         }
         binding.rowTheme.root.setOnClickListener { showThemeDialog() }
         binding.rowLanguage.root.setOnClickListener { showLanguageDialog() }

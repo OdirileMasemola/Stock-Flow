@@ -22,6 +22,11 @@ object Users : Table("users") {
     val firebaseUid = varchar("firebase_uid", 128).nullable().uniqueIndex()
     val roleId = integer("role_id").references(Roles.id).index()
     val profileImageUrl = varchar("profile_image_url", 1024).nullable()
+    /**
+     * Shop this Staff/Supplier account works for (the owner's user id). Null = own shop.
+     * Only the owner can set or clear it, through the employees endpoints.
+     */
+    val shopOwnerUserId = integer("shop_owner_user_id").nullable().index()
 
     override val primaryKey = PrimaryKey(id)
 }

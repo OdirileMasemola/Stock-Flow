@@ -102,6 +102,15 @@
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />
         <activity
+            android:name=".ui.employees.EmployeesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow" />
+        <activity
+            android:name=".ui.employees.AddEmployeeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StockFlow"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ui.dashboard.LowStockActivity"
             android:exported="false"
             android:theme="@style/Theme.StockFlow" />

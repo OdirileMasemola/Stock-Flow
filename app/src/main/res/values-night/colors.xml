@@ -42,4 +42,5 @@
     <color name="icon_bg_sync">#1A3035</color>
     <color name="icon_bg_about">#2A3038</color>
     <color name="icon_bg_logout">#3A2020</color>
+    <color name="icon_bg_employees">#262B45</color>
 </resources>

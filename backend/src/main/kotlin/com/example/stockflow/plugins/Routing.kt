@@ -19,6 +19,7 @@ import com.example.stockflow.services.PurchaseOrderService
 import com.example.stockflow.services.DashboardService
 import com.example.stockflow.services.BusinessService
 import com.example.stockflow.services.ShopAccessService
+import com.example.stockflow.services.EmployeeService
 import com.example.stockflow.services.notifications.DeviceTokenService
 import com.example.stockflow.services.activity.ActivityService
 import com.example.stockflow.models.RegisterDeviceTokenRequest
@@ -55,6 +56,7 @@ fun Application.configureRouting() {
     val deviceTokenService = DeviceTokenService()
     val activityService = ActivityService()
     val shopAccess = ShopAccessService()
+    val employeeService = EmployeeService()
 
     routing {
         get("/") {
@@ -394,6 +396,8 @@ fun Application.configureRouting() {
                     call.respond(activityService.listRecentForUser(userId, limit))
                 }
             }
+
+            shopRoutes(shopAccess, employeeService)
 
             route("/api/dashboard") {
                 get("/summary") {

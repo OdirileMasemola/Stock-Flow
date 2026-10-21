@@ -1,6 +1,7 @@
 package com.example.stockflow.services
 
 import com.example.stockflow.models.AccountClosure
+import com.example.stockflow.models.AddEmployeeRequest
 import com.example.stockflow.models.BadRequestException
 import com.example.stockflow.models.Businesses
 import com.example.stockflow.models.Categories
@@ -191,6 +192,44 @@ class ShopIsolationTest {
         sales.createSale(ownerA, ownerA, saleRequest(product.id, 1))
         sales.createSale(ownerA, ownerA, saleRequest(product.id, 1))
         assertEquals(2, sales.getSales(ownerA).size)
+    }
+
+    // --- 4c. Staff linked by the owner work in the owner's shop ----------------------------
+
+    @Test
+    fun linkedStaffActOnOwnersShopUntilRemoved() = runBlocking<Unit> {
+        val employees = EmployeeService()
+        val owner = access.requireShopOwner(ownerA)
+        val product = products.createProduct(productRequest("Milk", "MILK-1"), ownerA)
+
+        employees.add(owner, AddEmployeeRequest(email = "c@test.local"))
+        val staffShop = access.requireShopMember(staffC)
+        assertEquals(ownerA, staffShop.ownerUserId)
+        assertEquals(listOf(product.id), products.getProducts(staffShop.ownerUserId).map { it.id })
+        val sale = sales.createSale(staffShop.userId, staffShop.ownerUserId, saleRequest(product.id, 1))
+        assertEquals(listOf(sale.id), sales.getSales(ownerA).map { it.id })
+        assertEquals(listOf(staffC), employees.list(owner).map { it.id })
+        rejects<ForbiddenException> { access.requireShopOwner(staffC) }
+
+        employees.remove(owner, staffC)
+        assertEquals(staffC, access.requireShopMember(staffC).ownerUserId)
+        assertTrue(employees.list(owner).isEmpty())
+    }
+
+    @Test
+    fun staffLinkEndsWhenOwnerAccountIsClosed() = runBlocking<Unit> {
+        EmployeeService().add(access.requireShopOwner(ownerA), AddEmployeeRequest(email = "c@test.local"))
+        transaction { markClosed(ownerA) }
+        assertEquals(staffC, access.requireShopMember(staffC).ownerUserId)
+    }
+
+    @Test
+    fun accountWithOwnRecordsCannotBeLinked() = runBlocking<Unit> {
+        products.createProduct(productRequest("Bread", "BRD-1"), staffC, staffC)
+        rejects<ConflictException> {
+            EmployeeService().add(access.requireShopOwner(ownerA), AddEmployeeRequest(email = "c@test.local"))
+        }
+        assertEquals(staffC, access.requireShopMember(staffC).ownerUserId)
     }
 
     // --- 5. Supplier contacts are private ---------------------------------------------------

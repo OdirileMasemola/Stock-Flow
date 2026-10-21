@@ -63,6 +63,20 @@
                 <include
                     android:id="@+id/rowBusiness"
                     layout="@layout/item_settings_row" />
+
+                <!-- Owner only: shown after GET /api/shops/me confirms the owner role. -->
+                <View
+                    android:id="@+id/dividerEmployees"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="66dp"
+                    android:background="@color/divider_color"
+                    android:visibility="gone" />
+
+                <include
+                    android:id="@+id/rowEmployees"
+                    layout="@layout/item_settings_row"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- APPEARANCE -->

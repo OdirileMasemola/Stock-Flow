@@ -82,4 +82,6 @@
     <color name="icon_bg_sync">#E0F7FA</color>
     <color name="icon_bg_about">#ECEFF1</color>
     <color name="icon_bg_logout">#FFEBEE</color>
+    <color name="icon_employees">#5C6BC0</color>
+    <color name="icon_bg_employees">#E8EAF6</color>
 </resources>

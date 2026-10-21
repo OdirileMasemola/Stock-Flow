@@ -12,18 +12,22 @@ import org.jetbrains.exposed.sql.selectAll
 
 /**
  * The shop a request acts on. [ownerUserId] always comes from the server, never from the client.
- * Each account is its own shop until staff membership exists.
+ * Owners act on their own shop. Staff act on the shop they were added to by its owner
+ * (users.shop_owner_user_id), or on their own records when they are not linked to a shop.
  */
 data class ShopContext(
     val userId: Int,
     val ownerUserId: Int,
     val role: String
-)
+) {
+    val isOwner: Boolean get() = role.equals("owner", ignoreCase = true)
+}
 
 data class ShopMember(
     val userId: Int,
     val roleName: String,
-    val closed: Boolean
+    val closed: Boolean,
+    val shopOwnerUserId: Int? = null
 )
 
 interface ShopMemberStore {
@@ -40,7 +44,8 @@ class ShopMemberStoreImpl : ShopMemberStore {
                 ShopMember(
                     userId = row[Users.id],
                     roleName = row[Roles.name],
-                    closed = AccountClosure.isClosed(row[Users.id], row[Users.username], row[Users.email])
+                    closed = AccountClosure.isClosed(row[Users.id], row[Users.username], row[Users.email]),
+                    shopOwnerUserId = row[Users.shopOwnerUserId]
                 )
             }
     }
@@ -62,6 +67,28 @@ class ShopAccessService(
         if (member.roleName.lowercase() !in SHOP_ROLES) {
             throw ForbiddenException("This account cannot access shop records")
         }
-        return ShopContext(userId = member.userId, ownerUserId = member.userId, role = member.roleName)
+        return ShopContext(userId = member.userId, ownerUserId = resolveShopOwner(member), role = member.roleName)
+    }
+
+    /** Owner-only actions (employees). Staff and suppliers get 403. */
+    suspend fun requireShopOwner(userId: Int): ShopContext {
+        val shop = requireShopMember(userId)
+        if (!shop.isOwner) {
+            throw ForbiddenException("Only the shop owner can manage employees")
+        }
+        return shop
+    }
+
+    /** A staff link only counts while the owner account is open and still an Owner. */
+    private suspend fun resolveShopOwner(member: ShopMember): Int {
+        if (member.roleName.equals("owner", ignoreCase = true)) return member.userId
+        val linked = member.shopOwnerUserId ?: return member.userId
+        if (linked == member.userId) return member.userId
+        val owner = store.findMember(linked)
+        return if (owner != null && !owner.closed && owner.roleName.equals("owner", ignoreCase = true)) {
+            linked
+        } else {
+            member.userId
+        }
     }
 }
