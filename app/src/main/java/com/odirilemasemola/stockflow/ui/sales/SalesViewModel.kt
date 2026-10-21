@@ -166,7 +166,7 @@ class SalesViewModel(application: Application) : AndroidViewModel(application) {
     fun loadSalesHistory() {
         _historyState.value = HistoryUiState.Loading
         viewModelScope.launch {
-            val result = saleRepository.getSales()
+            val result = saleRepository.getSalesWithPending()
             if (result.isSuccess) {
                 val sales = result.getOrDefault(emptyList())
                 _historyState.postValue(

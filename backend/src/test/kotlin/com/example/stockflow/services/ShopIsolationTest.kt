@@ -154,6 +154,45 @@ class ShopIsolationTest {
         rejects<NotFoundException> { sales.getSale(sale.id, ownerB) }
     }
 
+    // --- 4b. Offline sale retries are idempotent ------------------------------------------
+
+    @Test
+    fun retriedSaleWithSameClientIdIsRecordedOnce() = runBlocking<Unit> {
+        val product = products.createProduct(productRequest("Milk", "MILK-1"), ownerA)
+        val request = saleRequest(product.id, 2).copy(clientSaleId = "offline-sale-0001")
+
+        val first = sales.createSale(ownerA, ownerA, request)
+        val retry = sales.createSale(ownerA, ownerA, request)
+
+        assertEquals(first.id, retry.id)
+        assertEquals(1, sales.getSales(ownerA).size)
+        assertEquals(8, products.getProduct(product.id, ownerA).stockLevel)
+    }
+
+    @Test
+    fun clientSaleIdIsScopedPerShopAndValidated() = runBlocking<Unit> {
+        val productA = products.createProduct(productRequest("Milk", "MILK-1"), ownerA)
+        val productB = products.createProduct(productRequest("Tea", "TEA-1"), ownerB)
+        val key = "shared-key-0001"
+
+        val saleA = sales.createSale(ownerA, ownerA, saleRequest(productA.id, 1).copy(clientSaleId = key))
+        val saleB = sales.createSale(ownerB, ownerB, saleRequest(productB.id, 1).copy(clientSaleId = key))
+
+        assertTrue(saleA.id != saleB.id)
+        assertEquals(9, products.getProduct(productB.id, ownerB).stockLevel)
+        rejects<BadRequestException> {
+            sales.createSale(ownerA, ownerA, saleRequest(productA.id, 1).copy(clientSaleId = "bad key!"))
+        }
+    }
+
+    @Test
+    fun salesWithoutClientIdAreNeverDeduplicated() = runBlocking<Unit> {
+        val product = products.createProduct(productRequest("Milk", "MILK-1"), ownerA)
+        sales.createSale(ownerA, ownerA, saleRequest(product.id, 1))
+        sales.createSale(ownerA, ownerA, saleRequest(product.id, 1))
+        assertEquals(2, sales.getSales(ownerA).size)
+    }
+
     // --- 5. Supplier contacts are private ---------------------------------------------------
 
     @Test

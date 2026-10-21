@@ -57,6 +57,7 @@ object DatabaseFactory {
             Users, Products, Businesses, Roles, DeviceTokens
         )
         widenImageUrlColumns()
+        addSaleIdempotencyKey()
         // Required for signup/role picker — not test data.
         seedDefaultRolesIfEmpty()
         logger.info("Database schema verification completed.")
@@ -108,6 +109,16 @@ object DatabaseFactory {
     }
 
     private const val IMAGE_URL_LENGTH = 1024
+
+    /**
+     * Offline sales carry a client-generated key. Idempotent; the names match [Sales] so Exposed
+     * never tries to recreate them. NULL keys (older clients) are never treated as duplicates.
+     */
+    private fun addSaleIdempotencyKey() {
+        val tx = TransactionManager.current()
+        tx.exec("ALTER TABLE sales ADD COLUMN IF NOT EXISTS client_sale_id VARCHAR(64)")
+        tx.exec("CREATE UNIQUE INDEX IF NOT EXISTS sales_owner_client_sale_id ON sales (owner_user_id, client_sale_id)")
+    }
 
     /**
      * Adds owner_user_id to shop tables and makes SKU / supplier name unique per shop.

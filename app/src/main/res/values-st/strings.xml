@@ -468,7 +468,7 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
     <string name="retry_synchronization">Leka tumellano hape</string>
     <string name="sync_up_to_date">E ntlafatsoa</string>
     <string name="sync_status_checking">E ntse e hlahloba…</string>
-    <string name="sync_status_online_offline_hint">Liphetoho tsa online li tsamaisana hang-hang. Liphetoho tsa sehlopha le sehlahisoa ntle le inthanete li ema mona ho fihlela khokahano e fumaneha (lihlopha li tsamaisana pele ho lihlahisoa).</string>
+    <string name="sync_status_online_offline_hint">Liphetoho tsa online li tsamaisana hang-hang. Liphetoho tsa sehlopha, sehlahisoa le thekiso ntle le inthanete li ema mona ho fihlela khokahano e fumaneha (lihlopha pele ho lihlahisoa, lihlahisoa pele ho thekiso).</string>
     <string name="error_offline_category_requires_existing">Ha u online. Khetha sehlopha se seng se le teng, kapa khokahana hape ho theha se secha.</string>
 
 
@@ -488,4 +488,9 @@ Tobetsa lihlahisoa skrining sa POS ho li eketsa.</string>
     <string name="activity_type_deleted">E hlakotsoe</string>
     <string name="activity_type_low_stock">Stock e tlase</string>
 
+    <string name="sale_saved_offline">Thekiso e bolokilwe ntle le inthanete — %1$s. E tla tsamaisana ha o boela inthaneteng.</string>
+    <string name="sale_offline_title">Thekiso ntle le inthanete</string>
+    <string name="error_offline_sale_unsynced_product">Kariki ena e na le sehlahisoa se so kang se tsamaisana. Hokela inthaneteng ho phethela thekiso.</string>
+    <string name="error_offline_sale_unavailable">Sehlahisoa se kariking ha se fumanehe ntle le inthanete. Hokela inthaneteng ho phethela thekiso.</string>
+    <string name="error_offline_sale_insufficient_stock">Setoko ha se a lekana bakeng sa %1$s.</string>
 </resources>

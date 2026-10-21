@@ -492,7 +492,7 @@
     <string name="retry_synchronization">Retry synchronization</string>
     <string name="sync_up_to_date">Up to date</string>
     <string name="sync_status_checking">Checking…</string>
-    <string name="sync_status_online_offline_hint">Online writes sync immediately. Offline category and product changes wait here until a connection is available (categories sync before products).</string>
+    <string name="sync_status_online_offline_hint">Online writes sync immediately. Offline category, product and sale changes wait here until a connection is available (categories sync before products, products before sales).</string>
     <string name="error_offline_category_requires_existing">You are offline. Choose an existing category, or reconnect to create a new one.</string>
 
 
@@ -512,4 +512,9 @@
     <string name="activity_type_deleted">Deleted</string>
     <string name="activity_type_low_stock">Low stock</string>
 
+    <string name="sale_saved_offline">Sale saved offline — %1$s. It will sync when you are back online.</string>
+    <string name="sale_offline_title">Offline sale</string>
+    <string name="error_offline_sale_unsynced_product">This cart has a product that has not synced yet. Connect to the internet to complete the sale.</string>
+    <string name="error_offline_sale_unavailable">A product in the cart is not available offline. Connect to the internet to complete the sale.</string>
+    <string name="error_offline_sale_insufficient_stock">Not enough stock for %1$s.</string>
 </resources>

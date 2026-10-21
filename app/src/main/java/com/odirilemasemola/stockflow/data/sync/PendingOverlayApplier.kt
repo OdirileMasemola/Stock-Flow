@@ -5,6 +5,7 @@ import com.odirilemasemola.stockflow.data.local.cache.PendingEntityType
 import com.odirilemasemola.stockflow.data.local.cache.PendingOpStatus
 import com.odirilemasemola.stockflow.data.local.cache.PendingOpType
 import com.odirilemasemola.stockflow.data.local.cache.PendingOperationDao
+import com.odirilemasemola.stockflow.data.local.cache.PendingOperationEntity
 import com.odirilemasemola.stockflow.data.local.cache.ProductCacheDao
 import com.odirilemasemola.stockflow.data.local.cache.toCachedEntity
 
@@ -41,6 +42,40 @@ object PendingOverlayApplier {
                 }
             }
         }
+        applyPendingSaleStock(userId, productDao, pendingDao, clock)
+    }
+
+    /**
+     * A refreshed product list does not include sales that are still queued offline, so
+     * subtract their quantities again. FAILED sales are excluded: their stock was restored.
+     */
+    suspend fun applyPendingSaleStock(
+        userId: Int,
+        productDao: ProductCacheDao,
+        pendingDao: PendingOperationDao,
+        clock: () -> Long
+    ) {
+        val quantities = pendingSaleQuantities(pendingDao.getAllForUser(userId))
+        for ((productId, quantity) in quantities) {
+            val cached = productDao.getById(userId, productId) ?: continue
+            productDao.upsert(
+                cached.copy(stockLevel = (cached.stockLevel - quantity).coerceAtLeast(0), cachedAt = clock())
+            )
+        }
+    }
+
+    /** Total quantity per product across PENDING/SYNCING offline sales. */
+    fun pendingSaleQuantities(ops: List<PendingOperationEntity>): Map<Int, Int> {
+        val totals = linkedMapOf<Int, Int>()
+        ops.filter {
+            it.entityType == PendingEntityType.SALE &&
+                (it.status == PendingOpStatus.PENDING || it.status == PendingOpStatus.SYNCING)
+        }.forEach { op ->
+            SaleWritePayload.fromJson(op.payloadJson).lines.forEach { line ->
+                totals[line.productId] = (totals[line.productId] ?: 0) + line.quantity
+            }
+        }
+        return totals
     }
 
     suspend fun applyCategoryOverlays(

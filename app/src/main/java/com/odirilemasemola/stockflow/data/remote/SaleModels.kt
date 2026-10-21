@@ -11,7 +11,9 @@ data class CreateSaleItemRequest(
 
 data class CreateSaleRequest(
     val paymentMethod: String,
-    val items: List<CreateSaleItemRequest>
+    val items: List<CreateSaleItemRequest>,
+    /** Idempotency key: retries of the same sale (e.g. offline queue) are recorded once. */
+    val clientSaleId: String? = null
 )
 
 data class SaleItemDto(
@@ -29,5 +31,7 @@ data class SaleDto(
     val totalAmount: Double,
     val paymentMethod: String,
     val createdAt: String,
-    val items: List<SaleItemDto> = emptyList()
+    val items: List<SaleItemDto> = emptyList(),
+    /** Local only: recorded offline and still waiting to sync. Never sent by the server. */
+    val pending: Boolean = false
 )

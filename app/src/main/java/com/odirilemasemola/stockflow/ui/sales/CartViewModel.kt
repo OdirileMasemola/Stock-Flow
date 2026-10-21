@@ -19,7 +19,8 @@ import com.odirilemasemola.stockflow.R
 class CartViewModel(application: Application) : AndroidViewModel(application) {
 
     private val saleRepository = SaleRepository(
-        sessionStore = SessionStore(application.applicationContext)
+        sessionStore = SessionStore(application.applicationContext),
+        appContext = application.applicationContext
     )
 
     val cartState: LiveData<CartSession.CartUiState> = CartSession.state

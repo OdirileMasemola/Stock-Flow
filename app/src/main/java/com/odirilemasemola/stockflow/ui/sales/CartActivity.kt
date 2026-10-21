@@ -98,15 +98,13 @@ class CartActivity : AppCompatActivity() {
             is CartViewModel.CheckoutUiState.Idle -> Unit
             is CartViewModel.CheckoutUiState.Loading -> Unit
             is CartViewModel.CheckoutUiState.Success -> {
-                Toast.makeText(
-                    this,
-                    getString(
-                        R.string.sale_completed,
-                        state.sale.id,
-                        getString(R.string.price_format, state.sale.totalAmount)
-                    ),
-                    Toast.LENGTH_LONG
-                ).show()
+                val total = getString(R.string.price_format, state.sale.totalAmount)
+                val message = if (state.sale.pending) {
+                    getString(R.string.sale_saved_offline, total)
+                } else {
+                    getString(R.string.sale_completed, state.sale.id, total)
+                }
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
                 viewModel.clearCheckoutMessage()
                 finish()
             }

@@ -13,6 +13,7 @@ import com.odirilemasemola.stockflow.data.remote.ApiErrorResponse
 import com.odirilemasemola.stockflow.data.remote.CategoryApi
 import com.odirilemasemola.stockflow.data.remote.ProductApi
 import com.odirilemasemola.stockflow.data.remote.RetrofitClient
+import com.odirilemasemola.stockflow.data.remote.SaleApi
 import com.google.gson.Gson
 import java.io.IOException
 
@@ -37,7 +38,8 @@ class PendingSyncProcessor(
     private val sessionStore: SessionStore,
     private val database: StockFlowCacheDatabase? = CacheDatabaseProvider.getOrNull(),
     private val clock: () -> Long = { System.currentTimeMillis() },
-    private val maxTransientRetries: Int = 8
+    private val maxTransientRetries: Int = 8,
+    private val saleApi: SaleApi = RetrofitClient.saleApi
 ) {
     private val gson = Gson()
     private val pendingDao get() = database?.pendingOperationDao()
@@ -61,7 +63,8 @@ class PendingSyncProcessor(
                 when (it.entityType) {
                     PendingEntityType.CATEGORY -> 0
                     PendingEntityType.PRODUCT -> 1
-                    else -> 2
+                    PendingEntityType.SALE -> 2
+                    else -> 3
                 }
             }.thenBy { it.createdAt }
         )
@@ -90,6 +93,7 @@ class PendingSyncProcessor(
                 when (op.entityType) {
                     PendingEntityType.CATEGORY -> syncCategory(auth, userId, inflight)
                     PendingEntityType.PRODUCT -> syncProduct(auth, userId, inflight)
+                    PendingEntityType.SALE -> syncSale(auth, inflight)
                     else -> SyncOpOutcome.PermanentFailure("Unsupported entity type: ${op.entityType}")
                 }
             } catch (e: IOException) {
@@ -140,6 +144,9 @@ class PendingSyncProcessor(
                 }
                 is SyncOpOutcome.PermanentFailure -> {
                     markFailed(inflight, outcome.message)
+                    if (op.entityType == PendingEntityType.SALE) {
+                        restoreStockForRejectedSale(userId, op)
+                    }
                     summary = summary.copy(failedPermanent = summary.failedPermanent + 1)
                     Log.w(TAG, "sync permanent fail ${op.id}: ${outcome.message}")
                 }
@@ -151,6 +158,46 @@ class PendingSyncProcessor(
             LocalCacheReconciler.recalculateDashboardFromProducts(database, userId, clock)
         }
         return summary
+    }
+
+    /**
+     * Replays an offline sale. The clientSaleId makes the POST idempotent on the server, so a
+     * retry after a lost response returns the original sale instead of recording it twice.
+     * Local stock was already decremented when the sale was queued, so it is not applied again.
+     */
+    private suspend fun syncSale(auth: String, op: PendingOperationEntity): SyncOpOutcome {
+        if (op.operationType != PendingOpType.CREATE) {
+            return SyncOpOutcome.PermanentFailure("Unsupported sale op: ${op.operationType}")
+        }
+        val payload = SaleWritePayload.fromJson(op.payloadJson)
+        val response = saleApi.createSale(auth, payload.toCreateRequest())
+        return when {
+            response.isSuccessful -> SyncOpOutcome.Success
+            response.code() == 401 -> SyncOpOutcome.AuthRequired
+            response.code() in 400..499 -> SyncOpOutcome.PermanentFailure(errorMessage(response))
+            else -> {
+                if (op.retryCount + 1 >= maxTransientRetries) {
+                    SyncOpOutcome.PermanentFailure(errorMessage(response))
+                } else {
+                    SyncOpOutcome.NetworkFailure(errorMessage(response))
+                }
+            }
+        }
+    }
+
+    /** The server rejected the sale (e.g. stock ran out), so give the queued quantities back locally. */
+    private suspend fun restoreStockForRejectedSale(userId: Int, op: PendingOperationEntity) {
+        val dao = productDao ?: return
+        val payload = try {
+            SaleWritePayload.fromJson(op.payloadJson)
+        } catch (_: Exception) {
+            return
+        }
+        for (line in payload.lines) {
+            val cached = dao.getById(userId, line.productId) ?: continue
+            dao.upsert(cached.copy(stockLevel = cached.stockLevel + line.quantity, cachedAt = clock()))
+        }
+        database?.let { LocalCacheReconciler.recalculateDashboardFromProducts(it, userId, clock) }
     }
 
     private suspend fun syncCategory(

@@ -2,6 +2,7 @@ package com.odirilemasemola.stockflow.ui.sales
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -27,9 +28,15 @@ class SaleHistoryAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(sale: SaleDto) {
-            binding.tvSaleId.text = binding.root.context.getString(R.string.sale_id_format, sale.id)
+            val context = binding.root.context
+            binding.tvSaleId.text = if (sale.pending) {
+                context.getString(R.string.sale_offline_title)
+            } else {
+                context.getString(R.string.sale_id_format, sale.id)
+            }
             binding.tvSaleDate.text = sale.createdAt.replace('T', ' ')
             binding.tvPayment.text = sale.paymentMethod
+            binding.tvPendingSync.isVisible = sale.pending
             binding.tvTotal.text = binding.root.context.getString(R.string.price_format, sale.totalAmount)
             binding.root.setOnClickListener { onClick(sale) }
         }

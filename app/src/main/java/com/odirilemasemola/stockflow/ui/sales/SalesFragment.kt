@@ -63,7 +63,8 @@ class SalesFragment : Fragment() {
             viewModel.addToCart(product)
         }
         historyAdapter = SaleHistoryAdapter { sale ->
-            openSaleDetails(sale.id)
+            // Queued offline sales are local only; show the stored lines instead of calling the API.
+            if (sale.pending) showSaleDetailsDialog(sale) else openSaleDetails(sale.id)
         }
 
         binding.rvProducts.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -231,7 +232,10 @@ class SalesFragment : Fragment() {
         }
 
         AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.sale_details_title, sale.id))
+            .setTitle(
+                if (sale.pending) getString(R.string.sale_offline_title)
+                else getString(R.string.sale_details_title, sale.id)
+            )
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
             .show()

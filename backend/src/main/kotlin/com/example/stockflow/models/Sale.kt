@@ -32,8 +32,17 @@ object Sales : Table("sales") {
     val createdAt = datetime("created_at").default(LocalDateTime.now()).index()
     /** Shop owner. Backfilled from [userId] for sales recorded before shops existed. */
     val ownerUserId = integer("owner_user_id").references(Users.id).nullable().index()
+    /**
+     * Client-generated idempotency key (offline queue). A retried POST with the same key for the
+     * same shop returns the original sale instead of recording it twice.
+     */
+    val clientSaleId = varchar("client_sale_id", 64).nullable()
 
     override val primaryKey = PrimaryKey(id)
+
+    init {
+        uniqueIndex("sales_owner_client_sale_id", ownerUserId, clientSaleId)
+    }
 }
 
 object SaleItems : Table("sale_items") {

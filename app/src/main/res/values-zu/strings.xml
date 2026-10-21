@@ -468,7 +468,7 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="retry_synchronization">Zama ukuvumelanisa futhi</string>
     <string name="sync_up_to_date">Kusabusha</string>
     <string name="sync_status_checking">Iyacubungula…</string>
-    <string name="sync_status_online_offline_hint">Izinguquko eziku-inthanethi zivumelaniswa ngokushesha. Izinguquko zesigaba nomkhiqizo ngaphandle kwe-inthanethi zilinda lapha kuze kube khona uxhumano (izigaba zivumelaniswa ngaphambi kwemikhiqizo).</string>
+    <string name="sync_status_online_offline_hint">Izinguquko eziku-inthanethi zivumelaniswa ngokushesha. Izinguquko zesigaba, zomkhiqizo nezokuthengisa ngaphandle kwe-inthanethi zilinda lapha kuze kube khona uxhumano (izigaba ngaphambi kwemikhiqizo, imikhiqizo ngaphambi kokuthengisa).</string>
     <string name="error_offline_category_requires_existing">Awukho ku-inthanethi. Khetha isigaba esikhona, noma uxhumeke kabusha ukuze udale esisha.</string>
 
 
@@ -488,4 +488,9 @@ Thepha imikhiqizo esikrinini se-POS ukuze wengeze.</string>
     <string name="activity_type_deleted">Kususiwe</string>
     <string name="activity_type_low_stock">Isitokwe esiphansi</string>
 
+    <string name="sale_saved_offline">Ukuthengisa kugcinwe ngaphandle kwe-inthanethi — %1$s. Kuzovumelaniswa uma usubuyele ku-inthanethi.</string>
+    <string name="sale_offline_title">Ukuthengisa ngaphandle kwe-inthanethi</string>
+    <string name="error_offline_sale_unsynced_product">Le nqola inomkhiqizo ongakavumelaniswa. Xhuma ku-inthanethi ukuze uqedele ukuthengisa.</string>
+    <string name="error_offline_sale_unavailable">Umkhiqizo osenqoleni awutholakali ngaphandle kwe-inthanethi. Xhuma ku-inthanethi ukuze uqedele ukuthengisa.</string>
+    <string name="error_offline_sale_insufficient_stock">Isitoko asanele ku-%1$s.</string>
 </resources>

@@ -34,7 +34,9 @@ data class SaleLineInput(
 data class CreateSaleResult(
     val sale: SaleResponse,
     /** Products that crossed into low stock during this sale (for FCM alerts). */
-    val lowStockCrossings: List<LowStockCrossing> = emptyList()
+    val lowStockCrossings: List<LowStockCrossing> = emptyList(),
+    /** True when [CreateSaleRequest.clientSaleId] matched an existing sale; nothing was recorded. */
+    val duplicate: Boolean = false
 )
 
 /** Sales and the products they sell are scoped to [ownerUserId]. */
@@ -43,8 +45,12 @@ interface SaleRepository {
         userId: Int,
         ownerUserId: Int,
         paymentMethod: String,
-        lines: List<SaleLineInput>
+        lines: List<SaleLineInput>,
+        clientSaleId: String? = null
     ): CreateSaleResult
+
+    /** Sale already recorded for this shop with the given idempotency key, or null. */
+    suspend fun findByClientSaleId(ownerUserId: Int, clientSaleId: String): SaleResponse?
 
     suspend fun getAllSales(ownerUserId: Int): List<SaleResponse>
     suspend fun getSaleById(id: Int, ownerUserId: Int): SaleResponse?
@@ -56,8 +62,16 @@ class SaleRepositoryImpl : SaleRepository {
         userId: Int,
         ownerUserId: Int,
         paymentMethod: String,
-        lines: List<SaleLineInput>
+        lines: List<SaleLineInput>,
+        clientSaleId: String?
     ): CreateSaleResult = dbQuery {
+        if (clientSaleId != null) {
+            // Re-check inside the transaction; the unique index is the final guard against races.
+            val existingId = existingSaleId(ownerUserId, clientSaleId)
+            if (existingId != null) {
+                return@dbQuery CreateSaleResult(sale = loadSale(existingId, ownerUserId)!!, duplicate = true)
+            }
+        }
         // Entire sale + stock deduction runs in one suspended transaction.
         val pricedLines = mutableListOf<PricedLine>()
         var total = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
@@ -101,6 +115,7 @@ class SaleRepositoryImpl : SaleRepository {
             it[Sales.paymentMethod] = paymentMethod
             it[createdAt] = now
             it[Sales.ownerUserId] = ownerUserId
+            it[Sales.clientSaleId] = clientSaleId
         }
 
         val saleId = saleInsert.resultedValues?.first()?.get(Sales.id)
@@ -186,12 +201,26 @@ class SaleRepositoryImpl : SaleRepository {
             }
     }
 
+    override suspend fun findByClientSaleId(ownerUserId: Int, clientSaleId: String): SaleResponse? = dbQuery {
+        existingSaleId(ownerUserId, clientSaleId)?.let { loadSale(it, ownerUserId) }
+    }
+
+    private fun existingSaleId(ownerUserId: Int, clientSaleId: String): Int? =
+        Sales.selectAll()
+            .where { (Sales.ownerUserId eq ownerUserId) and (Sales.clientSaleId eq clientSaleId) }
+            .singleOrNull()
+            ?.get(Sales.id)
+
     override suspend fun getSaleById(id: Int, ownerUserId: Int): SaleResponse? = dbQuery {
+        loadSale(id, ownerUserId)
+    }
+
+    private fun loadSale(id: Int, ownerUserId: Int): SaleResponse? {
         val saleRow = Sales
             .selectAll()
             .where { (Sales.id eq id) and (Sales.ownerUserId eq ownerUserId) }
             .singleOrNull()
-            ?: return@dbQuery null
+            ?: return null
 
         val items = SaleItems
             .selectAll()
@@ -214,7 +243,7 @@ class SaleRepositoryImpl : SaleRepository {
                 )
             }
 
-        SaleResponse(
+        return SaleResponse(
             id = saleRow[Sales.id],
             userId = saleRow[Sales.userId],
             totalAmount = saleRow[Sales.totalAmount].toDouble(),
